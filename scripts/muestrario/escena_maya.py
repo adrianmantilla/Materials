@@ -28,7 +28,7 @@ from muestrario.i18n import t
 def _unir(origen, destino):
     """connectAttr que no avisa si la conexión ya existe."""
     if not cmds.isConnected(origen, destino):
-        _unir(origen, destino)
+        cmds.connectAttr(origen, destino, force=True)
 
 TIPO = "openPBRSurface"
 ATTR_RECETA = "muestrarioReceta"
