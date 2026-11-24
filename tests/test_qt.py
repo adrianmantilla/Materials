@@ -178,8 +178,11 @@ class PruebaVentana(unittest.TestCase):
         self.esperar_miniaturas()
         self.assertFalse(self.item_receta("Oro").icon().isNull())
         self.assertIsNotNone(self.v.vista.pixmap())
-        # Las miniaturas se guardan en disco para la próxima vez.
-        self.assertTrue(os.listdir(os.path.join(self.preferencias, "miniaturas")))
+        # Sin render de Arnold, la vista calculada se guarda en disco para la próxima vez.
+        from materials import vista_previa as vp
+        oro = self.item_receta("Oro").data(QtCore.Qt.UserRole)
+        if vp.miniatura_arnold(oro, self.v.destino) is None:
+            self.assertTrue(os.listdir(os.path.join(self.preferencias, "miniaturas")))
 
     def test_buscar(self):
         self.elegir_familia("")
