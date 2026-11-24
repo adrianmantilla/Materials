@@ -164,6 +164,7 @@
    "rugosidad": 0.0,
    "transparencia": 1.0,
    "ior": 1.35,
+   "color_transmision": "#a01a2c",
    "profundidad_transmision": 10.0
   },
   {
@@ -188,6 +189,7 @@
    "rugosidad": 0.0,
    "transparencia": 1.0,
    "ior": 1.34,
+   "color_transmision": "#8a4a20",
    "profundidad_transmision": 8.0
   },
   {
