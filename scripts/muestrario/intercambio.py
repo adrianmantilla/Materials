@@ -100,6 +100,10 @@ def nueva_receta_envio(objeto, malla, juegos, destino="render", motor="arnold", 
 def enviar(carpeta, receta_envio):
     """Escribe receta.json y deja el aviso en el buzón. Devuelve la ruta del aviso."""
     os.makedirs(os.path.join(carpeta, CARPETA_TEXTURAS), exist_ok=True)
+    # Un manifiesto de un envío anterior haría que Maya volviera a conectar texturas viejas.
+    viejo = os.path.join(carpeta, MANIFIESTO)
+    if os.path.isfile(viejo):
+        os.replace(viejo, os.path.join(carpeta, "manifiesto_anterior.json"))
     ruta_receta = os.path.join(carpeta, RECETA)
     escribir_json(ruta_receta, receta_envio)
     aviso = {"version": VERSION, "receta": os.path.abspath(ruta_receta), "objeto": receta_envio.get("objeto"),

@@ -16,7 +16,8 @@ def _potencia_de_dos(n):
     return isinstance(n, int) and n > 0 and (n & (n - 1)) == 0
 
 
-def comprobar(receta, destino=rc.RENDER, texturas=None):
+def comprobar(receta, destino=rc.RENDER, texturas=None, tamano=None):
+    """``tamano``: menor medida de los objetos con el material, en unidades de escena (cm), si se sabe."""
     r = rc.normalizar(receta)
     texturas = texturas or {}
     avisos = []
@@ -38,6 +39,10 @@ def comprobar(receta, destino=rc.RENDER, texturas=None):
         avisos.append((AVISO, "chk_metal_transparente", {}))
     if r["transparencia"] > 0 and r["subsuperficie"] > 0:
         avisos.append((INFO, "chk_trans_sss", {}))
+    if destino == rc.RENDER and r["subsuperficie"] > 0 and tamano and tamano < 10 * r["radio_subsuperficie"]:
+        # El radio de subsuperficie está en unidades de escena: en objetos pequeños la luz lo atraviesa todo.
+        avisos.append((INFO, "chk_sss_escala", {"tamano": "{:.1f}".format(tamano),
+                                                "radio": "{:.2f}".format(r["radio_subsuperficie"])}))
     if r["ior"] < 1.2 or r["ior"] > 2.6:
         avisos.append((AVISO, "chk_ior", {"ior": "{:.2f}".format(r["ior"])}))
     if r["emision"] > 0 and destino == rc.RENDER:

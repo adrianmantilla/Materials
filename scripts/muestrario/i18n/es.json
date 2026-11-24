@@ -133,7 +133,7 @@
  "chk_ior": "IOR {ior}: casi todo está entre 1,3 y 2,5.",
  "chk_emision": "La emisión ({nits} nits) ilumina en Arnold pero genera ruido. Para iluminar la escena, mejor una luz de malla.",
  "chk_opacidad_y_trans": "Opacidad y transparencia a la vez: la opacidad recorta, la transparencia es vidrio. Revisa que quieras las dos.",
- "chk_juego_apagados": "En videojuego no viajan: {lista}. Se ignoran.",
+ "chk_juego_apagados": "En videojuego no viajan: {lista}. Se ignoran, así que el material se verá distinto que en render (por ejemplo, sin barniz).",
  "chk_juego_transparencia": "En el motor la transparencia será alfa (translúcido), sin refracción.",
  "chk_juego_metal": "Los motores esperan metal 0 o 1 salvo que venga de textura.",
  "chk_receta_render": "Esta receta está pensada para render: en el motor se verá más simple.",
@@ -251,5 +251,7 @@
  "aj_painter": "Painter",
  "aj_painter_auto": "Se busca solo; escribe la ruta si no lo encuentra",
  "aj_mias": "Mis recetas",
- "aj_buzon": "Buzón para Painter"
+ "aj_buzon": "Buzón para Painter",
+ "chk_sss_escala": "El objeto mide {tamano} cm y el radio de subsuperficie es {radio}: la luz lo atraviesa casi entero y se ve naranja. Trabaja a escala real (1 unidad = 1 cm) o baja el radio en «Más…».",
+ "painter_compartidos": "Enviado, pero {lista} lo llevan varios objetos: en Painter compartirán texturas y, si sus UVs se solapan, se pintarán a la vez. Si deben ser distintos, duplica el material."
 }

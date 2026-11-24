@@ -44,6 +44,7 @@ class Servicios(object):
     def material_seleccionado(self): return None
     def asignar(self, material, elementos=None): return 0
     def seleccionar_objetos(self, material): return 0
+    def tamano_objetos(self, material): return None
     def seleccionar_nodo(self, material): pass
     def renombrar(self, material, nombre): return material
     def materiales(self): return []
@@ -55,6 +56,7 @@ class Servicios(object):
     def reparar_rutas(self, carpetas_extra=()): return [], []
     def copiar_al_proyecto(self): return 0
     def objetos_seleccionados(self): return []
+    def materiales_compartidos(self, objetos): return []
     def enviar_a_painter(self, objetos, destino, motor, resolucion, nombre=None): return ""
     def envios(self): return []
     def aplicar_manifiesto(self, carpeta, opciones=None): return []
@@ -721,7 +723,8 @@ class VentanaMuestrario(QtWidgets.QWidget):
 
     def _actualizar_vista(self):
         self._vista_t.start()
-        avisos = chk.comprobar(self.receta, self.destino, self.receta.get("texturas"))
+        tamano = self._seguro(self.servicios.tamano_objetos, self.material) if self.material else None
+        avisos = chk.comprobar(self.receta, self.destino, self.receta.get("texturas"), tamano=tamano)
         filas = []
         for nivel, clave, valores in avisos:
             filas.append("<div style='margin:2px 0'><b style='color:{}'>{}</b>&nbsp;{}</div>".format(
@@ -1077,7 +1080,11 @@ class VentanaMuestrario(QtWidgets.QWidget):
             return
         self._huellas[carpeta] = ic.huella_manifiesto(carpeta)
         self.log(t("painter_enviado", carpeta=carpeta))
-        self.mensaje(t("painter_enviado_corto"))
+        compartidos = self._seguro(self.servicios.materiales_compartidos, objetos) or []
+        if compartidos:
+            self.mensaje(t("painter_compartidos", lista=", ".join(compartidos)), error=True)
+        else:
+            self.mensaje(t("painter_enviado_corto"))
         if self._ajuste("abrir_painter"):
             self._abrir_painter(silencioso=True)
         self.refrescar_envios()

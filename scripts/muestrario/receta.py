@@ -30,7 +30,7 @@ SOLO_RENDER = ("subsuperficie", "barniz", "pelusa")
 
 # Emisión: el deslizador va de 0 a 1 y se convierte en luminancia (nits) con una
 # curva para que la parte baja (pilotos, pantallas) tenga recorrido.
-EMISION_MAX_NITS = 5000.0
+EMISION_MAX_NITS = 1000.0   # 0,5 = 125 nits; con 5000 los neones se quemaban en Arnold
 
 DEFECTO = {
     "nombre": "Material",

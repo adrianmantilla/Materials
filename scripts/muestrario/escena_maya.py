@@ -247,6 +247,22 @@ class ServiciosMaya(object):
             cmds.sets(validos, edit=True, forceElement=self._grupo(material))
         return len(validos)
 
+    def tamano_objetos(self, material):
+        """Menor medida (en unidades de escena) de los objetos que llevan el material, o None."""
+        grupos = cmds.listConnections(material + ".outColor", type="shadingEngine") or []
+        medidas = []
+        for g in grupos:
+            for m in cmds.sets(g, query=True) or []:
+                try:
+                    caja = cmds.exactWorldBoundingBox(m.split(".")[0])
+                except (RuntimeError, ValueError):
+                    continue
+                lados = [caja[3] - caja[0], caja[4] - caja[1], caja[5] - caja[2]]
+                lados = [x for x in lados if x > 1e-6]
+                if lados:
+                    medidas.append(min(lados))
+        return min(medidas) if medidas else None
+
     def seleccionar_objetos(self, material):
         grupos = cmds.listConnections(material + ".outColor", type="shadingEngine") or []
         miembros = []
@@ -275,9 +291,12 @@ class ServiciosMaya(object):
         tipos = (TIPO,) + TIPOS_CONVERTIBLES
         for material in cmds.ls(materials=True) or []:
             tipo = cmds.nodeType(material)
-            if tipo not in tipos or material in ("lambert1", "standardSurface1", "particleCloud1", "shaderGlow1"):
+            if tipo not in tipos or material in ("lambert1", "standardSurface1", "particleCloud1", "shaderGlow1",
+                                                 "openPBR_shader1"):
                 continue
             grupos = cmds.listConnections(material + ".outColor", type="shadingEngine") or []
+            if set(grupos) & {"initialShadingGroup", "initialParticleSE"}:
+                continue  # material por defecto de Maya: ni se lista ni se borra
             miembros = []
             for g in grupos:
                 miembros.extend(cmds.sets(g, query=True) or [])
@@ -297,7 +316,8 @@ class ServiciosMaya(object):
                 grupos = cmds.listConnections(material + ".outColor", type="shadingEngine") or []
                 aguas_arriba = cmds.listHistory(material) or []
                 borrar = [n for n in aguas_arriba if cmds.nodeType(n) in ("file", "place2dTexture", "bump2d",
-                                                                        "reverse", "displacementShader")]
+                                                                        "reverse", "displacementShader",
+                                                                        "multiplyDivide", "condition")]
                 cmds.delete([material] + grupos + borrar)
         return len(sin_usar)
 
@@ -418,10 +438,27 @@ class ServiciosMaya(object):
         cmds.setAttr(nodo + ".alphaIsLuminance", 1 if alfa_es_luminancia else 0)
         return nodo
 
-    def _salida(self, nodo, canal, invertir, material, entrada):
+    def _salida(self, nodo, canal, invertir, material, entrada, dividir_alfa=False):
         """Plug escalar del nodo de imagen (canal o luminancia), invertido si hace falta."""
         plug = {"R": ".outColorR", "G": ".outColorG", "B": ".outColorB", "A": ".outAlpha"}.get(canal, ".outAlpha")
         plug = nodo + plug
+        if dividir_alfa:
+            # canal / alfa, salvo con alfa casi 0 (ahí el canal ya es 0 y no se puede recuperar).
+            division = "{}_{}_div".format(material, entrada)
+            if not cmds.objExists(division):
+                division = cmds.shadingNode("multiplyDivide", asUtility=True, name=division)
+            cmds.setAttr(division + ".operation", 2)
+            _unir(plug, division + ".input1X")
+            _unir(nodo + ".outAlpha", division + ".input2X")
+            condicion = "{}_{}_cond".format(material, entrada)
+            if not cmds.objExists(condicion):
+                condicion = cmds.shadingNode("condition", asUtility=True, name=condicion)
+            cmds.setAttr(condicion + ".operation", 4)      # menor que
+            cmds.setAttr(condicion + ".secondTerm", 0.004)
+            _unir(nodo + ".outAlpha", condicion + ".firstTerm")
+            _unir(plug, condicion + ".colorIfTrueR")
+            _unir(division + ".outputX", condicion + ".colorIfFalseR")
+            plug = condicion + ".outColorR"
         if invertir:
             inversor = "{}_{}_inv".format(material, entrada)
             if not cmds.objExists(inversor):
@@ -470,7 +507,8 @@ class ServiciosMaya(object):
                         cmds.setAttr(material + ".emissionLuminance", 1000.0)
                 else:
                     atributo = ENTRADA_ATRIBUTO[entrada]
-                    plug = self._salida(nodo, c.get("canal"), c.get("invertir"), material, entrada)
+                    plug = self._salida(nodo, c.get("canal"), c.get("invertir"), material, entrada,
+                                       c.get("dividir_alfa", False))
                     _unir(plug, "{}.{}".format(material, atributo))
                 hechas.append(entrada)
         return hechas
@@ -613,6 +651,14 @@ class ServiciosMaya(object):
                         if m not in salida:
                             salida.append(m)
         return salida
+
+    def materiales_compartidos(self, objetos):
+        """Materiales que llevan varios de los objetos: en Painter comparten juego y sus UVs se pisan."""
+        cuenta = {}
+        for o in objetos:
+            for m in self.materiales_de([o]):
+                cuenta[m] = cuenta.get(m, 0) + 1
+        return sorted(m for m, n in cuenta.items() if n > 1)
 
     def sin_uvs(self, objetos):
         malos = []

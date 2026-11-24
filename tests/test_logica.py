@@ -132,6 +132,10 @@ class PruebaComprobacion(unittest.TestCase):
         self.assertIn("chk_receta_render", self.claves(rc.nueva(destinos=["render"]), rc.JUEGO))
         # Con textura de metal, el metal a medias no avisa.
         self.assertNotIn("chk_metal_medias", self.claves(rc.nueva(metal=0.5), texturas={"metal": {}}))
+        # Subsuperficie en un objeto pequeño (radio en unidades de escena).
+        piel = rc.nueva(subsuperficie=1, radio_subsuperficie=1.0)
+        self.assertIn("chk_sss_escala", [c for _, c, _ in chk.comprobar(piel, rc.RENDER, tamano=1.8)])
+        self.assertNotIn("chk_sss_escala", [c for _, c, _ in chk.comprobar(piel, rc.RENDER, tamano=20)])
 
     def test_texturas(self):
         tex = {"rugosidad": {"espacio": "sRGB", "nombre": "r.png"},
@@ -221,6 +225,9 @@ class PruebaTexturas(unittest.TestCase):
         self.assertEqual(unity.conexiones["metal"].canal, "R")
         self.assertEqual(unity.conexiones["rugosidad"].canal, "A")
         self.assertTrue(unity.conexiones["rugosidad"].invertir)
+        # Maya lee la MaskMap premultiplicada: el metal se divide por el alfa.
+        self.assertTrue(unity.conexiones["metal"].como_dict()["dividir_alfa"])
+        self.assertFalse(unreal.conexiones["metal"].como_dict()["dividir_alfa"])
 
     def test_brillo_y_ao(self):
         juego = tx.analizar(["/b/brick_Color.jpg", "/b/brick_Glossiness.jpg", "/b/brick_AO.jpg"])["brick"]
@@ -294,6 +301,10 @@ class PruebaIntercambio(unittest.TestCase):
         ic.escribir_manifiesto(carpeta, {"Madera": [textura]})
         self.assertEqual(ic.leer_manifiesto(carpeta)["contador"], 2)
         self.assertIsNotNone(ic.huella_manifiesto(carpeta))
+        # Reenviar aparta el manifiesto viejo para no reconectar texturas antiguas.
+        ic.enviar(carpeta, receta)
+        self.assertIsNone(ic.leer_manifiesto(carpeta))
+        self.assertTrue(os.path.isfile(os.path.join(carpeta, "manifiesto_anterior.json")))
 
     def test_manifiesto_movido(self):
         carpeta = ic.carpeta_envio(self.proyecto, "caja")

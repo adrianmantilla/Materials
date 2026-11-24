@@ -202,6 +202,11 @@ def _pruebas(cmds, temporal):
     s.conectar_texturas(m_bote, [c.como_dict() for c in tx.analizar(rutas_y)["bote"].conexiones.values()])
     rug_y = entrada_de(cmds, m_bote, "specularRoughness") or ""
     comprobar(cmds.nodeType(rug_y.split(".")[0]) == "reverse", "Unity: suavidad invertida con reverse")
+    met_y = entrada_de(cmds, m_bote, "baseMetalness") or ""
+    comprobar(cmds.nodeType(met_y.split(".")[0]) == "condition", "Unity: metal dividido por el alfa (premultiplicado)")
+    antes_y = len(cmds.ls(type="multiplyDivide"))
+    s.conectar_texturas(m_bote, [c.como_dict() for c in tx.analizar(rutas_y)["bote"].conexiones.values()])
+    comprobar(len(cmds.ls(type="multiplyDivide")) == antes_y, "Unity: reconectar no duplica la división")
 
     # --- Rutas ----------------------------------------------------------------------------------
     movida = os.path.join(proyecto, "sourceimages", "movidas")
@@ -233,6 +238,8 @@ def _pruebas(cmds, temporal):
     comprobar(nuevo_nombre == "M_Hierba" and cmds.objExists("M_HierbaSG"), "renombrar material y grupo")
 
     # --- Painter --------------------------------------------------------------------------------
+    comprobar(s.materiales_compartidos(["|cubo", "|esfera"]) == [], "sin materiales compartidos")
+    comprobar(s.tamano_objetos(m_oro) and s.tamano_objetos(m_oro) > 0.5, "tamaño de los objetos del material")
     cmds.select(cubo)
     carpeta_envio = s.enviar_a_painter(s.objetos_seleccionados(), "render", "arnold", 1024)
     fbx = os.path.join(carpeta_envio, "cubo.fbx")

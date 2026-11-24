@@ -52,6 +52,8 @@ TEXTOS = {
     "malla_nueva": "Maya ha enviado una malla nueva de este objeto.",
     "recargar_malla": "Recargar malla (conserva las capas)",
     "malla_recargada": "Malla recargada.",
+    "reabierto": "Abierto el proyecto que ya tenías de {objeto}; tus capas siguen ahí. Si la malla ha "
+                 "cambiado, pulsa «Recargar malla».",
     "no_carga": "Painter no ha podido cargar la malla. Mira Ventana ▸ Registro (por ejemplo, caras que cruzan "
                 "dos casillas UDIM) y vuelve a enviarla desde Maya.",
 }
@@ -222,7 +224,16 @@ def abrir_envio(aviso, al_terminar=None):
     if not os.path.isfile(malla):
         raise RuntimeError(tr("falta_malla", ruta=malla))
     if sp.project.is_open():
-        raise RuntimeError(tr("proyecto_abierto"))
+        _cerrar_actual()
+    # Si este objeto ya tiene proyecto, se abre ese: crear uno nuevo encima borraría lo pintado.
+    spp = os.path.join(carpeta, receta.get("objeto", "objeto") + ".spp")
+    if os.path.isfile(spp):
+        sp.project.open(spp)
+        if aviso.get("_ruta"):
+            _quitar(aviso["_ruta"])
+        if al_terminar:
+            al_terminar(tr("reabierto", objeto=receta.get("objeto", "")))
+        return
     ajustes = {}
     try:
         formato = sp.project.NormalMapFormat.DirectX if receta.get("normal") == "directx" else \
@@ -244,6 +255,15 @@ def abrir_envio(aviso, al_terminar=None):
     sp.project.create(mesh_file_path=malla, settings=configuracion)
     _estado["pendiente"] = {"malla": malla, "receta": receta, "ruta_receta": ruta_receta, "aviso": aviso.get("_ruta"),
                             "inicio": time.time(), "al_terminar": al_terminar}
+
+
+def _cerrar_actual():
+    """Cierra el proyecto abierto si viene de Muestrario (guardándolo); si no, pide al alumno que lo cierre."""
+    if not receta_enlazada() or not sp.project.file_path():
+        raise RuntimeError(tr("proyecto_abierto"))
+    if sp.project.needs_saving():
+        sp.project.save()
+    sp.project.close()
 
 
 def _preparar_cuando_cargue():

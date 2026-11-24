@@ -73,11 +73,14 @@ class Mapa(object):
 class Conexion(object):
     """Cómo se conecta un mapa a una entrada del material."""
 
-    def __init__(self, entrada, mapa, canal=None, invertir=False):
+    def __init__(self, entrada, mapa, canal=None, invertir=False, dividir_alfa=False):
         self.entrada = entrada
         self.mapa = mapa
         self.canal = canal          # None = color completo; "R", "G", "B", "A" = un canal
         self.invertir = invertir    # brillo/suavidad -> rugosidad
+        # Maya lee los PNG RGBA premultiplicados: en la MaskMap de Unity el metal (R) llega
+        # multiplicado por la suavidad (A). Se divide por A para recuperarlo.
+        self.dividir_alfa = dividir_alfa
 
     @property
     def espacio(self):
@@ -85,7 +88,7 @@ class Conexion(object):
 
     def como_dict(self):
         return {"entrada": self.entrada, "ruta": self.mapa.patron, "nombre": self.mapa.nombre, "canal": self.canal,
-                "invertir": self.invertir, "espacio": self.espacio, "convencion": self.mapa.convencion,
+                "invertir": self.invertir, "dividir_alfa": self.dividir_alfa, "espacio": self.espacio, "convencion": self.mapa.convencion,
                 "udim": self.mapa.udim}
 
 
@@ -227,7 +230,7 @@ def _decidir(juego, empaquetado):
     for tipo in ("mascara_unity", "metal_suavidad"):
         if tipo in m:
             if "metal" not in c:
-                c["metal"] = Conexion("metal", m[tipo], canal="R")
+                c["metal"] = Conexion("metal", m[tipo], canal="R", dividir_alfa=True)
             if "rugosidad" not in c:
                 c["rugosidad"] = Conexion("rugosidad", m[tipo], canal="A", invertir=True)
     if "ao" in m:
