@@ -30,7 +30,7 @@ fallos = []
 
 
 def comprobar(condicion, texto):
-    print(("  ok    " if condicion else "  FALLO ") + texto)
+    print(("  ok    " if condicion else "  FALLO ") + texto, flush=True)
     if not condicion:
         fallos.append(texto)
 
@@ -66,6 +66,7 @@ def main():
     try:
         _pruebas(cmds, temporal)
     except Exception:
+        sys.stdout.flush()
         traceback.print_exc()
         fallos.append("excepción inesperada")
     finally:
@@ -76,6 +77,8 @@ def main():
         maya.standalone.uninitialize()
     except Exception:
         pass
+    sys.stdout.flush()
+    sys.stderr.flush()
     os._exit(0 if not fallos else 1)
 
 
@@ -257,8 +260,8 @@ def _pruebas(cmds, temporal):
         comprobar(True, "avisa de objeto sin UVs")
 
     comprobar(s.borrar_sin_usar() >= 1 and not cmds.objExists("viejo"), "borrar sin usar")
-    cmds.file(rename=os.path.join(proyecto, "scenes", "prueba.ma"))
     os.makedirs(os.path.join(proyecto, "scenes"), exist_ok=True)
+    cmds.file(rename=os.path.join(proyecto, "scenes", "prueba.ma"))
     s.guardar_destino("juego", "unity")
     cmds.file(save=True, type="mayaAscii")
     cmds.file(new=True, force=True)

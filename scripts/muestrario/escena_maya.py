@@ -24,6 +24,12 @@ from muestrario import receta as rc
 from muestrario import texturas as tx
 from muestrario.i18n import t
 
+
+def _unir(origen, destino):
+    """connectAttr que no avisa si la conexión ya existe."""
+    if not cmds.isConnected(origen, destino):
+        _unir(origen, destino)
+
 TIPO = "openPBRSurface"
 ATTR_RECETA = "muestrarioReceta"
 ATTR_DESTINO = "muestrarioDestino"
@@ -129,7 +135,7 @@ class ServiciosMaya(object):
         with _Bloque("Muestrario: crear material"):
             material = cmds.shadingNode(TIPO, asShader=True, name=nombre)
             grupo = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name=material + "SG")
-            cmds.connectAttr(material + ".outColor", grupo + ".surfaceShader", force=True)
+            _unir(material + ".outColor", grupo + ".surfaceShader")
             for atributo in (ATTR_RECETA, ATTR_DESTINO):
                 cmds.addAttr(material, longName=atributo, dataType="string")
             self.actualizar_material(material, receta, destino)
@@ -223,7 +229,7 @@ class ServiciosMaya(object):
         if grupos:
             return grupos[0]
         grupo = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name=material + "SG")
-        cmds.connectAttr(material + ".outColor", grupo + ".surfaceShader", force=True)
+        _unir(material + ".outColor", grupo + ".surfaceShader")
         return grupo
 
     def asignar(self, material, elementos=None):
@@ -330,9 +336,9 @@ class ServiciosMaya(object):
                     origen = cmds.listConnections(material + "." + viejo, source=True, destination=False,
                                                   plugs=True) or []
                     if origen and _hay(nuevo, nuevo_attr):
-                        cmds.connectAttr(origen[0], nuevo + "." + nuevo_attr, force=True)
+                        _unir(origen[0], nuevo + "." + nuevo_attr)
             for grupo in cmds.listConnections(material + ".outColor", type="shadingEngine") or []:
-                cmds.connectAttr(nuevo + ".outColor", grupo + ".surfaceShader", force=True)
+                _unir(nuevo + ".outColor", grupo + ".surfaceShader")
         return nuevo
 
     # --- Texturas -----------------------------------------------------------------------------
@@ -394,9 +400,9 @@ class ServiciosMaya(object):
             for a in ("coverage", "translateFrame", "rotateFrame", "mirrorU", "mirrorV", "stagger", "wrapU",
                       "wrapV", "repeatUV", "offset", "rotateUV", "noiseUV", "vertexUvOne", "vertexUvTwo",
                       "vertexUvThree", "vertexCameraOne"):
-                cmds.connectAttr(uv + "." + a, nodo + "." + a, force=True)
-            cmds.connectAttr(uv + ".outUV", nodo + ".uv", force=True)
-            cmds.connectAttr(uv + ".outUvFilterSize", nodo + ".uvFilterSize", force=True)
+                _unir(uv + "." + a, nodo + "." + a)
+            _unir(uv + ".outUV", nodo + ".uv")
+            _unir(uv + ".outUvFilterSize", nodo + ".uvFilterSize")
         cmds.setAttr(nodo + ".uvTilingMode", 3 if udim else 0)
         cmds.setAttr(nodo + ".fileTextureName", ruta, type="string")
         cmds.setAttr(nodo + ".ignoreColorSpaceFileRules", 1)
@@ -413,7 +419,7 @@ class ServiciosMaya(object):
             inversor = "{}_{}_inv".format(material, entrada)
             if not cmds.objExists(inversor):
                 inversor = cmds.shadingNode("reverse", asUtility=True, name=inversor)
-            cmds.connectAttr(plug, inversor + ".inputX", force=True)
+            _unir(plug, inversor + ".inputX")
             plug = inversor + ".outputX"
         return plug
 
@@ -443,7 +449,7 @@ class ServiciosMaya(object):
                         continue
                 elif entrada in ("color", "emision"):
                     atributo = ENTRADA_ATRIBUTO[entrada]
-                    cmds.connectAttr(nodo + ".outColor", "{}.{}".format(material, atributo), force=True)
+                    _unir(nodo + ".outColor", "{}.{}".format(material, atributo))
                     if entrada == "emision" and cmds.getAttr(material + ".emissionLuminance") <= 0:
                         cmds.setAttr(material + ".emissionLuminance", 1000.0)
                 else:
@@ -451,7 +457,7 @@ class ServiciosMaya(object):
                     if not atributo or not _hay(material, atributo):
                         continue
                     plug = self._salida(nodo, c.get("canal"), c.get("invertir"), material, entrada)
-                    cmds.connectAttr(plug, "{}.{}".format(material, atributo), force=True)
+                    _unir(plug, "{}.{}".format(material, atributo))
                 hechas.append(entrada)
         return hechas
 
@@ -460,7 +466,7 @@ class ServiciosMaya(object):
         if not cmds.objExists(bump):
             bump = cmds.shadingNode("bump2d", asUtility=True, name=bump)
         cmds.setAttr(bump + ".bumpInterp", 1)  # normales en espacio tangente
-        cmds.connectAttr(nodo + ".outAlpha", bump + ".bumpValue", force=True)
+        _unir(nodo + ".outAlpha", bump + ".bumpValue")
         # DirectX tiene el verde al revés que Maya: se invierte en el propio nodo de imagen.
         if convencion == "directx":
             cmds.setAttr(nodo + ".colorGain", 1, -1, 1, type="double3")
@@ -468,7 +474,7 @@ class ServiciosMaya(object):
         else:
             cmds.setAttr(nodo + ".colorGain", 1, 1, 1, type="double3")
             cmds.setAttr(nodo + ".colorOffset", 0, 0, 0, type="double3")
-        cmds.connectAttr(bump + ".outNormal", material + ".normalCamera", force=True)
+        _unir(bump + ".outNormal", material + ".normalCamera")
 
     def _conectar_bump(self, material, nodo):
         bump = "{}_altura_bump".format(material)
@@ -476,18 +482,18 @@ class ServiciosMaya(object):
             bump = cmds.shadingNode("bump2d", asUtility=True, name=bump)
         cmds.setAttr(bump + ".bumpInterp", 0)
         cmds.setAttr(bump + ".bumpDepth", 0.05)
-        cmds.connectAttr(nodo + ".outAlpha", bump + ".bumpValue", force=True)
-        cmds.connectAttr(bump + ".outNormal", material + ".normalCamera", force=True)
+        _unir(nodo + ".outAlpha", bump + ".bumpValue")
+        _unir(bump + ".outNormal", material + ".normalCamera")
 
     def _conectar_desplazamiento(self, material, nodo, escala):
         grupo = self._grupo(material)
         desp = "{}_desplazamiento".format(material)
         if not cmds.objExists(desp):
             desp = cmds.shadingNode("displacementShader", asShader=True, name=desp)
-        cmds.connectAttr(nodo + ".outAlpha", desp + ".displacement", force=True)
+        _unir(nodo + ".outAlpha", desp + ".displacement")
         cmds.setAttr(desp + ".scale", escala)
         cmds.setAttr(desp + ".aiDisplacementZeroValue", 0.5) if _hay(desp, "aiDisplacementZeroValue") else None
-        cmds.connectAttr(desp + ".displacement", grupo + ".displacementShader", force=True)
+        _unir(desp + ".displacement", grupo + ".displacementShader")
 
     def recargar_texturas(self, material=None):
         """Vuelve a leer las imágenes del disco (tras exportar otra vez en Painter)."""
@@ -658,7 +664,7 @@ class ServiciosMaya(object):
                 nombre = juego if not cmds.objExists(juego) else juego + "_painter"
                 lam = cmds.shadingNode("lambert", asShader=True, name=nombre)
                 grupo = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name=lam + "SG")
-                cmds.connectAttr(lam + ".outColor", grupo + ".surfaceShader", force=True)
+                _unir(lam + ".outColor", grupo + ".surfaceShader")
                 lamberts[material] = grupo
                 temporales.extend([lam, grupo])
             for copia in copias:
