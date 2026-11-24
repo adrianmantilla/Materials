@@ -5,6 +5,7 @@ ventana los convierta en imagen. Es una aproximación rápida (GGX + entorno de
 estudio) pensada para elegir y comparar, no para juzgar el render final.
 """
 
+import os
 import math
 
 from muestrario import color as col
@@ -118,6 +119,24 @@ def pixeles(receta, tamano=128, destino=rc.RENDER):
                     c = c * op + fondo_directo * (1 - op)
                 salida[o + i] = _tono(c)
     return bytes(salida)
+
+
+CARPETA_ARNOLD = os.path.join(os.path.dirname(os.path.abspath(__file__)), "biblioteca", "miniaturas")
+
+
+def clave_arnold(receta, destino):
+    """Nombre (sin extensión) de la miniatura renderizada en Arnold que viene con el plugin.
+
+    Depende de los valores de la receta: si una receta cambia, su miniatura deja de
+    encontrarse y se usa la vista previa calculada hasta que se vuelva a renderizar.
+    """
+    return clave_cache(receta, "arnold", destino)
+
+
+def miniatura_arnold(receta, destino):
+    """Ruta de la miniatura de Arnold de esta receta y destino, o None."""
+    ruta = os.path.join(CARPETA_ARNOLD, clave_arnold(receta, destino) + ".jpg")
+    return ruta if os.path.isfile(ruta) else None
 
 
 def clave_cache(receta, tamano, destino):

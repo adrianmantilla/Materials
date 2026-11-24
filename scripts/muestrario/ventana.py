@@ -891,6 +891,13 @@ class VentanaMuestrario(QtWidgets.QWidget):
     def _miniatura(self, receta, clave):
         if clave in self._miniaturas:
             return self._miniaturas[clave]
+        # Primero, la miniatura renderizada en Arnold que trae el plugin (solo recetas sin tocar).
+        arnold = vp.miniatura_arnold(receta, self.destino)
+        imagen = QtGui.QImage(arnold) if arnold else QtGui.QImage()
+        if not imagen.isNull():
+            icono = QtGui.QIcon(QtGui.QPixmap.fromImage(imagen))
+            self._miniaturas[clave] = icono
+            return icono
         ruta = os.path.join(self.carpeta_miniaturas, clave + ".png") if self.carpeta_miniaturas else None
         imagen = QtGui.QImage(ruta) if ruta and os.path.isfile(ruta) else QtGui.QImage()
         if imagen.isNull():
