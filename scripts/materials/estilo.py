@@ -127,6 +127,20 @@ def etiqueta(texto, papel=None, ajuste=False):
     return e
 
 
+def formulario(padre=None):
+    """QFormLayout igual en Windows y Mac.
+
+    En macOS Qt deja los campos a su tamaño mínimo (FieldsStayAtSizeHint): las etiquetas
+    con ajuste de línea se quedan estrechas y el texto se monta sobre la fila siguiente.
+    """
+    f = QtWidgets.QFormLayout(padre) if padre is not None else QtWidgets.QFormLayout()
+    f.setFieldGrowthPolicy(QtWidgets.QFormLayout.AllNonFixedFieldsGrow)
+    f.setRowWrapPolicy(QtWidgets.QFormLayout.DontWrapRows)
+    f.setLabelAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+    f.setFormAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+    return f
+
+
 def tarjeta(margenes=10, espacio=6):
     """Marco redondeado con su capa vertical."""
     marco = QtWidgets.QFrame()

@@ -413,7 +413,7 @@ class VentanaMaterials(QtWidgets.QWidget):
         capa.setSpacing(10)
         marco, dentro = estilo.tarjeta(12, 4)
         dentro.addWidget(estilo.etiqueta(t("seccion_aspecto"), "seccion"))
-        formulario = QtWidgets.QFormLayout()
+        formulario = estilo.formulario()
         formulario.setLabelAlignment(Qt.AlignRight)
         formulario.setHorizontalSpacing(12)
         formulario.setVerticalSpacing(8)
@@ -445,7 +445,7 @@ class VentanaMaterials(QtWidgets.QWidget):
         capa_mas.addWidget(self.boton_mas)
         self.contenido_mas = QtWidgets.QWidget()
         capa_mas.addWidget(self.contenido_mas)
-        mas = QtWidgets.QFormLayout(self.contenido_mas)
+        mas = estilo.formulario(self.contenido_mas)
         mas.setLabelAlignment(Qt.AlignRight)
         mas.setHorizontalSpacing(12)
         mas.setVerticalSpacing(6)
@@ -522,7 +522,7 @@ class VentanaMaterials(QtWidgets.QWidget):
         self.arbol_texturas.setColumnWidth(0, 260)
         self.arbol_texturas.setColumnWidth(1, 200)
         capa.addWidget(self.arbol_texturas, 1)
-        formulario = QtWidgets.QFormLayout()
+        formulario = estilo.formulario()
         self.combo_material_tex = QtWidgets.QComboBox()
         formulario.addRow(t("tex_material"), self.combo_material_tex)
         self.combo_normal = QtWidgets.QComboBox()
@@ -569,7 +569,7 @@ class VentanaMaterials(QtWidgets.QWidget):
         exterior.setContentsMargins(2, 6, 6, 6)
         exterior.setSpacing(8)
         paso1, capa = self._paso(1, t("painter_paso1"))
-        formulario = QtWidgets.QFormLayout()
+        formulario = estilo.formulario()
         formulario.setHorizontalSpacing(12)
         self.etiqueta_objetos = QtWidgets.QLabel()
         self.etiqueta_objetos.setWordWrap(True)
@@ -581,6 +581,7 @@ class VentanaMaterials(QtWidgets.QWidget):
                                                   if self._ajuste("resolucion") in ic.RESOLUCIONES else 2))
         self.combo_resolucion.currentIndexChanged.connect(
             lambda _: self._guardar_ajuste("resolucion", self.combo_resolucion.currentData()))
+        self.combo_resolucion.setMaximumWidth(160)
         formulario.addRow(t("painter_resolucion"), self.combo_resolucion)
         self.etiqueta_plantilla = estilo.etiqueta("", "tenue", ajuste=True)
         formulario.addRow(t("painter_plantilla"), self.etiqueta_plantilla)
@@ -598,14 +599,22 @@ class VentanaMaterials(QtWidgets.QWidget):
         exterior.addWidget(paso1)
         paso2, capa = self._paso(2, t("painter_paso2"))
         capa.addWidget(estilo.etiqueta(t("painter_ayuda"), "tenue", ajuste=True))
-        self.casilla_sincronizar = QtWidgets.QCheckBox(t("painter_sincronizar"))
+        # Casilla sin texto + etiqueta con ajuste de línea: el texto de una QCheckBox no
+        # se parte y en paneles estrechos se cortaba.
+        self.casilla_sincronizar = QtWidgets.QCheckBox()
         self.casilla_sincronizar.setChecked(self._ajuste("sincronizar"))
         self.casilla_sincronizar.toggled.connect(self._al_sincronizar)
-        capa.addWidget(self.casilla_sincronizar)
+        texto_sincronizar = estilo.etiqueta(t("painter_sincronizar"), ajuste=True)
+        texto_sincronizar.mousePressEvent = lambda _e: self.casilla_sincronizar.toggle()
+        fila_sincronizar = QtWidgets.QHBoxLayout()
+        fila_sincronizar.addWidget(self.casilla_sincronizar, 0, QtCore.Qt.AlignTop)
+        fila_sincronizar.addWidget(texto_sincronizar, 1)
+        capa.addLayout(fila_sincronizar)
         exterior.addWidget(paso2)
         paso3, capa = self._paso(3, t("painter_envios"))
         self.lista_envios = QtWidgets.QListWidget()
         self.lista_envios.setObjectName("ListaEnvios")
+        self.lista_envios.setMinimumHeight(90)
         capa.addWidget(self.lista_envios, 1)
         fila = QtWidgets.QHBoxLayout()
         traer = QtWidgets.QPushButton(t("painter_traer"))
@@ -624,7 +633,13 @@ class VentanaMaterials(QtWidgets.QWidget):
         self.registro.setPlaceholderText(t("painter_registro"))
         capa.addWidget(self.registro)
         exterior.addWidget(paso3, 1)
-        return w
+        # Con la ventana baja, el desplazamiento evita que las filas se monten.
+        desplazable = QtWidgets.QScrollArea()
+        desplazable.setWidgetResizable(True)
+        desplazable.setFrameShape(QtWidgets.QFrame.NoFrame)
+        desplazable.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        desplazable.setWidget(w)
+        return desplazable
 
     def _pestana_escena(self):
         w = QtWidgets.QWidget()
@@ -656,7 +671,7 @@ class VentanaMaterials(QtWidgets.QWidget):
 
     def _pestana_ajustes(self):
         w = QtWidgets.QWidget()
-        capa = QtWidgets.QFormLayout(w)
+        capa = estilo.formulario(w)
         fila = QtWidgets.QHBoxLayout()
         self.campo_clase = QtWidgets.QLineEdit(self._ajuste("carpeta_clase"))
         self.campo_clase.setPlaceholderText(t("aj_clase_vacia"))
