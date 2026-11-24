@@ -433,6 +433,18 @@ class ServiciosMaya(object):
                 entrada = c["entrada"]
                 if entrada == "ao":
                     continue
+                # Decidir antes de crear el nodo, para no dejar imágenes sueltas sin conectar.
+                altura_como_bump = False
+                if entrada == "altura" and not opciones.get("desplazamiento"):
+                    fuente = cmds.listConnections(material + ".normalCamera", source=True, destination=False) or []
+                    altura_como_bump = not any(x["entrada"] == "normal" for x in conexiones) and \
+                        (not fuente or fuente[0] == "{}_altura_bump".format(material))
+                    if not altura_como_bump:
+                        continue
+                elif entrada not in ("normal", "altura", "color", "emision"):
+                    atributo = ENTRADA_ATRIBUTO.get(entrada)
+                    if not atributo or not _hay(material, atributo):
+                        continue
                 ruta = tx.relativa_al_proyecto(c["ruta"], proyecto)
                 escalar = entrada not in ("color", "emision", "normal")
                 nodo = self._nodo_imagen(material, entrada, ruta, c.get("espacio", "Raw"), c.get("udim"),
@@ -440,22 +452,17 @@ class ServiciosMaya(object):
                 if entrada == "normal":
                     self._conectar_normal(material, nodo, c.get("convencion") or opciones.get("normal", "opengl"))
                 elif entrada == "altura":
-                    if opciones.get("desplazamiento"):
-                        self._conectar_desplazamiento(material, nodo, opciones.get("escala_altura", 0.5))
-                    elif not any(x["entrada"] == "normal" for x in conexiones) and not _conectado(material,
-                                                                                                    "normalCamera"):
+                    if altura_como_bump:
                         self._conectar_bump(material, nodo)
                     else:
-                        continue
+                        self._conectar_desplazamiento(material, nodo, opciones.get("escala_altura", 0.5))
                 elif entrada in ("color", "emision"):
                     atributo = ENTRADA_ATRIBUTO[entrada]
                     _unir(nodo + ".outColor", "{}.{}".format(material, atributo))
                     if entrada == "emision" and cmds.getAttr(material + ".emissionLuminance") <= 0:
                         cmds.setAttr(material + ".emissionLuminance", 1000.0)
                 else:
-                    atributo = ENTRADA_ATRIBUTO.get(entrada)
-                    if not atributo or not _hay(material, atributo):
-                        continue
+                    atributo = ENTRADA_ATRIBUTO[entrada]
                     plug = self._salida(nodo, c.get("canal"), c.get("invertir"), material, entrada)
                     _unir(plug, "{}.{}".format(material, atributo))
                 hechas.append(entrada)
@@ -767,15 +774,28 @@ class ServiciosMaya(object):
 
 
 class _Bloque(object):
-    """Agrupa varias órdenes en un solo paso de deshacer."""
+    """Agrupa varias órdenes en un solo paso de deshacer y conserva la selección.
+
+    Crear nodos (shadingNode, sets) cambia la selección de Maya; sin esto, tras crear un
+    material la selección pasaría a ser el propio material y «asignar» no encontraría objetos.
+    """
 
     def __init__(self, nombre):
         self.nombre = nombre
+        self.seleccion = []
 
     def __enter__(self):
+        self.seleccion = cmds.ls(selection=True, long=True) or []
         cmds.undoInfo(openChunk=True, chunkName=self.nombre)
         return self
 
     def __exit__(self, *_):
-        cmds.undoInfo(closeChunk=True)
+        try:
+            vivos = [e for e in self.seleccion if cmds.objExists(e.split(".")[0])]
+            if vivos:
+                cmds.select(vivos, replace=True)
+            else:
+                cmds.select(clear=True)
+        finally:
+            cmds.undoInfo(closeChunk=True)
         return False
