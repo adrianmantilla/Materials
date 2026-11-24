@@ -140,9 +140,6 @@ def _hex_a_srgb(texto):
         return (0.8, 0.8, 0.8)
 
 
-def _a_lineal(c):
-    return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
-
 
 # --- Plantillas de exportación ---------------------------------------------------------------
 
@@ -168,26 +165,26 @@ def plantilla(motor, receta_juego=None):
     emision = _mapa("Emissive", _rgb("emissive"))
     opacidad = _mapa("Opacity", _gris("opacity"))
     if motor == "unreal":
-        mapas = [_mapa("BaseColor", _rgb("basecolor")),
+        mapas = [_mapa("BaseColor", _rgb("baseColor")),
                  _mapa("OcclusionRoughnessMetallic", [_canal("R", "L", "virtualMap", "AO_Mixed"),
                                                       _canal("G", "L", "documentMap", "roughness"),
                                                       _canal("B", "L", "documentMap", "metallic")]),
                  _mapa("Normal_DirectX", _rgb("Normal_DirectX", "virtualMap"))]
     elif motor == "unity":
-        mapas = [_mapa("BaseMap", _rgb("basecolor") + [_canal("A", "L", "documentMap", "opacity")]),
+        mapas = [_mapa("BaseMap", _rgb("baseColor") + [_canal("A", "L", "documentMap", "opacity")]),
                  _mapa("MaskMap", [_canal("R", "L", "documentMap", "metallic"),
                                    _canal("G", "L", "virtualMap", "AO_Mixed"),
                                    _canal("A", "L", "virtualMap", "Glossiness")]),
                  _mapa("Normal_OpenGL", _rgb("Normal_OpenGL", "virtualMap"))]
         opacidad = None
     elif motor == "gltf":
-        mapas = [_mapa("BaseColor", _rgb("basecolor")),
+        mapas = [_mapa("BaseColor", _rgb("baseColor")),
                  _mapa("OcclusionRoughnessMetallic", [_canal("R", "L", "virtualMap", "AO_Mixed"),
                                                       _canal("G", "L", "documentMap", "roughness"),
                                                       _canal("B", "L", "documentMap", "metallic")]),
                  _mapa("Normal_OpenGL", _rgb("Normal_OpenGL", "virtualMap"))]
     else:  # arnold
-        mapas = [_mapa("BaseColor", _rgb("basecolor")),
+        mapas = [_mapa("BaseColor", _rgb("baseColor")),
                  _mapa("Roughness", _gris("roughness")),
                  _mapa("Metallic", _gris("metallic")),
                  _mapa("Normal_OpenGL", _rgb("Normal_OpenGL", "virtualMap")),
@@ -290,11 +287,14 @@ def _poner(capa, canal, valor):
     """Pone un valor uniforme en un canal de la capa de relleno, probando las formas del API."""
     Color = sp.colormanagement.Color
     intentos = []
+    # Painter 12.2 solo acepta Color (un número suelto da error), y un Color sin espacio
+    # se interpreta como sRGB: los colores se pasan en sRGB, sin linealizar.
     if isinstance(valor, tuple):
         intentos = [lambda: capa.set_source(canal, Color(*valor))]
     else:
-        intentos = [lambda: capa.set_source(canal, float(valor)),
-                    lambda: capa.set_source(canal, Color(valor, valor, valor))]
+        v = float(valor)
+        intentos = [lambda: capa.set_source(canal, Color(v, v, v)),
+                    lambda: capa.set_source(canal, v)]
     for intento in intentos:
         try:
             intento()
@@ -322,23 +322,24 @@ def _capa_base(conjunto, valores):
             pass
     capa = ls.insert_fill(ls.InsertPosition.from_textureset_stack(pila))
     capa.set_name("Maya · " + str(valores.get("nombre", "base")))
-    color = _hex_a_srgb(valores.get("color", "#cccccc"))
-    color_lineal = tuple(_a_lineal(c) for c in color)
     activos = {CT.BaseColor, CT.Roughness, CT.Metallic}
-    _poner(capa, CT.BaseColor, color_lineal)
-    _poner(capa, CT.Roughness, float(valores.get("rugosidad", 0.5)))
-    _poner(capa, CT.Metallic, float(valores.get("metal", 0.0)))
     if valores.get("emision", 0) > 0:
-        emision = valores.get("color_emision") or valores.get("color", "#ffffff")
-        _poner(capa, CT.Emissive, tuple(_a_lineal(c) for c in _hex_a_srgb(emision)))
         activos.add(CT.Emissive)
     if valores.get("opacidad", 1.0) < 1.0:
-        _poner(capa, CT.Opacity, float(valores["opacidad"]))
         activos.add(CT.Opacity)
+    # Primero los canales activos: en Painter 12.2, cambiar active_channels después
+    # devuelve los canales a sus valores por defecto.
     try:
         capa.active_channels = activos
     except Exception:
         pass
+    _poner(capa, CT.BaseColor, _hex_a_srgb(valores.get("color", "#cccccc")))
+    _poner(capa, CT.Roughness, float(valores.get("rugosidad", 0.5)))
+    _poner(capa, CT.Metallic, float(valores.get("metal", 0.0)))
+    if valores.get("emision", 0) > 0:
+        _poner(capa, CT.Emissive, _hex_a_srgb(valores.get("color_emision") or valores.get("color", "#ffffff")))
+    if valores.get("opacidad", 1.0) < 1.0:
+        _poner(capa, CT.Opacity, float(valores["opacidad"]))
 
 
 def _mtime(ruta):
