@@ -52,6 +52,8 @@ TEXTOS = {
     "malla_nueva": "Maya ha enviado una malla nueva de este objeto.",
     "recargar_malla": "Recargar malla (conserva las capas)",
     "malla_recargada": "Malla recargada.",
+    "no_carga": "Painter no ha podido cargar la malla. Mira Ventana ▸ Registro (por ejemplo, caras que cruzan "
+                "dos casillas UDIM) y vuelve a enviarla desde Maya.",
 }
 
 
@@ -174,6 +176,8 @@ def plantilla(motor, receta_juego=None):
         mapas = [_mapa("BaseMap", _rgb("baseColor") + [_canal("A", "L", "documentMap", "opacity")]),
                  _mapa("MaskMap", [_canal("R", "L", "documentMap", "metallic"),
                                    _canal("G", "L", "virtualMap", "AO_Mixed"),
+                                   # Sin canal B, Painter guarda RGB y la suavidad acaba en B.
+                                   _canal("B", "L", "defaultMap", "black"),
                                    _canal("A", "L", "virtualMap", "Glossiness")]),
                  _mapa("Normal_OpenGL", _rgb("Normal_OpenGL", "virtualMap"))]
         opacidad = None
@@ -227,10 +231,16 @@ def abrir_envio(aviso, al_terminar=None):
     except AttributeError:
         pass
     ajustes["default_texture_resolution"] = int(receta.get("resolucion", 2048))
+    if receta.get("udim"):
+        try:
+            ajustes["project_workflow"] = sp.project.ProjectWorkflow.UVTile
+        except AttributeError:
+            pass
     try:
         configuracion = sp.project.Settings(import_cameras=False, **ajustes)
     except TypeError:
-        configuracion = sp.project.Settings(**{k: v for k, v in ajustes.items() if k == "normal_map_format"})
+        configuracion = sp.project.Settings(**{k: v for k, v in ajustes.items()
+                                               if k in ("normal_map_format", "project_workflow")})
     sp.project.create(mesh_file_path=malla, settings=configuracion)
     _estado["pendiente"] = {"malla": malla, "receta": receta, "ruta_receta": ruta_receta, "aviso": aviso.get("_ruta"),
                             "inicio": time.time(), "al_terminar": al_terminar}
@@ -241,8 +251,20 @@ def _preparar_cuando_cargue():
     pendiente = _estado["pendiente"]
     if not pendiente:
         return
-    if time.time() - pendiente["inicio"] > 300:
+    esperado = time.time() - pendiente["inicio"]
+    vacio = esperado > 20 and (not sp.project.is_open() or (not sp.project.is_busy() and
+                                                          not sp.textureset.all_texture_sets()))
+    if esperado > 300 or vacio:
+        # Painter no llegó a abrir la malla (p. ej. caras que cruzan casillas UDIM): avisar en el panel.
         _estado["pendiente"] = None
+        try:
+            # Un proyecto que no llegó a cargar queda abierto y vacío, y bloquearía el siguiente «Abrir».
+            if sp.project.is_open() and not sp.project.file_path() and not sp.textureset.all_texture_sets():
+                sp.project.close()
+        except Exception:
+            pass
+        if pendiente.get("al_terminar"):
+            pendiente["al_terminar"](tr("no_carga"))
         return
     try:
         if not sp.project.is_open() or sp.project.is_busy():
@@ -261,7 +283,7 @@ def _preparar_cuando_cargue():
         datos.set("malla_mtime", _mtime(pendiente["malla"]))
         juegos = receta.get("juegos") or {}
         for conjunto in conjuntos:
-            valores = juegos.get(conjunto.name())
+            valores = juegos.get(_nombre(conjunto))
             if valores is None and len(juegos) == 1 and len(conjuntos) == 1:
                 valores = list(juegos.values())[0]
             if valores:
@@ -284,25 +306,20 @@ def _preparar_cuando_cargue():
 
 
 def _poner(capa, canal, valor):
-    """Pone un valor uniforme en un canal de la capa de relleno, probando las formas del API."""
+    """Pone un valor uniforme en un canal de la capa de relleno.
+
+    Painter 12 solo acepta ``colormanagement.Color`` (un float da error). Sin espacio de
+    color, Painter lo interpreta como sRGB en los canales con gestión de color (color base,
+    emisión) y como Raw en los de datos (rugosidad, metal, opacidad).
+    """
     Color = sp.colormanagement.Color
-    intentos = []
-    # Painter 12.2 solo acepta Color (un número suelto da error), y un Color sin espacio
-    # se interpreta como sRGB: los colores se pasan en sRGB, sin linealizar.
-    if isinstance(valor, tuple):
-        intentos = [lambda: capa.set_source(canal, Color(*valor))]
-    else:
-        v = float(valor)
-        intentos = [lambda: capa.set_source(canal, Color(v, v, v)),
-                    lambda: capa.set_source(canal, v)]
-    for intento in intentos:
-        try:
-            intento()
-            return True
-        except Exception:
-            continue
-    _log("no se pudo poner el canal {}".format(canal))
-    return False
+    rgb = valor if isinstance(valor, tuple) else (float(valor),) * 3
+    try:
+        capa.set_source(canal, Color(*rgb))
+        return True
+    except Exception as error:
+        _log("no se pudo poner el canal {}: {}".format(canal, error))
+        return False
 
 
 def _capa_base(conjunto, valores):
@@ -322,24 +339,33 @@ def _capa_base(conjunto, valores):
             pass
     capa = ls.insert_fill(ls.InsertPosition.from_textureset_stack(pila))
     capa.set_name("Maya · " + str(valores.get("nombre", "base")))
+    emite = valores.get("emision", 0) > 0
+    recorta = valores.get("opacidad", 1.0) < 1.0
     activos = {CT.BaseColor, CT.Roughness, CT.Metallic}
-    if valores.get("emision", 0) > 0:
+    if emite:
         activos.add(CT.Emissive)
-    if valores.get("opacidad", 1.0) < 1.0:
+    if recorta:
         activos.add(CT.Opacity)
-    # Primero los canales activos: en Painter 12.2, cambiar active_channels después
-    # devuelve los canales a sus valores por defecto.
+    # Primero los canales activos: en Painter 12, cambiar active_channels después de
+    # set_source devuelve los canales a sus valores por defecto.
     try:
         capa.active_channels = activos
     except Exception:
         pass
+    # Los colores de la receta son sRGB (#rrggbb): se pasan tal cual.
     _poner(capa, CT.BaseColor, _hex_a_srgb(valores.get("color", "#cccccc")))
     _poner(capa, CT.Roughness, float(valores.get("rugosidad", 0.5)))
     _poner(capa, CT.Metallic, float(valores.get("metal", 0.0)))
-    if valores.get("emision", 0) > 0:
+    if emite:
         _poner(capa, CT.Emissive, _hex_a_srgb(valores.get("color_emision") or valores.get("color", "#ffffff")))
-    if valores.get("opacidad", 1.0) < 1.0:
+    if recorta:
         _poner(capa, CT.Opacity, float(valores["opacidad"]))
+
+
+def _nombre(conjunto):
+    """``TextureSet.name`` es propiedad en Painter 12 (el método está obsoleto)."""
+    nombre = getattr(conjunto, "name")
+    return nombre() if callable(nombre) else nombre
 
 
 def _mtime(ruta):
@@ -396,7 +422,7 @@ def exportar_a_maya():
     tamano_log2 = max(7, min(13, tam.bit_length() - 1))
     presets, lista = [], []
     for conjunto in sp.textureset.all_texture_sets():
-        nombre = conjunto.name()
+        nombre = _nombre(conjunto)
         preset = "muestrario_" + nombre
         presets.append({"name": preset, "maps": plantilla(motor, juegos.get(nombre))})
         lista.append({"rootPath": nombre, "exportPreset": preset})

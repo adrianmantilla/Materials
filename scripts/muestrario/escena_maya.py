@@ -301,9 +301,11 @@ class ServiciosMaya(object):
                 cmds.delete([material] + grupos + borrar)
         return len(sin_usar)
 
-    def convertir(self, material, destino):
-        """Crea un OpenPBR equivalente a un Standard Surface, aiStandardSurface o Lambert y lo pone en su lugar."""
+    def receta_de(self, material):
+        """Receta con los valores de un Standard Surface, aiStandardSurface, Lambert... (o de un OpenPBR)."""
         tipo = cmds.nodeType(material)
+        if tipo == TIPO:
+            return self.leer_receta(material)
         g = lambda a, d=None: cmds.getAttr(material + "." + a) if _hay(material, a) else d  # noqa: E731
         espacio = _espacio_render()
 
@@ -311,20 +313,25 @@ class ServiciosMaya(object):
             v = g(a)
             return col.desde_espacio_render(v[0], espacio) if v else d
         if tipo in ("standardSurface", "aiStandardSurface"):
-            r = rc.nueva(nombre=material, color=col.lineal_a_hex(color("baseColor")), metal=g("metalness", 0.0),
-                         rugosidad=g("specularRoughness", 0.5), ior=g("specularIOR", 1.5),
-                         transparencia=g("transmission", 0.0), subsuperficie=g("subsurface", 0.0),
-                         barniz=g("coat", 0.0), rugosidad_barniz=g("coatRoughness", 0.1),
-                         pelusa=g("sheen", 0.0), emision=min(1.0, (g("emission", 0.0) or 0.0) * 0.5),
-                         especular=g("specular", 1.0))
-        elif tipo == "usdPreviewSurface":
-            r = rc.nueva(nombre=material, color=col.lineal_a_hex(color("diffuseColor")), metal=g("metallic", 0.0),
-                         rugosidad=g("roughness", 0.5), opacidad=g("opacity", 1.0))
-        else:
+            return rc.nueva(nombre=material, color=col.lineal_a_hex(color("baseColor")), metal=g("metalness", 0.0),
+                            rugosidad=g("specularRoughness", 0.5), ior=g("specularIOR", 1.5),
+                            transparencia=g("transmission", 0.0), subsuperficie=g("subsurface", 0.0),
+                            barniz=g("coat", 0.0), rugosidad_barniz=g("coatRoughness", 0.1),
+                            pelusa=g("sheen", 0.0), emision=min(1.0, (g("emission", 0.0) or 0.0) * 0.5),
+                            especular=g("specular", 1.0))
+        if tipo == "usdPreviewSurface":
+            return rc.nueva(nombre=material, color=col.lineal_a_hex(color("diffuseColor")), metal=g("metallic", 0.0),
+                            rugosidad=g("roughness", 0.5), opacidad=g("opacity", 1.0))
+        if tipo in TIPOS_CONVERTIBLES:
             transparencia = g("transparency")
             opacidad = 1.0 - (sum(transparencia[0]) / 3.0 if transparencia else 0.0)
             rug = 0.7 if tipo == "lambert" else 0.35
-            r = rc.nueva(nombre=material, color=col.lineal_a_hex(color("color")), rugosidad=rug, opacidad=opacidad)
+            return rc.nueva(nombre=material, color=col.lineal_a_hex(color("color")), rugosidad=rug, opacidad=opacidad)
+        return rc.nueva(nombre=material)
+
+    def convertir(self, material, destino):
+        """Crea un OpenPBR equivalente a un Standard Surface, aiStandardSurface o Lambert y lo pone en su lugar."""
+        r = self.receta_de(material)
         nombre_nuevo = material if material.startswith("M_") else "M_" + material
         with _Bloque("Muestrario: convertir"):
             nuevo = self.crear_material(r, destino, nombre=nombre_nuevo + "_openPBR")
@@ -622,15 +629,21 @@ class ServiciosMaya(object):
         sin = self.sin_uvs(objetos)
         if sin:
             raise ValueError(t("painter_sin_uvs", objetos=", ".join(sin)))
-        nombre = ic.limpiar_nombre(nombre or objetos[0].split("|")[-1])
+        nombre = ic.limpiar_nombre(nombre or self._nombre_envio(objetos))
         carpeta = ic.carpeta_envio(self.proyecto(), nombre)
         os.makedirs(carpeta, exist_ok=True)
         ruta_fbx = os.path.join(carpeta, nombre + ".fbx")
         materiales = self.materiales_de(objetos)
         juegos, mapa = {}, {}
         for m in materiales:
-            juego = ic.limpiar_nombre(m[2:] if m.startswith("M_") else m)
-            receta = self.leer_receta(m) if cmds.nodeType(m) == TIPO else rc.nueva(nombre=m)
+            # El juego de texturas se llama como el material del FBX: tiene que ser un nombre libre
+            # en la escena (si no, Maya lo renombra al exportar y Painter no lo reconoce) y único.
+            base = ic.limpiar_nombre(m[2:] if m.startswith("M_") else m)
+            juego, n = base, 1
+            while juego in juegos or cmds.objExists(juego):
+                juego = "{}_{}".format(base, n)
+                n += 1
+            receta = self.receta_de(m)
             receta.pop("texturas", None)
             receta["material"] = m
             juegos[juego] = receta
@@ -638,6 +651,7 @@ class ServiciosMaya(object):
         self._exportar_fbx(objetos, ruta_fbx, mapa)
         envio = ic.nueva_receta_envio(nombre, ruta_fbx, juegos, destino, motor, resolucion)
         envio["materiales"] = {j: r["material"] for j, r in juegos.items()}
+        envio["udim"] = self._usa_udim(objetos)
         ic.enviar(carpeta, envio)
         for m in materiales:
             if _hay(m, ATTR_RECETA):
@@ -645,6 +659,27 @@ class ServiciosMaya(object):
                     cmds.addAttr(m, longName=ATTR_ENVIO, dataType="string")
                 cmds.setAttr(m + "." + ATTR_ENVIO, tx.relativa_al_proyecto(carpeta, self.proyecto()), type="string")
         return carpeta
+
+    def _nombre_envio(self, objetos):
+        """El grupo seleccionado si se eligió un grupo; si no, el primer objeto."""
+        for e in cmds.ls(selection=True, long=True) or []:
+            nodo = e.split(".")[0]
+            if cmds.nodeType(nodo) == "transform" and not cmds.listRelatives(nodo, shapes=True):
+                return nodo.split("|")[-1]
+            break
+        return objetos[0].split("|")[-1]
+
+    def _usa_udim(self, objetos):
+        """True si alguna malla tiene UVs fuera de la casilla 0-1 (UDIM)."""
+        for o in objetos:
+            for forma in cmds.listRelatives(o, shapes=True, type="mesh", fullPath=True, noIntermediate=True) or []:
+                try:
+                    (u0, u1), (v0, v1) = cmds.polyEvaluate(forma, boundingBox2d=True)
+                except (RuntimeError, TypeError, ValueError):
+                    continue
+                if u0 < -0.01 or v0 < -0.01 or u1 > 1.01 or v1 > 1.01:  # los cilindros de Maya pasan de 1 un pelo
+                    return True
+        return False
 
     def _exportar_fbx(self, objetos, ruta, mapa_juegos):
         """Exporta copias con materiales Lambert temporales llamados como los juegos de texturas.
@@ -732,6 +767,12 @@ class ServiciosMaya(object):
                 receta = (receta_envio.get("juegos") or {}).get(juego) or rc.nueva(nombre=juego)
                 material = self.crear_material(receta, destino, nombre=juego)
                 existentes.append(material)
+            elif cmds.nodeType(material) != TIPO and cmds.nodeType(material) in TIPOS_CONVERTIBLES:
+                # Las texturas de Painter son para OpenPBR: se convierte y ocupa el lugar del viejo.
+                material = self.convertir(material, destino)
+                nombres[juego] = material
+                receta_envio["materiales"] = nombres
+                ic.escribir_json(os.path.join(carpeta, ic.RECETA), receta_envio)
             grupos = tx.analizar(rutas, normal_por_defecto=opciones["normal"])
             conexiones = []
             for g in grupos.values():
