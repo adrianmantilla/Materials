@@ -1,4 +1,4 @@
-"""Pruebas sin Maya de la lógica de Muestrario (recetas, comprobación, texturas, intercambio, biblioteca).
+"""Pruebas sin Maya de la lógica de Materials (recetas, comprobación, texturas, intercambio, biblioteca).
 
     python3 -m unittest discover tests
 """
@@ -17,14 +17,14 @@ import zlib
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(RAIZ, "scripts"))
 
-from muestrario import biblioteca as bib  # noqa: E402
-from muestrario import color as col  # noqa: E402
-from muestrario import comprobacion as chk  # noqa: E402
-from muestrario import intercambio as ic  # noqa: E402
-from muestrario import receta as rc  # noqa: E402
-from muestrario import texturas as tx  # noqa: E402
-from muestrario import vista_previa as vp  # noqa: E402
-from muestrario.i18n import claves  # noqa: E402
+from materials import biblioteca as bib  # noqa: E402
+from materials import color as col  # noqa: E402
+from materials import comprobacion as chk  # noqa: E402
+from materials import intercambio as ic  # noqa: E402
+from materials import receta as rc  # noqa: E402
+from materials import texturas as tx  # noqa: E402
+from materials import vista_previa as vp  # noqa: E402
+from materials.i18n import claves  # noqa: E402
 
 
 def leer(ruta):
@@ -146,14 +146,14 @@ class PruebaComprobacion(unittest.TestCase):
         self.assertIn("chk_tex_potencia", claves)
 
     def test_todos_los_avisos_tienen_texto(self):
-        codigo = leer(os.path.join(RAIZ, "scripts", "muestrario", "comprobacion.py"))
+        codigo = leer(os.path.join(RAIZ, "scripts", "materials", "comprobacion.py"))
         for clave in set(re.findall(r'"(chk_[a-z_]+)"', codigo)):
             self.assertIn(clave, claves(), clave)
 
 
 class PruebaTexturas(unittest.TestCase):
     CASOS = {
-        # Painter, plantilla de Muestrario y plantillas de Adobe
+        # Painter, plantilla de Materials y plantillas de Adobe
         "silla_Madera_BaseColor.1001.png": ("color", "silla_Madera"),
         "Madera_Normal_OpenGL.png": ("normal", "Madera"),
         "Madera_Normal_DirectX.png": ("normal", "Madera"),
@@ -272,16 +272,16 @@ class PruebaIntercambio(unittest.TestCase):
     def setUp(self):
         self.casa = tempfile.mkdtemp()
         self.proyecto = tempfile.mkdtemp()
-        os.environ["MUESTRARIO_CASA"] = self.casa
+        os.environ["MATERIALS_CASA"] = self.casa
 
     def tearDown(self):
-        os.environ.pop("MUESTRARIO_CASA", None)
+        os.environ.pop("MATERIALS_CASA", None)
         shutil.rmtree(self.casa)
         shutil.rmtree(self.proyecto)
 
     def test_ida_y_vuelta(self):
         carpeta = ic.carpeta_envio(self.proyecto, "|grupo|silla:Silla Roja")
-        self.assertTrue(carpeta.endswith(os.path.join("muestrario", "Silla_Roja")))
+        self.assertTrue(carpeta.endswith(os.path.join("materials", "Silla_Roja")))
         receta = ic.nueva_receta_envio("Silla_Roja", os.path.join(carpeta, "Silla_Roja.fbx"),
                                        {"Madera": rc.nueva(nombre="Madera")}, "juego", "unreal", 1024)
         self.assertEqual(receta["normal"], "directx")
@@ -395,7 +395,7 @@ class PruebaTextos(unittest.TestCase):
     def test_claves_usadas(self):
         existentes = claves()
         usadas, prefijos = set(), set()
-        for carpeta in (os.path.join(RAIZ, "scripts", "muestrario"), RAIZ):
+        for carpeta in (os.path.join(RAIZ, "scripts", "materials"), RAIZ):
             for nombre in os.listdir(carpeta):
                 if nombre.endswith(".py"):
                     codigo = leer(os.path.join(carpeta, nombre))
@@ -433,8 +433,8 @@ class PruebaPainter(unittest.TestCase):
         except ImportError:
             raise unittest.SkipTest("sin PySide6")
         sys.path.insert(0, os.path.join(RAIZ, "painter"))
-        import muestrario_painter
-        cls.mp = muestrario_painter
+        import materials_painter
+        cls.mp = materials_painter
 
     def test_plantillas_reconocidas(self):
         for motor in ic.MOTORES:
@@ -453,7 +453,7 @@ class PruebaPainter(unittest.TestCase):
 
     def test_buzon_compartido(self):
         casa = tempfile.mkdtemp()
-        os.environ["MUESTRARIO_CASA"] = casa
+        os.environ["MATERIALS_CASA"] = casa
         try:
             self.assertEqual(self.mp.carpeta_buzon(), ic.carpeta_buzon())
             carpeta = os.path.join(casa, "envio")
@@ -462,7 +462,7 @@ class PruebaPainter(unittest.TestCase):
             self.mp.escribir_manifiesto(carpeta, {"Caja": [os.path.join(carpeta, "a.png")]})
             self.assertEqual(ic.leer_manifiesto(carpeta)["contador"], 1)
         finally:
-            os.environ.pop("MUESTRARIO_CASA", None)
+            os.environ.pop("MATERIALS_CASA", None)
             shutil.rmtree(casa)
 
 

@@ -6,8 +6,8 @@ Con ``texturas`` (diccionario entrada -> información del mapa) se revisan
 también los espacios de color y, en modo juego, los tamaños.
 """
 
-from muestrario import color as col
-from muestrario import receta as rc
+from materials import color as col
+from materials import receta as rc
 
 OK, AVISO, INFO = "ok", "aviso", "info"
 

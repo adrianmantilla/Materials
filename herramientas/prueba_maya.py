@@ -1,4 +1,4 @@
-"""Prueba de Muestrario dentro de Maya, sin interfaz (herramienta de desarrollo).
+"""Prueba de Materials dentro de Maya, sin interfaz (herramienta de desarrollo).
 
 Desde la terminal, con el mayapy de cada versión:
 
@@ -61,8 +61,8 @@ def main():
     from maya import cmds
 
     print("Maya", cmds.about(version=True), "-", cmds.about(operatingSystem=True))
-    temporal = tempfile.mkdtemp(prefix="muestrario_")
-    os.environ["MUESTRARIO_CASA"] = os.path.join(temporal, "casa")
+    temporal = tempfile.mkdtemp(prefix="materials_")
+    os.environ["MATERIALS_CASA"] = os.path.join(temporal, "casa")
     try:
         _pruebas(cmds, temporal)
     except Exception:
@@ -83,17 +83,17 @@ def main():
 
 
 def _pruebas(cmds, temporal):
-    cmds.loadPlugin(os.path.join(RAIZ, "plug-ins", "muestrario_plugin.py"))
-    comprobar(cmds.pluginInfo("muestrario_plugin", query=True, loaded=True), "el plugin se carga")
-    from muestrario import interfaz_maya
+    cmds.loadPlugin(os.path.join(RAIZ, "plug-ins", "materials_plugin.py"))
+    comprobar(cmds.pluginInfo("materials_plugin", query=True, loaded=True), "el plugin se carga")
+    from materials import interfaz_maya
     interfaz_maya.iniciar()
     for nombre in interfaz_maya.COMANDOS:
         comprobar(cmds.runTimeCommand(nombre, exists=True), "existe la orden " + nombre)
 
-    from muestrario import biblioteca as bib
-    from muestrario import intercambio as ic
-    from muestrario import receta as rc
-    from muestrario.escena_maya import ServiciosMaya
+    from materials import biblioteca as bib
+    from materials import intercambio as ic
+    from materials import receta as rc
+    from materials.escena_maya import ServiciosMaya
     s = ServiciosMaya()
     comprobar(s.openpbr_disponible(), "existe el nodo openPBRSurface")
     if not s.openpbr_disponible():
@@ -134,7 +134,7 @@ def _pruebas(cmds, temporal):
     m_vidrio = s.crear_material(vidrio, "juego", nombre="Vidrio juego")
     comprobar(cmds.getAttr(m_vidrio + ".transmissionWeight") == 0, "juego: sin transmisión")
     comprobar(cmds.getAttr(m_vidrio + ".geometryOpacity") < 0.5, "juego: vidrio por opacidad")
-    comprobar(cmds.getAttr(m_vidrio + ".muestrarioDestino") == "juego", "se guarda el destino")
+    comprobar(cmds.getAttr(m_vidrio + ".materialsDestino") == "juego", "se guarda el destino")
     # Caras
     cmds.select(esfera + ".f[0:20]")
     m_caras = s.crear_material(rc.nueva(nombre="Caras", color="#33aa33"), "render")
@@ -157,7 +157,7 @@ def _pruebas(cmds, temporal):
     for mapa in ("BaseColor", "Roughness", "Metallic", "Normal_OpenGL", "Height", "AO"):
         for udim in (1001, 1002):
             png(os.path.join(carpeta, "silla_Madera_{}.{}.png".format(mapa, udim)))
-    from muestrario import texturas as tx
+    from materials import texturas as tx
     analisis = tx.analizar(tx.listar_imagenes(carpeta))
     conexiones = [c.como_dict() for c in analisis["silla_madera"].conexiones.values()]
     m_madera = s.crear_material(b.receta("Roble"), "render", nombre="Madera")
@@ -232,7 +232,7 @@ def _pruebas(cmds, temporal):
               "convertir Standard Surface")
     comprobar(cmds.listConnections(grupo + ".surfaceShader")[0] == nuevo, "el convertido ocupa su lugar")
     lista = {m["nombre"]: m for m in s.materiales()}
-    comprobar(lista[m_oro]["objetos"] == 1 and lista[m_oro]["muestrario"], "lista de escena: M_Oro")
+    comprobar(lista[m_oro]["objetos"] == 1 and lista[m_oro]["materials"], "lista de escena: M_Oro")
     comprobar(lista["viejo"]["objetos"] == 0, "lista de escena: el viejo queda sin usar")
     nuevo_nombre = s.renombrar(m_caras, "Hierba")
     comprobar(nuevo_nombre == "M_Hierba" and cmds.objExists("M_HierbaSG"), "renombrar material y grupo")
@@ -275,7 +275,7 @@ def _pruebas(cmds, temporal):
     cmds.file(os.path.join(proyecto, "scenes", "prueba.ma"), open=True, force=True)
     comprobar(s.destino_escena("render") == "juego" and s.motor_escena("unreal") == "unity",
               "la escena recuerda el destino")
-    comprobar(json.loads(cmds.getAttr("M_Oro.muestrarioReceta"))["nombre"] == "Oro", "la receta se guarda en la escena")
+    comprobar(json.loads(cmds.getAttr("M_Oro.materialsReceta"))["nombre"] == "Oro", "la receta se guarda en la escena")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Pruebas sin Maya de la ventana de Muestrario con Qt sin pantalla y servicios falsos.
+"""Pruebas sin Maya de la ventana de Materials con Qt sin pantalla y servicios falsos.
 
 Necesitan PySide6 (``pip install PySide6-Essentials``); si no está, se saltan.
 """
@@ -20,10 +20,10 @@ except ImportError:  # pragma: no cover
     QtWidgets = None
 
 if QtWidgets is not None:
-    from muestrario import intercambio as ic
-    from muestrario import receta as rc
-    from muestrario.ajustes import Ajustes
-    from muestrario.ventana import Servicios, VentanaMuestrario
+    from materials import intercambio as ic
+    from materials import receta as rc
+    from materials.ajustes import Ajustes
+    from materials.ventana import Servicios, VentanaMaterials
     APP = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
 
 from test_logica import png  # noqa: E402
@@ -88,7 +88,7 @@ class ServiciosFalsos(Servicios if QtWidgets else object):
 
     def materiales(self):
         return [{"nombre": m, "tipo": "openPBRSurface", "objetos": len(self.asignaciones.get(m, [])),
-                 "texturas": len(self.conexiones.get(m, [])), "rotas": 0, "muestrario": True,
+                 "texturas": len(self.conexiones.get(m, [])), "rotas": 0, "materials": True,
                  "destino": d["destino"], "con_prefijo": m.startswith("M_")} for m, d in self.mats.items()]
 
     def borrar_sin_usar(self):
@@ -121,7 +121,7 @@ class ServiciosFalsos(Servicios if QtWidgets else object):
         return ic.envios_del_proyecto(self.carpeta_proyecto)
 
     def aplicar_manifiesto(self, carpeta, opciones=None):
-        from muestrario import texturas as tx
+        from materials import texturas as tx
         m = ic.leer_manifiesto(carpeta)
         envio = ic.leer_json(os.path.join(carpeta, ic.RECETA))
         salida = []
@@ -137,18 +137,18 @@ class ServiciosFalsos(Servicios if QtWidgets else object):
 class PruebaVentana(unittest.TestCase):
     def setUp(self):
         self.temporal = tempfile.mkdtemp()
-        os.environ["MUESTRARIO_CASA"] = os.path.join(self.temporal, "casa")
+        os.environ["MATERIALS_CASA"] = os.path.join(self.temporal, "casa")
         self.proyecto = os.path.join(self.temporal, "proyecto")
         os.makedirs(self.proyecto)
         self.servicios = ServiciosFalsos(self.proyecto)
         self.preferencias = os.path.join(self.temporal, "prefs")
-        self.v = VentanaMuestrario(self.servicios, Ajustes(self.preferencias), self.preferencias)
+        self.v = VentanaMaterials(self.servicios, Ajustes(self.preferencias), self.preferencias)
         self.v.resize(1000, 700)
 
     def tearDown(self):
         self.v.cerrar()
         self.v.deleteLater()
-        os.environ.pop("MUESTRARIO_CASA", None)
+        os.environ.pop("MATERIALS_CASA", None)
         shutil.rmtree(self.temporal)
 
     def esperar_miniaturas(self):

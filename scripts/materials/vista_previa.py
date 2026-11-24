@@ -8,8 +8,8 @@ estudio) pensada para elegir y comparar, no para juzgar el render final.
 import os
 import math
 
-from muestrario import color as col
-from muestrario import receta as rc
+from materials import color as col
+from materials import receta as rc
 
 
 def _norm(v):

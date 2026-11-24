@@ -1,6 +1,6 @@
 """Preferencias del usuario: destino por defecto, motor, carpeta de clase y otras.
 
-Se guardan en ``<preferencias de Maya>/muestrario/ajustes.json``. No depende de Maya.
+Se guardan en ``<preferencias de Maya>/materials/ajustes.json``. No depende de Maya.
 """
 
 import json

@@ -1,11 +1,11 @@
-"""Muestrario para Substance 3D Painter: recibe objetos de Maya y le devuelve las texturas.
+"""Materials para Substance 3D Painter: recibe objetos de Maya y le devuelve las texturas.
 
-Se instala solo al instalar Muestrario en Maya (o copiándolo a mano en la carpeta
+Se instala solo al instalar Materials en Maya (o copiándolo a mano en la carpeta
 ``Documentos/Adobe/Adobe Substance 3D Painter/python/plugins``). En Painter se
-activa en el menú Python ▸ muestrario_painter. Añade un panel «Muestrario».
+activa en el menú Python ▸ materials_painter. Añade un panel «Materials».
 
-Cómo funciona (ver ``scripts/muestrario/intercambio.py`` en Maya):
-1. Maya deja un aviso en ``Documentos/Muestrario/buzon``. El panel lo muestra.
+Cómo funciona (ver ``scripts/materials/intercambio.py`` en Maya):
+1. Maya deja un aviso en ``Documentos/Materials/buzon``. El panel lo muestra.
 2. «Abrir» crea un proyecto con la malla, con una capa de relleno por juego de
    texturas con los valores de Maya, y lo guarda junto a la malla.
 3. «Exportar a Maya» exporta con la plantilla del destino (Arnold, Unreal,
@@ -30,12 +30,12 @@ except ImportError:  # pragma: no cover - Painter antiguo
     from PySide2 import QtCore, QtWidgets
 
 VERSION = "1.0.0"
-METADATOS = "muestrario"
+METADATOS = "materials"
 _estado = {"panel": None, "temporizador": None, "pendiente": None, "conectado": False}
 
 TEXTOS = {
-    "titulo": "Muestrario",
-    "sin_avisos": "No hay envíos de Maya. En Maya: Muestrario ▸ Painter ▸ Enviar a Painter.",
+    "titulo": "Materials",
+    "sin_avisos": "No hay envíos de Maya. En Maya: Materials ▸ Painter ▸ Enviar a Painter.",
     "abrir": "Abrir",
     "descartar": "Descartar",
     "exportar": "Exportar a Maya",
@@ -69,15 +69,15 @@ def tr(clave, **v):
 
 def _log(texto):
     try:
-        sp.logging.info("Muestrario: " + texto)
+        sp.logging.info("Materials: " + texto)
     except Exception:
-        print("Muestrario: " + texto)
+        print("Materials: " + texto)
 
 
 # --- Archivos compartidos con Maya -------------------------------------------------------
 
 def carpeta_buzon():
-    base = os.environ.get("MUESTRARIO_CASA") or os.path.join(os.path.expanduser("~"), "Documents", "Muestrario")
+    base = os.environ.get("MATERIALS_CASA") or os.path.join(os.path.expanduser("~"), "Documents", "Materials")
     return os.path.join(base, "buzon")
 
 
@@ -165,7 +165,7 @@ def _mapa(sufijo, canales, bits="8", formato="png"):
 
 
 def plantilla(motor, receta_juego=None):
-    """Mapas que se exportan para cada destino. Los nombres los reconoce Muestrario en Maya."""
+    """Mapas que se exportan para cada destino. Los nombres los reconoce Materials en Maya."""
     emision = _mapa("Emissive", _rgb("emissive"))
     opacidad = _mapa("Opacity", _gris("opacity"))
     if motor == "unreal":
@@ -258,7 +258,7 @@ def abrir_envio(aviso, al_terminar=None):
 
 
 def _cerrar_actual():
-    """Cierra el proyecto abierto si viene de Muestrario (guardándolo); si no, pide al alumno que lo cierre."""
+    """Cierra el proyecto abierto si viene de Materials (guardándolo); si no, pide al alumno que lo cierre."""
     if not receta_enlazada() or not sp.project.file_path():
         raise RuntimeError(tr("proyecto_abierto"))
     if sp.project.needs_saving():
@@ -443,7 +443,7 @@ def exportar_a_maya():
     presets, lista = [], []
     for conjunto in sp.textureset.all_texture_sets():
         nombre = _nombre(conjunto)
-        preset = "muestrario_" + nombre
+        preset = "materials_" + nombre
         presets.append({"name": preset, "maps": plantilla(motor, juegos.get(nombre))})
         lista.append({"rootPath": nombre, "exportPreset": preset})
     configuracion = {
@@ -490,7 +490,7 @@ def _al_exportar(evento):
 class Panel(QtWidgets.QWidget):
     def __init__(self):
         super(Panel, self).__init__()
-        self.setObjectName("MuestrarioPanel")
+        self.setObjectName("MaterialsPanel")
         self.setWindowTitle(tr("titulo"))
         capa = QtWidgets.QVBoxLayout(self)
         self.estado = QtWidgets.QLabel()

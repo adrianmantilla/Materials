@@ -1,7 +1,7 @@
 """Reconoce mapas de textura por su nombre y decide cómo conectarlos.
 
 No depende de Maya. Sirve para cualquier origen: Substance Painter (con o sin la
-plantilla de Muestrario), Poly Haven, Quixel, Substance Sampler o texturas hechas
+plantilla de Materials), Poly Haven, Quixel, Substance Sampler o texturas hechas
 a mano, siempre que el nombre diga qué mapa es («silla_Madera_BaseColor.png»,
 «rock_wall_diff_2k.jpg», «T_Caja_ORM.png»...).
 
@@ -16,7 +16,7 @@ import struct
 
 EXTENSIONES = (".png", ".jpg", ".jpeg", ".tif", ".tiff", ".exr", ".tga", ".hdr", ".bmp")
 
-# Tipos de mapa. Cada clave es una «entrada» de Muestrario.
+# Tipos de mapa. Cada clave es una «entrada» de Materials.
 # Los nombres se comparan sin separadores ni mayúsculas.
 PALABRAS = [
     # (palabras, tipo)

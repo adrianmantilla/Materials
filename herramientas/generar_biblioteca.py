@@ -1,4 +1,4 @@
-"""Genera las recetas de la biblioteca (scripts/muestrario/biblioteca/*.json).
+"""Genera las recetas de la biblioteca (scripts/materials/biblioteca/*.json).
 
 Herramienta de desarrollo: las recetas se escriben aquí como tablas compactas y
 el script las vuelca a JSON, que es lo que lee el plugin. Para añadir o cambiar
@@ -18,10 +18,10 @@ import sys
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(RAIZ, "scripts"))
 
-from muestrario import color as col  # noqa: E402
-from muestrario import receta as rc  # noqa: E402
+from materials import color as col  # noqa: E402
+from materials import receta as rc  # noqa: E402
 
-SALIDA = os.path.join(RAIZ, "scripts", "muestrario", "biblioteca")
+SALIDA = os.path.join(RAIZ, "scripts", "materials", "biblioteca")
 
 
 def c(texto):

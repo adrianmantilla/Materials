@@ -4,16 +4,16 @@ No depende de Maya ni de Painter. Los dos programas se hablan con archivos,
 sin abrir puertos de red, así que funciona igual en Mac y en Windows y aunque
 uno de los dos se abra más tarde:
 
-    <proyecto>/sourceimages/muestrario/<objeto>/
+    <proyecto>/sourceimages/materials/<objeto>/
         <objeto>.fbx          malla que manda Maya (un juego de texturas por material)
         receta.json           destino, motor y valores de cada material
         texturas/             aquí exporta Painter
         manifiesto.json       lo escribe Painter al terminar cada exportación
 
-    <carpeta personal>/Muestrario/buzon/<id>.json
+    <carpeta personal>/Materials/buzon/<id>.json
         aviso para Painter de que hay un envío nuevo (apunta a receta.json)
 
-El plugin de Painter (``painter/muestrario_painter.py``) usa el mismo formato.
+El plugin de Painter (``painter/materials_painter.py``) usa el mismo formato.
 """
 
 import datetime
@@ -32,18 +32,18 @@ NORMAL_DE_MOTOR = {"arnold": "opengl", "unreal": "directx", "unity": "opengl", "
 RESOLUCIONES = (512, 1024, 2048, 4096)
 
 
-def carpeta_personal_muestrario():
+def carpeta_personal_materials():
     """Carpeta compartida por Maya y Painter en la cuenta del usuario (la del buzón)."""
-    base = os.environ.get("MUESTRARIO_CASA") or os.path.join(os.path.expanduser("~"), "Documents", "Muestrario")
+    base = os.environ.get("MATERIALS_CASA") or os.path.join(os.path.expanduser("~"), "Documents", "Materials")
     return base
 
 
 def carpeta_buzon():
-    return os.path.join(carpeta_personal_muestrario(), "buzon")
+    return os.path.join(carpeta_personal_materials(), "buzon")
 
 
 def carpeta_envio(proyecto, objeto):
-    return os.path.join(proyecto, "sourceimages", "muestrario", limpiar_nombre(objeto))
+    return os.path.join(proyecto, "sourceimages", "materials", limpiar_nombre(objeto))
 
 
 def limpiar_nombre(nombre):
@@ -77,14 +77,14 @@ def leer_json(ruta):
 
 
 def nueva_receta_envio(objeto, malla, juegos, destino="render", motor="arnold", resolucion=2048):
-    """``juegos``: nombre del juego de texturas (= material) -> receta de Muestrario."""
+    """``juegos``: nombre del juego de texturas (= material) -> receta de Materials."""
     if motor not in MOTORES:
         motor = "arnold"
     if resolucion not in RESOLUCIONES:
         resolucion = 2048
     return {
         "version": VERSION,
-        "programa": "Muestrario",
+        "programa": "Materials",
         "objeto": objeto,
         "malla": os.path.basename(malla),
         "destino": destino,
@@ -173,7 +173,7 @@ def huella_manifiesto(carpeta):
 
 def envios_del_proyecto(proyecto):
     """Carpetas de envío que hay en el proyecto (con su receta.json)."""
-    base = os.path.join(proyecto, "sourceimages", "muestrario")
+    base = os.path.join(proyecto, "sourceimages", "materials")
     if not os.path.isdir(base):
         return []
     salida = []

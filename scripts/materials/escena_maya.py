@@ -1,12 +1,12 @@
-"""Todo lo que Muestrario hace en la escena de Maya.
+"""Todo lo que Materials hace en la escena de Maya.
 
 La ventana no llama a ``maya.cmds`` directamente: usa un objeto
 :class:`ServiciosMaya`, y las pruebas sin Maya usan uno falso con los mismos métodos.
 
-Los materiales que crea Muestrario son nodos ``openPBRSurface`` normales con dos
-atributos extra: ``muestrarioReceta`` (la receta en JSON, para recordar notas y
-valores que no están en el nodo) y ``muestrarioDestino`` (render o juego).
-Los nodos de imagen que conecta llevan ``muestrarioEntrada`` para poder
+Los materiales que crea Materials son nodos ``openPBRSurface`` normales con dos
+atributos extra: ``materialsReceta`` (la receta en JSON, para recordar notas y
+valores que no están en el nodo) y ``materialsDestino`` (render o juego).
+Los nodos de imagen que conecta llevan ``materialsEntrada`` para poder
 recargarlos o sustituirlos sin duplicar.
 """
 
@@ -18,11 +18,11 @@ import sys
 
 from maya import cmds, mel
 
-from muestrario import color as col
-from muestrario import intercambio as ic
-from muestrario import receta as rc
-from muestrario import texturas as tx
-from muestrario.i18n import t
+from materials import color as col
+from materials import intercambio as ic
+from materials import receta as rc
+from materials import texturas as tx
+from materials.i18n import t
 
 
 def _unir(origen, destino):
@@ -31,12 +31,12 @@ def _unir(origen, destino):
         cmds.connectAttr(origen, destino, force=True)
 
 TIPO = "openPBRSurface"
-ATTR_RECETA = "muestrarioReceta"
-ATTR_DESTINO = "muestrarioDestino"
-ATTR_ENTRADA = "muestrarioEntrada"
-ATTR_ENVIO = "muestrarioEnvio"
-INFO_DESTINO = "muestrarioDestino"
-INFO_MOTOR = "muestrarioMotor"
+ATTR_RECETA = "materialsReceta"
+ATTR_DESTINO = "materialsDestino"
+ATTR_ENTRADA = "materialsEntrada"
+ATTR_ENVIO = "materialsEnvio"
+INFO_DESTINO = "materialsDestino"
+INFO_MOTOR = "materialsMotor"
 
 # Entrada de textura -> atributo del material (escalares) o especial.
 ENTRADA_ATRIBUTO = {
@@ -132,7 +132,7 @@ class ServiciosMaya(object):
 
     def crear_material(self, receta, destino, nombre=None):
         nombre = rc.nombre_material(nombre or receta.get("nombre", "Material"))
-        with _Bloque("Muestrario: crear material"):
+        with _Bloque("Materials: crear material"):
             material = cmds.shadingNode(TIPO, asShader=True, name=nombre)
             grupo = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name=material + "SG")
             _unir(material + ".outColor", grupo + ".surfaceShader")
@@ -243,7 +243,7 @@ class ServiciosMaya(object):
                 validos.append(e)
         if not validos:
             return 0
-        with _Bloque("Muestrario: asignar"):
+        with _Bloque("Materials: asignar"):
             cmds.sets(validos, edit=True, forceElement=self._grupo(material))
         return len(validos)
 
@@ -304,14 +304,14 @@ class ServiciosMaya(object):
             texturas = self.texturas_de(material) if tipo == TIPO else {}
             rotas = [e for e, info in texturas.items() if not info.get("existe", True)]
             salida.append({"nombre": material, "tipo": tipo, "objetos": len(objetos), "texturas": len(texturas),
-                           "rotas": len(rotas), "muestrario": _hay(material, ATTR_RECETA),
+                           "rotas": len(rotas), "materials": _hay(material, ATTR_RECETA),
                            "destino": cmds.getAttr(material + "." + ATTR_DESTINO) if _hay(material, ATTR_DESTINO)
                            else "", "con_prefijo": material.startswith("M_")})
         return salida
 
     def borrar_sin_usar(self):
         sin_usar = [m["nombre"] for m in self.materiales() if m["objetos"] == 0]
-        with _Bloque("Muestrario: borrar sin usar"):
+        with _Bloque("Materials: borrar sin usar"):
             for material in sin_usar:
                 grupos = cmds.listConnections(material + ".outColor", type="shadingEngine") or []
                 aguas_arriba = cmds.listHistory(material) or []
@@ -353,7 +353,7 @@ class ServiciosMaya(object):
         """Crea un OpenPBR equivalente a un Standard Surface, aiStandardSurface o Lambert y lo pone en su lugar."""
         r = self.receta_de(material)
         nombre_nuevo = material if material.startswith("M_") else "M_" + material
-        with _Bloque("Muestrario: convertir"):
+        with _Bloque("Materials: convertir"):
             nuevo = self.crear_material(r, destino, nombre=nombre_nuevo + "_openPBR")
             # Texturas conectadas al color o la normal se mantienen.
             for viejo, nuevo_attr in (("baseColor", "baseColor"), ("color", "baseColor"), ("diffuseColor", "baseColor"),
@@ -371,7 +371,7 @@ class ServiciosMaya(object):
     # --- Texturas -----------------------------------------------------------------------------
 
     def texturas_de(self, material):
-        """entrada -> {ruta, nodo, existe, espacio, nombre} de las imágenes conectadas por Muestrario."""
+        """entrada -> {ruta, nodo, existe, espacio, nombre} de las imágenes conectadas por Materials."""
         salida = {}
         for nodo in cmds.listHistory(material) or []:
             if cmds.nodeType(nodo) != "file":
@@ -472,7 +472,7 @@ class ServiciosMaya(object):
         opciones = opciones or {}
         proyecto = self.proyecto()
         hechas = []
-        with _Bloque("Muestrario: conectar texturas"):
+        with _Bloque("Materials: conectar texturas"):
             for c in conexiones:
                 entrada = c["entrada"]
                 if entrada == "ao":
@@ -570,7 +570,7 @@ class ServiciosMaya(object):
         if escena:
             carpetas.append(os.path.dirname(escena))
         arregladas, perdidas = [], []
-        with _Bloque("Muestrario: reparar rutas"):
+        with _Bloque("Materials: reparar rutas"):
             for nodo in self.todas_las_imagenes():
                 ruta = cmds.getAttr(nodo + ".fileTextureName") or ""
                 if not ruta or self._resolver(ruta, nodo):
@@ -593,7 +593,7 @@ class ServiciosMaya(object):
         proyecto = self.proyecto()
         destino = os.path.join(proyecto, "sourceimages")
         copiadas = 0
-        with _Bloque("Muestrario: copiar al proyecto"):
+        with _Bloque("Materials: copiar al proyecto"):
             for nodo in self.todas_las_imagenes():
                 ruta = cmds.getAttr(nodo + ".fileTextureName") or ""
                 if not ruta:
@@ -737,7 +737,7 @@ class ServiciosMaya(object):
             cmds.loadPlugin("fbxmaya", quiet=True)
         seleccion = cmds.ls(selection=True, long=True) or []
         temporales = []
-        cmds.undoInfo(openChunk=True, chunkName="Muestrario: exportar")
+        cmds.undoInfo(openChunk=True, chunkName="Materials: exportar")
         try:
             copias = []
             for o in objetos:

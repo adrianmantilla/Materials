@@ -16,7 +16,7 @@ Destinos:
 import copy
 import math
 
-from muestrario import color as col
+from materials import color as col
 
 RENDER = "render"
 JUEGO = "juego"

@@ -1,4 +1,4 @@
-"""Ventana de Muestrario (Qt). No llama a Maya: todo pasa por ``servicios``.
+"""Ventana de Materials (Qt). No llama a Maya: todo pasa por ``servicios``.
 
 Estado de la ventana:
 - ``receta``: lo que se ve en la vista previa y en los controles.
@@ -10,16 +10,16 @@ Estado de la ventana:
 import os
 import traceback
 
-import muestrario
-from muestrario import biblioteca as bib
-from muestrario import comprobacion as chk
-from muestrario import estilo
-from muestrario import intercambio as ic
-from muestrario import receta as rc
-from muestrario import texturas as tx
-from muestrario import vista_previa as vp
-from muestrario.i18n import t
-from muestrario.qt import QtCore, QtGui, QtWidgets
+import materials
+from materials import biblioteca as bib
+from materials import comprobacion as chk
+from materials import estilo
+from materials import intercambio as ic
+from materials import receta as rc
+from materials import texturas as tx
+from materials import vista_previa as vp
+from materials.i18n import t
+from materials.qt import QtCore, QtGui, QtWidgets
 
 Qt = QtCore.Qt
 TAM_VISTA = 200
@@ -166,12 +166,12 @@ class Deslizador(QtWidgets.QWidget):
         self.cambiado.emit(valor)
 
 
-class VentanaMuestrario(QtWidgets.QWidget):
+class VentanaMaterials(QtWidgets.QWidget):
     material_cambiado = QtCore.Signal(str)
 
     def __init__(self, servicios=None, ajustes=None, carpeta_preferencias=None, padre=None):
-        super(VentanaMuestrario, self).__init__(padre)
-        self.setObjectName("MuestrarioVentana")
+        super(VentanaMaterials, self).__init__(padre)
+        self.setObjectName("MaterialsVentana")
         self.setAttribute(Qt.WA_StyledBackground, True)
         self.setStyleSheet(estilo.HOJA)
         self.servicios = servicios or Servicios()
@@ -207,7 +207,7 @@ class VentanaMuestrario(QtWidgets.QWidget):
     # --- Utilidades ---------------------------------------------------------------------------
 
     def _ajuste(self, clave):
-        from muestrario.ajustes import DEFECTOS
+        from materials.ajustes import DEFECTOS
         return self.ajustes[clave] if self.ajustes is not None else DEFECTOS[clave]
 
     def _guardar_ajuste(self, clave, valor):
@@ -268,7 +268,7 @@ class VentanaMuestrario(QtWidgets.QWidget):
         fila = QtWidgets.QHBoxLayout(cabecera)
         fila.setContentsMargins(10, 8, 10, 8)
         fila.setSpacing(0)
-        titulo = estilo.etiqueta("Muestrario", "titulo")
+        titulo = estilo.etiqueta("Materials", "titulo")
         fila.addWidget(titulo)
         fila.addSpacing(18)
         fila.addWidget(estilo.etiqueta(t("destino"), "tenue"))
@@ -292,7 +292,7 @@ class VentanaMuestrario(QtWidgets.QWidget):
         self.combo_motor.currentIndexChanged.connect(self._al_cambiar_motor)
         fila.addWidget(self.combo_motor)
         fila.addStretch(1)
-        fila.addWidget(estilo.etiqueta("v" + muestrario.__version__, "tenue"))
+        fila.addWidget(estilo.etiqueta("v" + materials.__version__, "tenue"))
         return cabecera
 
     def _panel_vista(self):

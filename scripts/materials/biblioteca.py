@@ -1,7 +1,7 @@
 """Biblioteca de recetas: las que trae el plugin, las tuyas y las de la carpeta de clase.
 
 No depende de Maya.
-- Recetas del plugin: ``muestrario/biblioteca/NN_familia.json`` (una familia por archivo).
+- Recetas del plugin: ``materials/biblioteca/NN_familia.json`` (una familia por archivo).
 - Mis recetas: ``<preferencias>/recetas/*.json`` (una receta por archivo, se crean
   con «Guardar receta»).
 - Recetas de clase: una carpeta que elige el profesor (por ejemplo en una unidad
@@ -12,7 +12,7 @@ import json
 import os
 import unicodedata
 
-from muestrario import receta as rc
+from materials import receta as rc
 
 CARPETA_PLUGIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), "biblioteca")
 MIS_RECETAS = "mis_recetas"
@@ -96,7 +96,7 @@ class Biblioteca(object):
         self.recargar()
 
     def recargar(self):
-        from muestrario.i18n import t
+        from materials.i18n import t
         self.familias = familias_del_plugin(self.carpeta_plugin)
         self.familias.append(familia_de_carpeta(self.carpeta_mias, MIS_RECETAS, t("familia_mias"), True))
         if self.carpeta_clase:

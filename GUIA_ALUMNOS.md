@@ -1,10 +1,10 @@
-# Muestrario: guía rápida
+# Materials: guía rápida
 
-Muestrario sirve para poner materiales a tus modelos sin perderte en el Hypershade.
+Materials sirve para poner materiales a tus modelos sin perderte en el Hypershade.
 
 ## 1. Abrirlo y elegir destino
 
-Menú **Muestrario › Abrir Muestrario**. Arriba elige:
+Menú **Materials › Abrir Materials**. Arriba elige:
 
 - **Render (Arnold)** si vas a renderizar en Maya.
 - **Videojuego** si el modelo va a Unreal, Unity o un motor web. Elige también el motor.
@@ -36,7 +36,7 @@ Para editar el material de otro objeto, selecciónalo y pulsa **Cuentagotas**.
 ## 4. Texturas
 
 - **Desde Painter**: selecciona el objeto (con UVs), pestaña **Painter › Enviar a Painter**. En Painter, en el
-  panel *Muestrario*, pulsa **Abrir**, pinta y pulsa **Exportar a Maya**. Las texturas aparecen solas en Maya
+  panel *Materials*, pulsa **Abrir**, pinta y pulsa **Exportar a Maya**. Las texturas aparecen solas en Maya
   cada vez que exportas.
 - **De internet o de otra carpeta**: pestaña **Texturas**, elige la carpeta, **Analizar** y **Conectar**.
 

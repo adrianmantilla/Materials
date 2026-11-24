@@ -1,12 +1,12 @@
-"""Instalador de Muestrario.
+"""Instalador de Materials.
 
 Arrastra este archivo desde el explorador de archivos hasta el visor de Maya.
-- Crea el módulo «muestrario.mod» en tu carpeta de Maya apuntando a esta carpeta,
+- Crea el módulo «materials.mod» en tu carpeta de Maya apuntando a esta carpeta,
   carga el plugin y lo marca para que se cargue siempre.
 - Copia el complemento de Substance 3D Painter a
   «Documentos/Adobe/Adobe Substance 3D Painter/python/plugins» (si Painter no está
   instalado no pasa nada: se puede copiar más tarde).
-Para desinstalar, borra ese archivo .mod y «muestrario_painter.py» de la carpeta
+Para desinstalar, borra ese archivo .mod y «materials_painter.py» de la carpeta
 de plugins de Painter (las rutas se muestran en el Script Editor al instalar).
 
 No muevas la carpeta del plugin después de instalar; si lo haces, vuelve a
@@ -17,7 +17,7 @@ import os
 import shutil
 import sys
 
-PLUGIN = "muestrario_plugin"
+PLUGIN = "materials_plugin"
 
 
 def _raiz():
@@ -26,13 +26,13 @@ def _raiz():
 
 def contenido_mod(raiz, version):
     raiz = raiz.replace("\\", "/")
-    return ("+ Muestrario {version} {raiz}\n"
+    return ("+ Materials {version} {raiz}\n"
             "scripts: scripts\n"
             "plug-ins: plug-ins\n").format(version=version, raiz=raiz)
 
 
 def _version(raiz):
-    ruta = os.path.join(raiz, "scripts", "muestrario", "__init__.py")
+    ruta = os.path.join(raiz, "scripts", "materials", "__init__.py")
     with open(ruta, encoding="utf-8") as f:
         for linea in f:
             if linea.startswith("__version__"):
@@ -47,40 +47,67 @@ def carpeta_plugins_painter():
 
 def instalar_en_painter(raiz):
     """Copia el complemento de Painter. Devuelve la ruta o None si no se pudo."""
-    origen = os.path.join(raiz, "painter", "muestrario_painter.py")
+    origen = os.path.join(raiz, "painter", "materials_painter.py")
     destino = carpeta_plugins_painter()
     try:
         os.makedirs(destino, exist_ok=True)
-        shutil.copy2(origen, os.path.join(destino, "muestrario_painter.py"))
-        return os.path.join(destino, "muestrario_painter.py")
+        shutil.copy2(origen, os.path.join(destino, "materials_painter.py"))
+        return os.path.join(destino, "materials_painter.py")
     except OSError as error:
-        print("Muestrario | no se pudo copiar el complemento de Painter: {}".format(error))
+        print("Materials | no se pudo copiar el complemento de Painter: {}".format(error))
         return None
+
+
+def _quitar_version_antigua(carpeta_modulos):
+    """Antes de llamarse Materials el plugin se llamaba «Muestrario»: se quitan sus restos."""
+    from maya import cmds
+    antiguo = "muestrario_plugin"
+    try:
+        if cmds.pluginInfo(antiguo, query=True, loaded=True):
+            cmds.unloadPlugin(antiguo, force=True)
+        if cmds.pluginInfo(antiguo, query=True, registered=True):
+            cmds.pluginInfo(antiguo, edit=True, autoload=False)
+    except RuntimeError:
+        pass
+    for ruta in (os.path.join(carpeta_modulos, "muestrario.mod"),
+                 os.path.join(carpeta_plugins_painter(), "muestrario_painter.py")):
+        if os.path.isfile(ruta):
+            try:
+                os.remove(ruta)
+                print("Materials | quitado el archivo antiguo " + ruta)
+            except OSError:
+                pass
+    for control in ("MuestrarioWorkspaceControl",):
+        if cmds.workspaceControl(control, exists=True):
+            cmds.deleteUI(control)
+    if cmds.menu("MuestrarioMenu", exists=True):
+        cmds.deleteUI("MuestrarioMenu")
 
 
 def instalar():
     from maya import cmds
 
     raiz = _raiz()
-    print("Muestrario | instalando desde " + raiz)
+    print("Materials | instalando desde " + raiz)
     version = _version(raiz)
     carpeta_modulos = os.path.join(cmds.internalVar(userAppDir=True), "modules")
     os.makedirs(carpeta_modulos, exist_ok=True)
-    ruta_mod = os.path.join(carpeta_modulos, "muestrario.mod")
+    _quitar_version_antigua(carpeta_modulos)
+    ruta_mod = os.path.join(carpeta_modulos, "materials.mod")
     with open(ruta_mod, "w", encoding="utf-8") as f:
         f.write(contenido_mod(raiz, version))
-    print("Muestrario | módulo escrito en " + ruta_mod)
+    print("Materials | módulo escrito en " + ruta_mod)
     ruta_painter = instalar_en_painter(raiz)
     if ruta_painter:
-        print("Muestrario | complemento de Painter copiado en " + ruta_painter)
+        print("Materials | complemento de Painter copiado en " + ruta_painter)
 
     scripts = os.path.join(raiz, "scripts")
     sys.path[:] = [p for p in sys.path
                    if os.path.normpath(p) == os.path.normpath(scripts)
-                   or not os.path.isfile(os.path.join(p, "muestrario", "__init__.py"))]
+                   or not os.path.isfile(os.path.join(p, "materials", "__init__.py"))]
     if scripts not in sys.path:
         sys.path.insert(0, scripts)
-    for nombre in [m for m in sys.modules if m == "muestrario" or m.startswith("muestrario.")]:
+    for nombre in [m for m in sys.modules if m == "materials" or m.startswith("materials.")]:
         del sys.modules[nombre]
 
     ruta_plugin = os.path.join(raiz, "plug-ins", PLUGIN + ".py")
@@ -89,7 +116,7 @@ def instalar():
     cmds.loadPlugin(ruta_plugin)
     cmds.pluginInfo(PLUGIN, edit=True, autoload=True)
 
-    from muestrario.i18n import t
+    from materials.i18n import t
     texto = t("instalado_texto", version=version)
     if ruta_painter:
         texto += "\n\n" + t("instalado_painter")
@@ -102,7 +129,7 @@ def onMayaDroppedPythonFile(*_):
         instalar()
     except Exception as error:
         from maya import cmds
-        cmds.confirmDialog(title="Muestrario", message="No se pudo instalar Muestrario: {}".format(error),
+        cmds.confirmDialog(title="Materials", message="No se pudo instalar Materials: {}".format(error),
                            button=["OK"])
         raise
     finally:

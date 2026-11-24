@@ -1,28 +1,28 @@
-"""Une Muestrario con Maya: menú, panel acoplable, órdenes para atajos y avisos de escena."""
+"""Une Materials con Maya: menú, panel acoplable, órdenes para atajos y avisos de escena."""
 
 import os
 
 from maya import cmds
 
-import muestrario
-from muestrario.ajustes import Ajustes
-from muestrario.i18n import t
-from muestrario.qt import QtWidgets, destruir, shiboken, sigue_vivo
+import materials
+from materials.ajustes import Ajustes
+from materials.i18n import t
+from materials.qt import QtWidgets, destruir, shiboken, sigue_vivo
 
-CONTROL = "MuestrarioWorkspaceControl"
-MENU = "MuestrarioMenu"
+CONTROL = "MaterialsWorkspaceControl"
+MENU = "MaterialsMenu"
 COMANDOS = {
-    "MuestrarioAbrir": ("cmd_abrir", "alternar()"),
-    "MuestrarioAsignar": ("cmd_asignar", "asignar()"),
-    "MuestrarioCuentagotas": ("cmd_cuentagotas", "cuentagotas()"),
-    "MuestrarioEnviarPainter": ("cmd_enviar", "enviar_a_painter()"),
+    "MaterialsAbrir": ("cmd_abrir", "alternar()"),
+    "MaterialsAsignar": ("cmd_asignar", "asignar()"),
+    "MaterialsCuentagotas": ("cmd_cuentagotas", "cuentagotas()"),
+    "MaterialsEnviarPainter": ("cmd_enviar", "enviar_a_painter()"),
 }
 
 _estado = {"ventana": None, "ajustes": None, "servicios": None, "trabajos": []}
 
 
 def carpeta_preferencias():
-    return os.path.join(cmds.internalVar(userAppDir=True), "muestrario")
+    return os.path.join(cmds.internalVar(userAppDir=True), "materials")
 
 
 def ajustes():
@@ -33,7 +33,7 @@ def ajustes():
 
 def servicios():
     if _estado["servicios"] is None:
-        from muestrario.escena_maya import ServiciosMaya
+        from materials.escena_maya import ServiciosMaya
         _estado["servicios"] = ServiciosMaya()
     return _estado["servicios"]
 
@@ -44,8 +44,8 @@ def ventana():
 
 
 def _crear_ventana():
-    from muestrario.ventana import VentanaMuestrario
-    v = VentanaMuestrario(servicios=servicios(), ajustes=ajustes(), carpeta_preferencias=carpeta_preferencias())
+    from materials.ventana import VentanaMaterials
+    v = VentanaMaterials(servicios=servicios(), ajustes=ajustes(), carpeta_preferencias=carpeta_preferencias())
     _estado["ventana"] = v
     return v
 
@@ -68,10 +68,10 @@ def mostrar():
             cmds.deleteUI(CONTROL)
         else:
             return ventana()
-    cmds.workspaceControl(CONTROL, label="Muestrario", retain=False, floating=True, initialWidth=900,
+    cmds.workspaceControl(CONTROL, label="Materials", retain=False, floating=True, initialWidth=900,
                           initialHeight=640, minimumWidth=420,
-                          uiScript="import muestrario.interfaz_maya as m\nm.restaurar()",
-                          closeCommand="import muestrario.interfaz_maya as m\nm.al_cerrar()")
+                          uiScript="import materials.interfaz_maya as m\nm.restaurar()",
+                          closeCommand="import materials.interfaz_maya as m\nm.al_cerrar()")
     return ventana()
 
 
@@ -116,25 +116,25 @@ def _al_cambiar_escena():
 
 def _crear_ordenes():
     for nombre, (clave, llamada) in COMANDOS.items():
-        codigo = "import muestrario.interfaz_maya as m\nm.{}".format(llamada)
+        codigo = "import materials.interfaz_maya as m\nm.{}".format(llamada)
         if cmds.runTimeCommand(nombre, exists=True):
             cmds.runTimeCommand(nombre, edit=True, command=codigo, commandLanguage="python", annotation=t(clave))
         else:
             cmds.runTimeCommand(nombre, command=codigo, commandLanguage="python", annotation=t(clave),
-                                category="Custom Scripts.Muestrario")
+                                category="Custom Scripts.Materials")
 
 
 def _crear_menu():
     if cmds.menu(MENU, exists=True):
         cmds.deleteUI(MENU)
-    cmds.menu(MENU, label="Muestrario", parent="MayaWindow", tearOff=True)
+    cmds.menu(MENU, label="Materials", parent="MayaWindow", tearOff=True)
     cmds.menuItem(label=t("menu_abrir"), command=lambda *_: mostrar(), annotation=t("cmd_abrir"))
     cmds.menuItem(label=t("menu_asignar"), command=lambda *_: asignar())
     cmds.menuItem(label=t("menu_cuentagotas"), command=lambda *_: cuentagotas())
     cmds.menuItem(divider=True)
     cmds.menuItem(label=t("menu_enviar"), command=lambda *_: enviar_a_painter())
     cmds.menuItem(divider=True)
-    cmds.menuItem(label=t("menu_acerca", version=muestrario.__version__), enable=False)
+    cmds.menuItem(label=t("menu_acerca", version=materials.__version__), enable=False)
 
 
 def iniciar():
