@@ -5,6 +5,7 @@ import os
 from maya import cmds
 
 import materials
+from materials import pack
 from materials.ajustes import Ajustes
 from materials.i18n import t
 from materials.qt import QtWidgets, destruir, shiboken, sigue_vivo
@@ -125,9 +126,7 @@ def _crear_ordenes():
 
 
 def _crear_menu():
-    if cmds.menu(MENU, exists=True):
-        cmds.deleteUI(MENU)
-    cmds.menu(MENU, label="Materials", parent="MayaWindow", tearOff=True)
+    pack.crear_menu(MENU, "Materials")
     cmds.menuItem(label=t("menu_abrir"), command=lambda *_: mostrar(), annotation=t("cmd_abrir"))
     cmds.menuItem(label=t("menu_asignar"), command=lambda *_: asignar())
     cmds.menuItem(label=t("menu_cuentagotas"), command=lambda *_: cuentagotas())
@@ -162,5 +161,4 @@ def detener():
     if v is not None:
         destruir(v)
     _estado["ventana"] = None
-    if cmds.menu(MENU, exists=True):
-        cmds.deleteUI(MENU)
+    pack.quitar_menu(MENU)
