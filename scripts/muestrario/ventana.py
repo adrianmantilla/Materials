@@ -13,6 +13,7 @@ import traceback
 import muestrario
 from muestrario import biblioteca as bib
 from muestrario import comprobacion as chk
+from muestrario import estilo
 from muestrario import intercambio as ic
 from muestrario import receta as rc
 from muestrario import texturas as tx
@@ -22,7 +23,7 @@ from muestrario.qt import QtCore, QtGui, QtWidgets
 
 Qt = QtCore.Qt
 TAM_VISTA = 200
-TAM_MINI = 64
+TAM_MINI = 88
 MOTORES_JUEGO = ("unreal", "unity", "gltf")
 COLORES_AVISO = {chk.OK: "#7ccf98", chk.AVISO: "#f0c060", chk.INFO: "#8cc4ea"}
 SIMBOLOS = {chk.OK: "✓", chk.AVISO: "!", chk.INFO: "i"}
@@ -171,6 +172,8 @@ class VentanaMuestrario(QtWidgets.QWidget):
     def __init__(self, servicios=None, ajustes=None, carpeta_preferencias=None, padre=None):
         super(VentanaMuestrario, self).__init__(padre)
         self.setObjectName("MuestrarioVentana")
+        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.setStyleSheet(estilo.HOJA)
         self.servicios = servicios or Servicios()
         self.ajustes = ajustes
         self.carpeta_preferencias = carpeta_preferencias
@@ -217,7 +220,7 @@ class VentanaMuestrario(QtWidgets.QWidget):
 
     def mensaje(self, texto, error=False):
         self.barra_estado.setText(texto)
-        self.barra_estado.setStyleSheet("color:{}".format("#f08080" if error else ""))
+        self.barra_estado.setStyleSheet("color:{}".format("#f08a80" if error else estilo.TENUE))
 
     def _seguro(self, funcion, *args):
         try:
@@ -231,9 +234,12 @@ class VentanaMuestrario(QtWidgets.QWidget):
 
     def _construir(self):
         principal = QtWidgets.QVBoxLayout(self)
-        principal.setContentsMargins(6, 6, 6, 6)
-        principal.addLayout(self._barra_destino())
+        principal.setContentsMargins(0, 0, 0, 6)
+        principal.setSpacing(6)
+        principal.addWidget(self._barra_destino())
         division = QtWidgets.QSplitter(Qt.Horizontal)
+        division.setContentsMargins(8, 0, 8, 0)
+        division.setHandleWidth(10)
         division.addWidget(self._panel_vista())
         self.pestanas = QtWidgets.QTabWidget()
         self.pestanas.addTab(self._pestana_biblioteca(), t("tab_biblioteca"))
@@ -245,26 +251,39 @@ class VentanaMuestrario(QtWidgets.QWidget):
         self.pestanas.currentChanged.connect(self._al_cambiar_pestana)
         division.addWidget(self.pestanas)
         division.setStretchFactor(1, 1)
-        division.setSizes([240, 620])
+        division.setCollapsible(0, False)
+        division.setSizes([260, 620])
         principal.addWidget(division, 1)
         self.barra_estado = QtWidgets.QLabel()
         self.barra_estado.setWordWrap(True)
+        self.barra_estado.setContentsMargins(10, 0, 10, 0)
+        estilo.rol(self.barra_estado, "tenue")
         principal.addWidget(self.barra_estado)
         if not self.servicios.openpbr_disponible():
             self.mensaje(t("sin_openpbr"), error=True)
 
     def _barra_destino(self):
-        fila = QtWidgets.QHBoxLayout()
-        fila.addWidget(QtWidgets.QLabel(t("destino")))
+        cabecera = QtWidgets.QFrame()
+        estilo.rol(cabecera, "cabecera")
+        fila = QtWidgets.QHBoxLayout(cabecera)
+        fila.setContentsMargins(10, 8, 10, 8)
+        fila.setSpacing(0)
+        titulo = estilo.etiqueta("Muestrario", "titulo")
+        fila.addWidget(titulo)
+        fila.addSpacing(18)
+        fila.addWidget(estilo.etiqueta(t("destino"), "tenue"))
+        fila.addSpacing(8)
         self.grupo_destino = QtWidgets.QButtonGroup(self)
         self.boton_render = QtWidgets.QToolButton(text=t("destino_render"), checkable=True)
         self.boton_juego = QtWidgets.QToolButton(text=t("destino_juego"), checkable=True)
         self.boton_render.setToolTip(t("destino_render_ayuda"))
         self.boton_juego.setToolTip(t("destino_juego_ayuda"))
-        for b in (self.boton_render, self.boton_juego):
-            b.setStyleSheet("QToolButton{padding:3px 10px}QToolButton:checked{background:#5285a6;color:white}")
+        for b, lado in ((self.boton_render, "izq"), (self.boton_juego, "der")):
+            estilo.rol(b, "segmento", lado=lado)
+            b.setCursor(Qt.PointingHandCursor)
             self.grupo_destino.addButton(b)
             fila.addWidget(b)
+        fila.addSpacing(8)
         self.boton_render.clicked.connect(lambda: self._poner_destino(rc.RENDER))
         self.boton_juego.clicked.connect(lambda: self._poner_destino(rc.JUEGO))
         self.combo_motor = QtWidgets.QComboBox()
@@ -273,40 +292,49 @@ class VentanaMuestrario(QtWidgets.QWidget):
         self.combo_motor.currentIndexChanged.connect(self._al_cambiar_motor)
         fila.addWidget(self.combo_motor)
         fila.addStretch(1)
-        version = QtWidgets.QLabel("Muestrario " + muestrario.__version__)
-        version.setStyleSheet("color:#888")
-        fila.addWidget(version)
-        return fila
+        fila.addWidget(estilo.etiqueta("v" + muestrario.__version__, "tenue"))
+        return cabecera
 
     def _panel_vista(self):
         panel = QtWidgets.QWidget()
         capa = QtWidgets.QVBoxLayout(panel)
-        capa.setContentsMargins(0, 0, 6, 0)
+        capa.setContentsMargins(0, 2, 0, 0)
+        capa.setSpacing(8)
+        marco, interior = estilo.tarjeta(8, 6)
         self.vista = QtWidgets.QLabel()
         self.vista.setFixedSize(TAM_VISTA, TAM_VISTA)
         self.vista.setAlignment(Qt.AlignCenter)
         self.vista.setToolTip(t("vista_ayuda"))
-        capa.addWidget(self.vista, 0, Qt.AlignHCenter)
+        interior.addWidget(self.vista, 0, Qt.AlignHCenter)
         self.campo_nombre = QtWidgets.QLineEdit()
         self.campo_nombre.setPlaceholderText(t("nombre_receta"))
         self.campo_nombre.editingFinished.connect(self._al_cambiar_nombre)
-        capa.addWidget(self.campo_nombre)
-        self.etiqueta_vinculo = QtWidgets.QLabel()
-        self.etiqueta_vinculo.setWordWrap(True)
-        self.etiqueta_vinculo.setStyleSheet("color:#9a9a9a")
-        capa.addWidget(self.etiqueta_vinculo)
+        fuente = self.campo_nombre.font()
+        fuente.setPointSizeF(fuente.pointSizeF() * 1.15)
+        fuente.setBold(True)
+        self.campo_nombre.setFont(fuente)
+        interior.addWidget(self.campo_nombre)
+        self.fila_chips = QtWidgets.QHBoxLayout()
+        self.fila_chips.setSpacing(4)
+        interior.addLayout(self.fila_chips)
+        self.etiqueta_vinculo = estilo.etiqueta("", "tenue", ajuste=True)
+        interior.addWidget(self.etiqueta_vinculo)
+        capa.addWidget(marco)
         self.etiqueta_chequeo = QtWidgets.QLabel()
         self.etiqueta_chequeo.setWordWrap(True)
         self.etiqueta_chequeo.setTextFormat(Qt.RichText)
+        self.etiqueta_chequeo.setContentsMargins(4, 0, 4, 0)
         capa.addWidget(self.etiqueta_chequeo)
         self.etiqueta_nota = QtWidgets.QLabel()
         self.etiqueta_nota.setWordWrap(True)
-        self.etiqueta_nota.setStyleSheet("color:#b8b8b8;font-style:italic")
+        self.etiqueta_nota.setContentsMargins(4, 0, 4, 0)
+        self.etiqueta_nota.setStyleSheet("color:#bdbdbd;font-style:italic")
         capa.addWidget(self.etiqueta_nota)
         capa.addStretch(1)
         self.boton_asignar = QtWidgets.QPushButton(t("asignar"))
         self.boton_asignar.setToolTip(t("asignar_ayuda"))
-        self.boton_asignar.setStyleSheet("QPushButton{background:#5285a6;color:white;padding:5px}")
+        estilo.rol(self.boton_asignar, "primario")
+        self.boton_asignar.setCursor(Qt.PointingHandCursor)
         self.boton_asignar.clicked.connect(self.asignar)
         capa.addWidget(self.boton_asignar)
         fila = QtWidgets.QHBoxLayout()
@@ -323,7 +351,7 @@ class VentanaMuestrario(QtWidgets.QWidget):
         self.boton_guardar.setToolTip(t("guardar_receta_ayuda"))
         self.boton_guardar.clicked.connect(self.guardar_receta)
         capa.addWidget(self.boton_guardar)
-        panel.setMinimumWidth(TAM_VISTA + 12)
+        panel.setMinimumWidth(TAM_VISTA + 50)
         return panel
 
     def _pestana_biblioteca(self):
@@ -342,13 +370,22 @@ class VentanaMuestrario(QtWidgets.QWidget):
         capa.addLayout(fila)
         division = QtWidgets.QSplitter(Qt.Horizontal)
         self.lista_familias = QtWidgets.QListWidget()
-        self.lista_familias.setMaximumWidth(190)
+        self.lista_familias.setObjectName("ListaFamilias")
+        self.lista_familias.setItemDelegate(estilo.FilaFamilia(self.lista_familias))
+        self.lista_familias.setMouseTracking(True)
+        self.lista_familias.setMinimumWidth(170)
+        self.lista_familias.setMaximumWidth(220)
         self.lista_familias.currentRowChanged.connect(lambda _: self._rellenar_recetas())
         division.addWidget(self.lista_familias)
         self.lista_recetas = QtWidgets.QListWidget()
+        self.lista_recetas.setObjectName("ListaRecetas")
         self.lista_recetas.setViewMode(QtWidgets.QListView.IconMode)
         self.lista_recetas.setIconSize(QtCore.QSize(TAM_MINI, TAM_MINI))
-        self.lista_recetas.setGridSize(QtCore.QSize(TAM_MINI + 50, TAM_MINI + 44))
+        self.tarjeta_receta = estilo.TarjetaReceta(TAM_MINI, self.lista_recetas)
+        self.lista_recetas.setItemDelegate(self.tarjeta_receta)
+        self.lista_recetas.setGridSize(self.tarjeta_receta.tamano())
+        self.lista_recetas.setMouseTracking(True)
+        self.lista_recetas.setSpacing(0)
         self.lista_recetas.setTextElideMode(Qt.ElideNone)
         self.lista_recetas.setResizeMode(QtWidgets.QListView.Adjust)
         self.lista_recetas.setMovement(QtWidgets.QListView.Static)
@@ -361,10 +398,7 @@ class VentanaMuestrario(QtWidgets.QWidget):
         division.addWidget(self.lista_recetas)
         division.setStretchFactor(1, 1)
         capa.addWidget(division, 1)
-        ayuda = QtWidgets.QLabel(t("biblioteca_ayuda"))
-        ayuda.setWordWrap(True)
-        ayuda.setStyleSheet("color:#9a9a9a")
-        capa.addWidget(ayuda)
+        capa.addWidget(estilo.etiqueta(t("biblioteca_ayuda"), "tenue", ajuste=True))
         return w
 
     def _pestana_material(self):
@@ -375,8 +409,14 @@ class VentanaMuestrario(QtWidgets.QWidget):
         desplazable.setFrameShape(QtWidgets.QFrame.NoFrame)
         interior = QtWidgets.QWidget()
         capa = QtWidgets.QVBoxLayout(interior)
+        capa.setContentsMargins(2, 6, 6, 6)
+        capa.setSpacing(10)
+        marco, dentro = estilo.tarjeta(12, 4)
+        dentro.addWidget(estilo.etiqueta(t("seccion_aspecto"), "seccion"))
         formulario = QtWidgets.QFormLayout()
         formulario.setLabelAlignment(Qt.AlignRight)
+        formulario.setHorizontalSpacing(12)
+        formulario.setVerticalSpacing(8)
         self.boton_color = BotonColor()
         self.boton_color.cambiado.connect(lambda c: self._cambiar("color", c) if c else None)
         formulario.addRow(t("c_color"), self.boton_color)
@@ -391,17 +431,24 @@ class VentanaMuestrario(QtWidgets.QWidget):
             self.deslizadores[clave] = d
             self.rotulos[clave] = rotulo
             formulario.addRow(rotulo, d)
-        self.etiqueta_nits = QtWidgets.QLabel()
-        self.etiqueta_nits.setStyleSheet("color:#9a9a9a")
+        self.etiqueta_nits = estilo.etiqueta("", "tenue")
         formulario.addRow("", self.etiqueta_nits)
-        capa.addLayout(formulario)
+        dentro.addLayout(formulario)
+        capa.addWidget(marco)
 
-        self.grupo_mas = QtWidgets.QGroupBox(t("mas"))
-        self.grupo_mas.setCheckable(True)
-        self.grupo_mas.setChecked(False)
+        self.grupo_mas, capa_mas = estilo.tarjeta(12, 6)
+        self.boton_mas = QtWidgets.QToolButton(text=t("mas"), checkable=True)
+        self.boton_mas.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        self.boton_mas.setArrowType(Qt.RightArrow)
+        self.boton_mas.setStyleSheet("QToolButton{border:none;color:#8fc0e3;font-weight:600;padding:0}")
+        self.boton_mas.setCursor(Qt.PointingHandCursor)
+        capa_mas.addWidget(self.boton_mas)
         self.contenido_mas = QtWidgets.QWidget()
-        QtWidgets.QVBoxLayout(self.grupo_mas).addWidget(self.contenido_mas)
+        capa_mas.addWidget(self.contenido_mas)
         mas = QtWidgets.QFormLayout(self.contenido_mas)
+        mas.setLabelAlignment(Qt.AlignRight)
+        mas.setHorizontalSpacing(12)
+        mas.setVerticalSpacing(6)
         self.finos = {}
         self.colores_finos = {}
         finos = [("ior", 1.0, 3.0, 3), ("especular", 0.0, 1.0, 2), ("anisotropia", 0.0, 1.0, 2),
@@ -435,7 +482,8 @@ class VentanaMuestrario(QtWidgets.QWidget):
         self.casilla_pared.setToolTip(t("ayuda_pared_fina"))
         self.casilla_pared.toggled.connect(lambda v: self._cambiar("pared_fina", bool(v)))
         mas.addRow("", self.casilla_pared)
-        self.grupo_mas.toggled.connect(self.contenido_mas.setVisible)
+        self.boton_mas.toggled.connect(self.contenido_mas.setVisible)
+        self.boton_mas.toggled.connect(lambda v: self.boton_mas.setArrowType(Qt.DownArrow if v else Qt.RightArrow))
         self.contenido_mas.setVisible(False)
         capa.addWidget(self.grupo_mas)
         fila = QtWidgets.QHBoxLayout()
@@ -489,7 +537,7 @@ class VentanaMuestrario(QtWidgets.QWidget):
         capa.addLayout(formulario)
         fila = QtWidgets.QHBoxLayout()
         self.boton_conectar = QtWidgets.QPushButton(t("tex_conectar"))
-        self.boton_conectar.setStyleSheet("QPushButton{background:#5285a6;color:white;padding:4px 10px}")
+        estilo.rol(self.boton_conectar, "primario")
         self.boton_conectar.clicked.connect(self.conectar_texturas)
         recargar = QtWidgets.QPushButton(t("tex_recargar"))
         recargar.setToolTip(t("tex_recargar_ayuda"))
@@ -506,13 +554,23 @@ class VentanaMuestrario(QtWidgets.QWidget):
         capa.addLayout(fila)
         return w
 
+    def _paso(self, numero, titulo):
+        marco, capa = estilo.tarjeta(12, 6)
+        cabeza = QtWidgets.QHBoxLayout()
+        cabeza.setSpacing(8)
+        cabeza.addWidget(estilo.etiqueta(str(numero), "paso"))
+        cabeza.addWidget(estilo.etiqueta(titulo, "seccion"), 1)
+        capa.addLayout(cabeza)
+        return marco, capa
+
     def _pestana_painter(self):
         w = QtWidgets.QWidget()
-        capa = QtWidgets.QVBoxLayout(w)
-        ayuda = QtWidgets.QLabel(t("painter_ayuda"))
-        ayuda.setWordWrap(True)
-        capa.addWidget(ayuda)
+        exterior = QtWidgets.QVBoxLayout(w)
+        exterior.setContentsMargins(2, 6, 6, 6)
+        exterior.setSpacing(8)
+        paso1, capa = self._paso(1, t("painter_paso1"))
         formulario = QtWidgets.QFormLayout()
+        formulario.setHorizontalSpacing(12)
         self.etiqueta_objetos = QtWidgets.QLabel()
         self.etiqueta_objetos.setWordWrap(True)
         formulario.addRow(t("painter_objetos"), self.etiqueta_objetos)
@@ -524,13 +582,12 @@ class VentanaMuestrario(QtWidgets.QWidget):
         self.combo_resolucion.currentIndexChanged.connect(
             lambda _: self._guardar_ajuste("resolucion", self.combo_resolucion.currentData()))
         formulario.addRow(t("painter_resolucion"), self.combo_resolucion)
-        self.etiqueta_plantilla = QtWidgets.QLabel()
-        self.etiqueta_plantilla.setWordWrap(True)
+        self.etiqueta_plantilla = estilo.etiqueta("", "tenue", ajuste=True)
         formulario.addRow(t("painter_plantilla"), self.etiqueta_plantilla)
         capa.addLayout(formulario)
         fila = QtWidgets.QHBoxLayout()
         self.boton_enviar = QtWidgets.QPushButton(t("painter_enviar"))
-        self.boton_enviar.setStyleSheet("QPushButton{background:#5285a6;color:white;padding:4px 10px}")
+        estilo.rol(self.boton_enviar, "primario")
         self.boton_enviar.clicked.connect(self.enviar_a_painter)
         abrir = QtWidgets.QPushButton(t("painter_abrir"))
         abrir.clicked.connect(self._abrir_painter)
@@ -538,12 +595,17 @@ class VentanaMuestrario(QtWidgets.QWidget):
         fila.addWidget(abrir)
         fila.addStretch(1)
         capa.addLayout(fila)
+        exterior.addWidget(paso1)
+        paso2, capa = self._paso(2, t("painter_paso2"))
+        capa.addWidget(estilo.etiqueta(t("painter_ayuda"), "tenue", ajuste=True))
         self.casilla_sincronizar = QtWidgets.QCheckBox(t("painter_sincronizar"))
         self.casilla_sincronizar.setChecked(self._ajuste("sincronizar"))
         self.casilla_sincronizar.toggled.connect(self._al_sincronizar)
         capa.addWidget(self.casilla_sincronizar)
-        capa.addWidget(QtWidgets.QLabel(t("painter_envios")))
+        exterior.addWidget(paso2)
+        paso3, capa = self._paso(3, t("painter_envios"))
         self.lista_envios = QtWidgets.QListWidget()
+        self.lista_envios.setObjectName("ListaEnvios")
         capa.addWidget(self.lista_envios, 1)
         fila = QtWidgets.QHBoxLayout()
         traer = QtWidgets.QPushButton(t("painter_traer"))
@@ -558,8 +620,10 @@ class VentanaMuestrario(QtWidgets.QWidget):
         capa.addLayout(fila)
         self.registro = QtWidgets.QPlainTextEdit()
         self.registro.setReadOnly(True)
-        self.registro.setMaximumHeight(90)
+        self.registro.setMaximumHeight(70)
+        self.registro.setPlaceholderText(t("painter_registro"))
         capa.addWidget(self.registro)
+        exterior.addWidget(paso3, 1)
         return w
 
     def _pestana_escena(self):
@@ -574,16 +638,18 @@ class VentanaMuestrario(QtWidgets.QWidget):
         self.tabla_escena.verticalHeader().setVisible(False)
         self.tabla_escena.cellDoubleClicked.connect(lambda fila, _c: self._editar_de_tabla())
         capa.addWidget(self.tabla_escena, 1)
-        fila = QtWidgets.QHBoxLayout()
-        for clave, accion in (("esc_actualizar", self.refrescar_escena), ("esc_editar", self._editar_de_tabla),
-                              ("esc_seleccionar", self._seleccionar_de_tabla), ("esc_prefijo", self._poner_prefijos),
-                              ("esc_convertir", self._convertir_de_tabla), ("esc_borrar", self._borrar_sin_usar)):
-            b = QtWidgets.QPushButton(t(clave))
-            b.setToolTip(t(clave + "_ayuda"))
-            b.clicked.connect(accion)
-            fila.addWidget(b)
-        fila.addStretch(1)
-        capa.addLayout(fila)
+        for grupo in ((("esc_editar", self._editar_de_tabla), ("esc_seleccionar", self._seleccionar_de_tabla),
+                       ("esc_convertir", self._convertir_de_tabla)),
+                      (("esc_actualizar", self.refrescar_escena), ("esc_prefijo", self._poner_prefijos),
+                       ("esc_borrar", self._borrar_sin_usar))):
+            fila = QtWidgets.QHBoxLayout()
+            for clave, accion in grupo:
+                b = QtWidgets.QPushButton(t(clave))
+                b.setToolTip(t(clave + "_ayuda"))
+                b.clicked.connect(accion)
+                fila.addWidget(b)
+            fila.addStretch(1)
+            capa.addLayout(fila)
         self.etiqueta_resumen = QtWidgets.QLabel()
         capa.addWidget(self.etiqueta_resumen)
         return w
@@ -600,10 +666,7 @@ class VentanaMuestrario(QtWidgets.QWidget):
         fila.addWidget(self.campo_clase, 1)
         fila.addWidget(elegir)
         capa.addRow(t("aj_clase"), fila)
-        ayuda = QtWidgets.QLabel(t("aj_clase_ayuda"))
-        ayuda.setWordWrap(True)
-        ayuda.setStyleSheet("color:#9a9a9a")
-        capa.addRow("", ayuda)
+        capa.addRow("", estilo.etiqueta(t("aj_clase_ayuda"), "tenue", ajuste=True))
         self.campo_painter = QtWidgets.QLineEdit(self._ajuste("ruta_painter"))
         self.campo_painter.setPlaceholderText(t("aj_painter_auto"))
         self.campo_painter.editingFinished.connect(
@@ -730,14 +793,38 @@ class VentanaMuestrario(QtWidgets.QWidget):
             filas.append("<div style='margin:2px 0'><b style='color:{}'>{}</b>&nbsp;{}</div>".format(
                 COLORES_AVISO[nivel], SIMBOLOS[nivel], t(clave, **valores)))
         self.etiqueta_chequeo.setText("".join(filas))
+        self._poner_chips()
         self.etiqueta_nota.setText(self.receta.get("nota", ""))
         self.etiqueta_nota.setVisible(bool(self.receta.get("nota")))
         nits = rc.emision_a_nits(self.receta["emision"])
         self.etiqueta_nits.setText(t("nits", nits=int(round(nits))) if nits > 0 else "")
 
+    def _poner_chips(self):
+        while self.fila_chips.count():
+            item = self.fila_chips.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.hide()
+                widget.deleteLater()
+        destinos = tuple(self.receta.get("destinos") or rc.DESTINOS)
+        letra, color = estilo.color_destinos(destinos)
+        texto = " + ".join(t("destino_corto_" + d) for d in destinos)
+        self.fila_chips.addWidget(estilo.chip(texto, color or estilo.ACENTO))
+        familia = self.receta.get("familia")
+        if familia and self.biblioteca.familia(familia):
+            self.fila_chips.addWidget(estilo.chip(self.biblioteca.familia(familia).nombre,
+                                                  estilo.COLORES_FAMILIA.get(familia, "#8a8a8a")))
+        self.fila_chips.addStretch(1)
+
     def _pintar_vista(self):
-        imagen = imagen_de(self.receta, TAM_VISTA, self.destino)
-        self.vista.setPixmap(QtGui.QPixmap.fromImage(imagen))
+        arnold = vp.miniatura_arnold(self.receta, self.destino)
+        imagen = QtGui.QImage(arnold) if arnold else QtGui.QImage()
+        if imagen.isNull():
+            imagen = imagen_de(self.receta, TAM_VISTA, self.destino)
+            fuente = t("vista_aproximada")
+        else:
+            fuente = t("vista_arnold")
+        self.vista.setPixmap(estilo.imagen_redondeada(imagen, TAM_VISTA, 10, rotulo=fuente))
 
     def _actualizar_vinculo(self):
         if self.material:
@@ -826,13 +913,15 @@ class VentanaMuestrario(QtWidgets.QWidget):
         actual = seleccionar or self._ajuste("familia")
         self.lista_familias.blockSignals(True)
         self.lista_familias.clear()
-        todas = QtWidgets.QListWidgetItem(t("familia_todas", n=self.biblioteca.total()))
+        todas = QtWidgets.QListWidgetItem(t("familia_todas_corto"))
         todas.setData(Qt.UserRole, "")
+        todas.setData(estilo.ROL_CUENTA, self.biblioteca.total())
         self.lista_familias.addItem(todas)
         fila_elegida = 0
         for f in self.biblioteca.familias:
-            item = QtWidgets.QListWidgetItem("{} ({})".format(f.nombre, len(f.recetas)))
+            item = QtWidgets.QListWidgetItem(f.nombre)
             item.setData(Qt.UserRole, f.clave)
+            item.setData(estilo.ROL_CUENTA, len(f.recetas))
             self.lista_familias.addItem(item)
             if f.clave == actual:
                 fila_elegida = self.lista_familias.count() - 1
@@ -855,11 +944,10 @@ class VentanaMuestrario(QtWidgets.QWidget):
         recetas = self.biblioteca.buscar(self.campo_buscar.text(), familia or None, destino)
         self.lista_recetas.clear()
         self._cola_miniaturas = []
-        marca = {(rc.RENDER,): " ·R", (rc.JUEGO,): " ·J"}
         for r in recetas:
-            texto = r["nombre"] + marca.get(tuple(r["destinos"]), "")
-            it = QtWidgets.QListWidgetItem(texto)
+            it = QtWidgets.QListWidgetItem(r["nombre"])
             it.setData(Qt.UserRole, r)
+            it.setData(estilo.ROL_FAMILIA, r.get("familia", ""))
             it.setToolTip(self._ayuda_receta(r))
             clave = vp.clave_cache(r, TAM_MINI, self.destino)
             if clave in self._miniaturas:

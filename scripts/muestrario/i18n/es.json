@@ -64,7 +64,7 @@
  "nits": "Emisión: {nits} nits",
  "buscar": "Buscar (oro, vidrio, piel…)",
  "solo_destino": "Solo las del destino",
- "biblioteca_ayuda": "Clic: ver la receta. Doble clic: crear y asignar a la selección. Clic derecho: más opciones. ·R = solo render, ·J = solo juego.",
+ "biblioteca_ayuda": "Clic: ver la receta. Doble clic: crear y asignar a la selección. Clic derecho: más opciones. La marca R o J de la esquina indica que solo sirve para render o para juego.",
  "familia_todas": "Todas ({n})",
  "familia_mias": "Mis recetas",
  "familia_clase": "Recetas de clase",
@@ -192,7 +192,7 @@
  "rutas_arregladas": "Rutas reparadas: {n}.",
  "rutas_perdidas": "No se encuentran {n}: {lista}",
  "copiadas": "Copiadas al proyecto: {n}.",
- "painter_ayuda": "Selecciona el objeto (con UVs) y pulsa «Enviar a Painter». En Painter, abre el envío desde el panel Muestrario, pinta y pulsa «Exportar a Maya». Las texturas llegan solas.",
+ "painter_ayuda": "En Painter, abre el envío desde el panel Muestrario (ya trae los valores de Maya), pinta y pulsa «Exportar a Maya». Las texturas se conectan solas a tu material.",
  "painter_objetos": "Objetos",
  "painter_ninguno": "(nada seleccionado)",
  "painter_resolucion": "Resolución",
@@ -253,5 +253,12 @@
  "aj_mias": "Mis recetas",
  "aj_buzon": "Buzón para Painter",
  "chk_sss_escala": "El objeto mide {tamano} cm y el radio de subsuperficie es {radio}: la luz lo atraviesa casi entero y se ve naranja. Trabaja a escala real (1 unidad = 1 cm) o baja el radio en «Más…».",
- "painter_compartidos": "Enviado, pero {lista} lo llevan varios objetos: en Painter compartirán texturas y, si sus UVs se solapan, se pintarán a la vez. Si deben ser distintos, duplica el material."
+ "painter_compartidos": "Enviado, pero {lista} lo llevan varios objetos: en Painter compartirán texturas y, si sus UVs se solapan, se pintarán a la vez. Si deben ser distintos, duplica el material.",
+ "familia_todas_corto": "Todas",
+ "vista_aproximada": "Vista aproximada",
+ "vista_arnold": "Render de Arnold",
+ "seccion_aspecto": "Aspecto",
+ "painter_paso1": "Selecciona el objeto y envíalo",
+ "painter_paso2": "Pinta en Painter y pulsa «Exportar a Maya»",
+ "painter_registro": "Aquí aparece lo que va llegando de Painter."
 }
