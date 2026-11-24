@@ -7,12 +7,11 @@
    "destinos": [
     "render"
    ],
-   "nota": "La piel deja pasar la luz y la devuelve rojiza.",
+   "nota": "La piel deja pasar la luz y la devuelve rojiza. Trabaja a escala real (1 unidad = 1 cm).",
    "color": "#e3b49b",
    "rugosidad": 0.45,
    "subsuperficie": 1.0,
-   "color_subsuperficie": "#e07a5a",
-   "radio_subsuperficie": 0.4
+   "radio_subsuperficie": 0.3
   },
   {
    "nombre": "Piel media",
@@ -22,8 +21,7 @@
    "color": "#c58c6a",
    "rugosidad": 0.45,
    "subsuperficie": 1.0,
-   "color_subsuperficie": "#c8603e",
-   "radio_subsuperficie": 0.4
+   "radio_subsuperficie": 0.3
   },
   {
    "nombre": "Piel oscura",
@@ -33,8 +31,7 @@
    "color": "#7a4b34",
    "rugosidad": 0.45,
    "subsuperficie": 1.0,
-   "color_subsuperficie": "#8a3e24",
-   "radio_subsuperficie": 0.35
+   "radio_subsuperficie": 0.25
   },
   {
    "nombre": "Piel (juego)",
@@ -52,7 +49,7 @@
    "color": "#b55a5a",
    "rugosidad": 0.3,
    "subsuperficie": 1.0,
-   "radio_subsuperficie": 0.3
+   "radio_subsuperficie": 0.2
   },
   {
    "nombre": "Uña",
