@@ -1,0 +1,103 @@
+{
+ "familia": "luces",
+ "nombre": "Luces y pantallas",
+ "recetas": [
+  {
+   "nombre": "Neón rosa",
+   "nota": "La emisión ilumina en Arnold pero hace ruido: para iluminar, usa una luz de malla.",
+   "color": "#ff4fa0",
+   "rugosidad": 0.3,
+   "emision": 0.6
+  },
+  {
+   "nombre": "Neón azul",
+   "color": "#3fa8ff",
+   "rugosidad": 0.3,
+   "emision": 0.6
+  },
+  {
+   "nombre": "Neón verde",
+   "color": "#3fff7a",
+   "rugosidad": 0.3,
+   "emision": 0.6
+  },
+  {
+   "nombre": "Neón rojo",
+   "color": "#ff3a2a",
+   "rugosidad": 0.3,
+   "emision": 0.6
+  },
+  {
+   "nombre": "Pantalla encendida",
+   "color": "#9fd4ff",
+   "rugosidad": 0.1,
+   "barniz": 1.0,
+   "emision": 0.45
+  },
+  {
+   "nombre": "Pantalla apagada",
+   "color": "#1b1c1f",
+   "rugosidad": 0.05,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.0
+  },
+  {
+   "nombre": "LED blanco",
+   "color": "#ffffff",
+   "rugosidad": 0.3,
+   "emision": 0.7
+  },
+  {
+   "nombre": "Bombilla cálida",
+   "color": "#ffc07a",
+   "rugosidad": 0.2,
+   "emision": 0.8
+  },
+  {
+   "nombre": "Piloto rojo",
+   "color": "#ff2a1a",
+   "rugosidad": 0.2,
+   "barniz": 1.0,
+   "emision": 0.3
+  },
+  {
+   "nombre": "Piloto verde",
+   "color": "#3aff3a",
+   "rugosidad": 0.2,
+   "barniz": 1.0,
+   "emision": 0.3
+  },
+  {
+   "nombre": "Lava",
+   "color": "#ff5a0a",
+   "rugosidad": 0.6,
+   "emision": 0.7
+  },
+  {
+   "nombre": "Brasas",
+   "color": "#ff3a0a",
+   "rugosidad": 0.8,
+   "emision": 0.45
+  },
+  {
+   "nombre": "Fluorescente",
+   "color": "#c9ff3a",
+   "rugosidad": 0.4,
+   "emision": 0.35
+  },
+  {
+   "nombre": "Cielo de fondo",
+   "color": "#8fb8e8",
+   "rugosidad": 1.0,
+   "emision": 0.35
+  },
+  {
+   "nombre": "Holograma",
+   "color": "#3ae8ff",
+   "rugosidad": 0.2,
+   "emision": 0.5,
+   "opacidad": 0.4,
+   "pared_fina": true
+  }
+ ]
+}

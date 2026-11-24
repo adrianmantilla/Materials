@@ -1,0 +1,142 @@
+{
+ "familia": "construccion",
+ "nombre": "Construcción",
+ "recetas": [
+  {
+   "nombre": "Hormigón",
+   "color": "#9d9a94",
+   "rugosidad": 0.9
+  },
+  {
+   "nombre": "Hormigón claro",
+   "color": "#bdb9b0",
+   "rugosidad": 0.88
+  },
+  {
+   "nombre": "Hormigón pulido",
+   "color": "#8f8d89",
+   "rugosidad": 0.35
+  },
+  {
+   "nombre": "Hormigón visto",
+   "color": "#a3a19c",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Cemento",
+   "color": "#8b8a86",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Mortero",
+   "color": "#a59f93",
+   "rugosidad": 0.9
+  },
+  {
+   "nombre": "Ladrillo rojo",
+   "color": "#8f4a35",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Ladrillo amarillo",
+   "color": "#c7a76c",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Ladrillo refractario",
+   "color": "#c9b392",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Teja árabe",
+   "color": "#a6573a",
+   "rugosidad": 0.75
+  },
+  {
+   "nombre": "Pizarra de tejado",
+   "color": "#3b3f44",
+   "rugosidad": 0.55
+  },
+  {
+   "nombre": "Asfalto",
+   "color": "#3a3a3a",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Asfalto mojado",
+   "nota": "Mojado = misma piedra más oscura y con rugosidad baja.",
+   "color": "#202021",
+   "rugosidad": 0.15
+  },
+  {
+   "nombre": "Alquitrán",
+   "color": "#1d1d1d",
+   "rugosidad": 0.35
+  },
+  {
+   "nombre": "Pintura plástica blanca",
+   "nota": "Paredes interiores. Nunca blanco puro.",
+   "color": "#ecebe7",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Pintura plástica de color",
+   "color": "#c8b28a",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Gotelé",
+   "color": "#e7e4dd",
+   "rugosidad": 0.9
+  },
+  {
+   "nombre": "Pladur",
+   "color": "#e9e8e4",
+   "rugosidad": 0.9
+  },
+  {
+   "nombre": "Placa de techo",
+   "color": "#e2e1dc",
+   "rugosidad": 0.95
+  },
+  {
+   "nombre": "Cartón",
+   "color": "#b7916a",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Papel",
+   "color": "#f0eee8",
+   "rugosidad": 0.8,
+   "subsuperficie": 0.15,
+   "radio_subsuperficie": 0.1
+  },
+  {
+   "nombre": "Papel kraft",
+   "color": "#b08a60",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Linóleo",
+   "color": "#6f8a7a"
+  },
+  {
+   "nombre": "Moqueta",
+   "color": "#5c5a63",
+   "rugosidad": 1.0,
+   "pelusa": 0.5
+  },
+  {
+   "nombre": "Chapa pintada",
+   "color": "#2f5f8f",
+   "rugosidad": 0.4,
+   "barniz": 0.3
+  },
+  {
+   "nombre": "Óxido",
+   "nota": "El óxido ya no es metal: metal a 0.",
+   "color": "#7a3b1e",
+   "rugosidad": 0.9
+  }
+ ]
+}

@@ -1,0 +1,122 @@
+{
+ "familia": "pinturas",
+ "nombre": "Pinturas y lacas",
+ "recetas": [
+  {
+   "nombre": "Pintura de coche roja",
+   "nota": "Pintura de coche = color debajo y barniz transparente encima.",
+   "color": "#9c1b1b",
+   "rugosidad": 0.4,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.02
+  },
+  {
+   "nombre": "Pintura de coche azul",
+   "color": "#123a7a",
+   "rugosidad": 0.4,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.02
+  },
+  {
+   "nombre": "Pintura de coche negra",
+   "color": "#1c1c1e",
+   "rugosidad": 0.4,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.02
+  },
+  {
+   "nombre": "Pintura de coche blanca",
+   "color": "#e8e8e4",
+   "rugosidad": 0.4,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.02
+  },
+  {
+   "nombre": "Pintura metalizada plata",
+   "nota": "Metalizada: metal debajo y barniz encima. Los destellos irían en textura.",
+   "color": "#dadada",
+   "rugosidad": 0.35,
+   "metal": 1.0,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.02
+  },
+  {
+   "nombre": "Pintura metalizada gris",
+   "color": "#aaacaf",
+   "rugosidad": 0.35,
+   "metal": 1.0,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.02
+  },
+  {
+   "nombre": "Pintura metalizada azul",
+   "color": "#6c89cb",
+   "rugosidad": 0.35,
+   "metal": 1.0,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.02
+  },
+  {
+   "nombre": "Pintura perlada",
+   "destinos": [
+    "render"
+   ],
+   "color": "#f2eee8",
+   "rugosidad": 0.35,
+   "barniz": 1.0,
+   "pelicula": 0.5
+  },
+  {
+   "nombre": "Pintura mate",
+   "color": "#4a5a3a",
+   "rugosidad": 0.75
+  },
+  {
+   "nombre": "Pintura satinada",
+   "color": "#d8d2c4",
+   "rugosidad": 0.45
+  },
+  {
+   "nombre": "Esmalte brillante",
+   "color": "#1f5f3a",
+   "rugosidad": 0.15,
+   "barniz": 0.5
+  },
+  {
+   "nombre": "Laca negra",
+   "color": "#1c1c1c",
+   "rugosidad": 0.1,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.01
+  },
+  {
+   "nombre": "Laca roja",
+   "color": "#8a1010",
+   "rugosidad": 0.1,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.01
+  },
+  {
+   "nombre": "Pintura de pizarra",
+   "color": "#25292a",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Pintura en polvo",
+   "nota": "Pintura de maquinaria y radiadores.",
+   "color": "#3a3a3c"
+  },
+  {
+   "nombre": "Barniz sobre madera",
+   "color": "#a77a4e",
+   "rugosidad": 0.6,
+   "barniz": 1.0
+  },
+  {
+   "nombre": "Pintura de juguete",
+   "color": "#e83a2a",
+   "rugosidad": 0.3,
+   "barniz": 0.5
+  }
+ ]
+}

@@ -1,0 +1,120 @@
+{
+ "familia": "terreno",
+ "nombre": "Terreno y exteriores",
+ "recetas": [
+  {
+   "nombre": "Tierra seca",
+   "color": "#8a6e52",
+   "rugosidad": 0.95
+  },
+  {
+   "nombre": "Tierra húmeda",
+   "color": "#4d3b2c",
+   "rugosidad": 0.6
+  },
+  {
+   "nombre": "Barro",
+   "color": "#3f3125",
+   "rugosidad": 0.35
+  },
+  {
+   "nombre": "Arena de playa",
+   "color": "#d6c29a",
+   "rugosidad": 0.95
+  },
+  {
+   "nombre": "Arena mojada",
+   "color": "#9c8763"
+  },
+  {
+   "nombre": "Arena de desierto",
+   "color": "#d29a5f",
+   "rugosidad": 0.95
+  },
+  {
+   "nombre": "Grava",
+   "color": "#8e8a84",
+   "rugosidad": 0.9
+  },
+  {
+   "nombre": "Roca",
+   "color": "#7b7670",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Roca musgosa",
+   "color": "#5d6449",
+   "rugosidad": 0.9
+  },
+  {
+   "nombre": "Hierba",
+   "nota": "Para hierba de verdad usa geometría o instancias; esto es para el suelo lejano.",
+   "color": "#4f7a2e",
+   "rugosidad": 0.7
+  },
+  {
+   "nombre": "Hierba seca",
+   "color": "#a39556",
+   "rugosidad": 0.8
+  },
+  {
+   "nombre": "Musgo",
+   "color": "#4c6a24",
+   "rugosidad": 0.95,
+   "pelusa": 0.4
+  },
+  {
+   "nombre": "Hojarasca",
+   "color": "#7d5a33",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Nieve",
+   "nota": "La nieve no es blanco puro y deja entrar la luz.",
+   "color": "#e9eef2",
+   "rugosidad": 0.6,
+   "subsuperficie": 0.6,
+   "radio_subsuperficie": 2.0
+  },
+  {
+   "nombre": "Nieve compacta",
+   "color": "#dde4ea",
+   "rugosidad": 0.45,
+   "subsuperficie": 0.5,
+   "radio_subsuperficie": 1.5
+  },
+  {
+   "nombre": "Hielo",
+   "color": "#e6f2f7",
+   "rugosidad": 0.05,
+   "transparencia": 1.0,
+   "ior": 1.31
+  },
+  {
+   "nombre": "Hielo opaco",
+   "destinos": [
+    "render"
+   ],
+   "color": "#cfe3ec",
+   "rugosidad": 0.3,
+   "transparencia": 0.5,
+   "subsuperficie": 0.4
+  },
+  {
+   "nombre": "Lava fría",
+   "color": "#2a2522",
+   "rugosidad": 0.8
+  },
+  {
+   "nombre": "Ceniza",
+   "color": "#7e7a75",
+   "rugosidad": 0.95
+  },
+  {
+   "nombre": "Carbón",
+   "nota": "Uno de los materiales más oscuros: ~4 % de reflejo.",
+   "color": "#1f1f1d",
+   "rugosidad": 0.7
+  }
+ ]
+}

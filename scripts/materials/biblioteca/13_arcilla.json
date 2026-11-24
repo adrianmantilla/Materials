@@ -1,0 +1,73 @@
+{
+ "familia": "arcilla",
+ "nombre": "Arcilla y presentación",
+ "recetas": [
+  {
+   "nombre": "Clay gris",
+   "nota": "Para presentar el modelo sin distraer con el color.",
+   "color": "#a8a39a",
+   "rugosidad": 0.7
+  },
+  {
+   "nombre": "Clay blanco",
+   "color": "#d9d6cf",
+   "rugosidad": 0.7
+  },
+  {
+   "nombre": "Clay terracota",
+   "color": "#b06a4a",
+   "rugosidad": 0.7
+  },
+  {
+   "nombre": "Clay oscuro",
+   "color": "#4f4c48",
+   "rugosidad": 0.6
+  },
+  {
+   "nombre": "Clay brillante",
+   "color": "#b3aea6",
+   "rugosidad": 0.35
+  },
+  {
+   "nombre": "Maqueta de papel",
+   "color": "#efede6",
+   "rugosidad": 0.85,
+   "subsuperficie": 0.15
+  },
+  {
+   "nombre": "Maqueta de madera",
+   "color": "#d9b88a",
+   "rugosidad": 0.65
+  },
+  {
+   "nombre": "Plástico de impresión 3D",
+   "color": "#e8e6e0",
+   "rugosidad": 0.45
+  },
+  {
+   "nombre": "Resina",
+   "color": "#c8b89a",
+   "rugosidad": 0.2,
+   "subsuperficie": 0.3
+  },
+  {
+   "nombre": "Bronce de escultura",
+   "color": "#cbad90",
+   "rugosidad": 0.4,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Escayola de escultura",
+   "color": "#ebe8e0",
+   "rugosidad": 0.85,
+   "subsuperficie": 0.2
+  },
+  {
+   "nombre": "Comprobar normales",
+   "nota": "Un cromo gris deja ver cualquier bache o normal girada.",
+   "color": "#c4c5c4",
+   "rugosidad": 0.0,
+   "metal": 1.0
+  }
+ ]
+}

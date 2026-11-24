@@ -1,0 +1,161 @@
+{
+ "familia": "piedra",
+ "nombre": "Piedra y cerámica",
+ "recetas": [
+  {
+   "nombre": "Mármol blanco",
+   "nota": "El mármol deja pasar un poco de luz: subsuperficie baja.",
+   "color": "#e8e6e1",
+   "rugosidad": 0.15,
+   "subsuperficie": 0.35,
+   "radio_subsuperficie": 0.5
+  },
+  {
+   "nombre": "Mármol blanco mate",
+   "color": "#e3e1db",
+   "rugosidad": 0.4,
+   "subsuperficie": 0.3,
+   "radio_subsuperficie": 0.5
+  },
+  {
+   "nombre": "Mármol negro",
+   "color": "#1f1f21",
+   "rugosidad": 0.12
+  },
+  {
+   "nombre": "Mármol verde",
+   "color": "#3d5a4a",
+   "rugosidad": 0.15
+  },
+  {
+   "nombre": "Mármol rosa",
+   "color": "#d9b3a5",
+   "rugosidad": 0.15,
+   "subsuperficie": 0.2
+  },
+  {
+   "nombre": "Granito gris",
+   "color": "#8a8986",
+   "rugosidad": 0.35
+  },
+  {
+   "nombre": "Granito negro pulido",
+   "color": "#232325",
+   "rugosidad": 0.08
+  },
+  {
+   "nombre": "Pizarra",
+   "color": "#45494d",
+   "rugosidad": 0.6
+  },
+  {
+   "nombre": "Arenisca",
+   "color": "#c9a57c",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Caliza",
+   "color": "#cfc6b2",
+   "rugosidad": 0.8
+  },
+  {
+   "nombre": "Basalto",
+   "color": "#3b3a38",
+   "rugosidad": 0.75
+  },
+  {
+   "nombre": "Piedra pómez",
+   "color": "#a39f95",
+   "rugosidad": 0.95
+  },
+  {
+   "nombre": "Travertino",
+   "color": "#d8c7a6"
+  },
+  {
+   "nombre": "Obsidiana",
+   "color": "#1d1d20",
+   "rugosidad": 0.03
+  },
+  {
+   "nombre": "Jade",
+   "destinos": [
+    "render"
+   ],
+   "color": "#4c8a5c",
+   "rugosidad": 0.15,
+   "subsuperficie": 0.8,
+   "radio_subsuperficie": 0.4
+  },
+  {
+   "nombre": "Cuarzo",
+   "destinos": [
+    "render"
+   ],
+   "color": "#f2eee9",
+   "rugosidad": 0.05,
+   "transparencia": 0.6,
+   "subsuperficie": 0.3
+  },
+  {
+   "nombre": "Cerámica esmaltada blanca",
+   "nota": "El esmalte es una capa de vidrio: barniz.",
+   "color": "#ece8df",
+   "rugosidad": 0.3,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.03
+  },
+  {
+   "nombre": "Cerámica esmaltada de color",
+   "color": "#2f6e8a",
+   "rugosidad": 0.3,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.03
+  },
+  {
+   "nombre": "Porcelana",
+   "color": "#f3f1ec",
+   "rugosidad": 0.25,
+   "subsuperficie": 0.3,
+   "barniz": 1.0,
+   "radio_subsuperficie": 0.2,
+   "rugosidad_barniz": 0.02
+  },
+  {
+   "nombre": "Gres",
+   "color": "#9c8b78",
+   "rugosidad": 0.6
+  },
+  {
+   "nombre": "Terracota",
+   "color": "#b2603d",
+   "rugosidad": 0.8
+  },
+  {
+   "nombre": "Barro cocido",
+   "color": "#a85a3a",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Azulejo blanco",
+   "color": "#f0efea",
+   "rugosidad": 0.1,
+   "barniz": 0.6
+  },
+  {
+   "nombre": "Azulejo hidráulico",
+   "color": "#5d7f8e",
+   "rugosidad": 0.4
+  },
+  {
+   "nombre": "Yeso",
+   "color": "#ecebe6",
+   "rugosidad": 0.9
+  },
+  {
+   "nombre": "Escayola",
+   "color": "#f1efe9",
+   "rugosidad": 0.85
+  }
+ ]
+}

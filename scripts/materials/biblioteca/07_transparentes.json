@@ -1,0 +1,225 @@
+{
+ "familia": "transparentes",
+ "nombre": "Vidrio y líquidos",
+ "recetas": [
+  {
+   "nombre": "Vidrio de ventana",
+   "nota": "Pared fina: el cristal plano de una ventana no refracta.",
+   "color": "#ffffff",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.52,
+   "pared_fina": true
+  },
+  {
+   "nombre": "Vidrio",
+   "color": "#ffffff",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.52
+  },
+  {
+   "nombre": "Vidrio grueso",
+   "nota": "El color del vidrio grueso se nota más donde es más gordo: profundidad.",
+   "color": "#eaf4f1",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.52,
+   "color_transmision": "#cfe9e1",
+   "profundidad_transmision": 5.0
+  },
+  {
+   "nombre": "Vidrio de botella verde",
+   "color": "#3f7d4a",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.52,
+   "profundidad_transmision": 20.0
+  },
+  {
+   "nombre": "Vidrio ámbar",
+   "color": "#b06a1d",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.52,
+   "profundidad_transmision": 20.0
+  },
+  {
+   "nombre": "Vidrio azul",
+   "color": "#2f5fa0",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.52,
+   "profundidad_transmision": 20.0
+  },
+  {
+   "nombre": "Vidrio esmerilado",
+   "color": "#f1f5f5",
+   "rugosidad": 0.35,
+   "transparencia": 1.0,
+   "ior": 1.52
+  },
+  {
+   "nombre": "Vidrio tintado",
+   "color": "#5a5f63",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.52,
+   "pared_fina": true
+  },
+  {
+   "nombre": "Cristal tallado",
+   "color": "#ffffff",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.6
+  },
+  {
+   "nombre": "Diamante",
+   "destinos": [
+    "render"
+   ],
+   "color": "#ffffff",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 2.42
+  },
+  {
+   "nombre": "Lente",
+   "destinos": [
+    "render"
+   ],
+   "color": "#ffffff",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "barniz": 1.0,
+   "ior": 1.52,
+   "color_barniz": "#d8e8ff"
+  },
+  {
+   "nombre": "Agua",
+   "color": "#ffffff",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.333
+  },
+  {
+   "nombre": "Agua de mar",
+   "color": "#1f6b6a",
+   "rugosidad": 0.02,
+   "transparencia": 1.0,
+   "ior": 1.34,
+   "color_transmision": "#5fa8a0",
+   "profundidad_transmision": 50.0
+  },
+  {
+   "nombre": "Agua turbia",
+   "destinos": [
+    "render"
+   ],
+   "color": "#5a5a3a",
+   "rugosidad": 0.05,
+   "transparencia": 0.8,
+   "subsuperficie": 0.4,
+   "ior": 1.333
+  },
+  {
+   "nombre": "Burbuja de jabón",
+   "destinos": [
+    "render"
+   ],
+   "color": "#ffffff",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.33,
+   "pared_fina": true,
+   "pelicula": 1.0,
+   "grosor_pelicula": 380.0
+  },
+  {
+   "nombre": "Leche",
+   "destinos": [
+    "render"
+   ],
+   "color": "#f4f2ea",
+   "rugosidad": 0.2,
+   "subsuperficie": 1.0,
+   "ior": 1.35,
+   "radio_subsuperficie": 0.3
+  },
+  {
+   "nombre": "Zumo de naranja",
+   "destinos": [
+    "render"
+   ],
+   "color": "#f09a1a",
+   "rugosidad": 0.1,
+   "transparencia": 0.5,
+   "subsuperficie": 0.6,
+   "ior": 1.35
+  },
+  {
+   "nombre": "Vino tinto",
+   "color": "#5a0f19",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.35,
+   "color_transmision": "#a01a2c",
+   "profundidad_transmision": 10.0
+  },
+  {
+   "nombre": "Vino blanco",
+   "color": "#e8d98f",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.35,
+   "profundidad_transmision": 15.0
+  },
+  {
+   "nombre": "Cerveza",
+   "color": "#c98a1c",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.34,
+   "profundidad_transmision": 15.0
+  },
+  {
+   "nombre": "Refresco de cola",
+   "color": "#3a1608",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.34,
+   "color_transmision": "#8a4a20",
+   "profundidad_transmision": 8.0
+  },
+  {
+   "nombre": "Aceite",
+   "color": "#c8a62c",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.47,
+   "profundidad_transmision": 12.0
+  },
+  {
+   "nombre": "Miel",
+   "destinos": [
+    "render"
+   ],
+   "color": "#d08a12",
+   "rugosidad": 0.05,
+   "transparencia": 1.0,
+   "subsuperficie": 0.3,
+   "profundidad_transmision": 10.0
+  },
+  {
+   "nombre": "Gelatina",
+   "destinos": [
+    "render"
+   ],
+   "color": "#d43a5a",
+   "rugosidad": 0.1,
+   "transparencia": 0.8,
+   "subsuperficie": 0.5
+  }
+ ]
+}

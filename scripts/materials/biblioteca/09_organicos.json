@@ -1,0 +1,178 @@
+{
+ "familia": "organicos",
+ "nombre": "Piel y orgánicos",
+ "recetas": [
+  {
+   "nombre": "Piel clara",
+   "destinos": [
+    "render"
+   ],
+   "nota": "La piel deja pasar la luz y la devuelve rojiza. Trabaja a escala real (1 unidad = 1 cm).",
+   "color": "#e3b49b",
+   "rugosidad": 0.45,
+   "subsuperficie": 1.0,
+   "radio_subsuperficie": 0.3
+  },
+  {
+   "nombre": "Piel media",
+   "destinos": [
+    "render"
+   ],
+   "color": "#c58c6a",
+   "rugosidad": 0.45,
+   "subsuperficie": 1.0,
+   "radio_subsuperficie": 0.3
+  },
+  {
+   "nombre": "Piel oscura",
+   "destinos": [
+    "render"
+   ],
+   "color": "#7a4b34",
+   "rugosidad": 0.45,
+   "subsuperficie": 1.0,
+   "radio_subsuperficie": 0.25
+  },
+  {
+   "nombre": "Piel (juego)",
+   "destinos": [
+    "juego"
+   ],
+   "nota": "En motor la subsuperficie se configura en el propio motor.",
+   "color": "#d1a083"
+  },
+  {
+   "nombre": "Labios",
+   "destinos": [
+    "render"
+   ],
+   "color": "#b55a5a",
+   "rugosidad": 0.3,
+   "subsuperficie": 1.0,
+   "radio_subsuperficie": 0.2
+  },
+  {
+   "nombre": "Uña",
+   "destinos": [
+    "render"
+   ],
+   "color": "#e7c1b5",
+   "rugosidad": 0.2,
+   "subsuperficie": 0.4,
+   "barniz": 0.6
+  },
+  {
+   "nombre": "Diente",
+   "destinos": [
+    "render"
+   ],
+   "color": "#f0eadb",
+   "rugosidad": 0.2,
+   "subsuperficie": 0.6,
+   "barniz": 0.8,
+   "radio_subsuperficie": 0.2
+  },
+  {
+   "nombre": "Ojo (esclerótica)",
+   "destinos": [
+    "render"
+   ],
+   "color": "#f1ece6",
+   "rugosidad": 0.2,
+   "subsuperficie": 0.5,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.0
+  },
+  {
+   "nombre": "Hueso",
+   "color": "#e3d9c2",
+   "rugosidad": 0.6,
+   "subsuperficie": 0.3
+  },
+  {
+   "nombre": "Cera de vela",
+   "destinos": [
+    "render"
+   ],
+   "color": "#efe2b8",
+   "rugosidad": 0.35,
+   "subsuperficie": 1.0
+  },
+  {
+   "nombre": "Jabón",
+   "destinos": [
+    "render"
+   ],
+   "color": "#d7ecd9",
+   "rugosidad": 0.3,
+   "subsuperficie": 1.0,
+   "radio_subsuperficie": 0.8
+  },
+  {
+   "nombre": "Plastilina",
+   "color": "#c74d3a",
+   "rugosidad": 0.55,
+   "subsuperficie": 0.3
+  },
+  {
+   "nombre": "Hoja verde",
+   "destinos": [
+    "render"
+   ],
+   "nota": "Pared fina con algo de transmisión: la luz atraviesa la hoja.",
+   "color": "#3f6b22",
+   "rugosidad": 0.45,
+   "transparencia": 0.2,
+   "subsuperficie": 0.5,
+   "pared_fina": true
+  },
+  {
+   "nombre": "Hoja (juego)",
+   "destinos": [
+    "juego"
+   ],
+   "nota": "Usa una textura con alfa para recortar la silueta.",
+   "color": "#47722a"
+  },
+  {
+   "nombre": "Pétalo",
+   "destinos": [
+    "render"
+   ],
+   "color": "#e8789a",
+   "rugosidad": 0.4,
+   "transparencia": 0.3,
+   "subsuperficie": 0.6,
+   "pared_fina": true
+  },
+  {
+   "nombre": "Coral",
+   "color": "#e86a52",
+   "rugosidad": 0.7,
+   "subsuperficie": 0.4
+  },
+  {
+   "nombre": "Concha",
+   "destinos": [
+    "render"
+   ],
+   "nota": "El nácar es una película fina.",
+   "color": "#efe3d6",
+   "rugosidad": 0.25,
+   "barniz": 0.5,
+   "pelicula": 0.6,
+   "grosor_pelicula": 550.0
+  },
+  {
+   "nombre": "Caparazón de insecto",
+   "destinos": [
+    "render"
+   ],
+   "color": "#1d3a2a",
+   "rugosidad": 0.2,
+   "barniz": 1.0,
+   "pelicula": 0.7,
+   "grosor_pelicula": 600.0
+  }
+ ]
+}

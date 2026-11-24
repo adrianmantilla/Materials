@@ -1,0 +1,243 @@
+{
+ "familia": "metales",
+ "nombre": "Metales",
+ "recetas": [
+  {
+   "nombre": "Oro pulido",
+   "nota": "Oro de 24 quilates. El color del metal va en Color base.",
+   "color": "#ffe39d",
+   "rugosidad": 0.08,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Oro",
+   "color": "#ffe39d",
+   "rugosidad": 0.22,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Oro cepillado",
+   "nota": "La anisotropía estira el brillo en la dirección del cepillado.",
+   "color": "#ffe39d",
+   "rugosidad": 0.32,
+   "metal": 1.0,
+   "anisotropia": 0.6
+  },
+  {
+   "nombre": "Oro rosa",
+   "color": "#fddac4",
+   "rugosidad": 0.2,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Oro blanco",
+   "color": "#f3f0e5",
+   "rugosidad": 0.18,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Plata pulida",
+   "color": "#fcfaf5",
+   "rugosidad": 0.06,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Plata",
+   "color": "#fcfaf5",
+   "rugosidad": 0.25,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Plata envejecida",
+   "nota": "El ennegrecido real está en las grietas: píntalo en Painter.",
+   "color": "#dad7ce",
+   "rugosidad": 0.45,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Aluminio pulido",
+   "color": "#f5f6f6",
+   "rugosidad": 0.08,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Aluminio",
+   "color": "#f5f6f6",
+   "rugosidad": 0.3,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Aluminio cepillado",
+   "color": "#f5f6f6",
+   "rugosidad": 0.35,
+   "metal": 1.0,
+   "anisotropia": 0.7
+  },
+  {
+   "nombre": "Aluminio anodizado rojo",
+   "nota": "El anodizado tiñe el reflejo, por eso es metal con color.",
+   "color": "#e16159",
+   "rugosidad": 0.3,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Aluminio anodizado azul",
+   "color": "#6c95e1",
+   "rugosidad": 0.3,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Aluminio anodizado negro",
+   "color": "#99999e",
+   "rugosidad": 0.35,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Acero inoxidable",
+   "color": "#d6d1cb",
+   "rugosidad": 0.2,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Acero cepillado",
+   "color": "#d6d1cb",
+   "rugosidad": 0.35,
+   "metal": 1.0,
+   "anisotropia": 0.7
+  },
+  {
+   "nombre": "Acero pulido espejo",
+   "color": "#d6d1cb",
+   "rugosidad": 0.03,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Hierro",
+   "color": "#c6c6c8",
+   "rugosidad": 0.45,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Hierro fundido",
+   "color": "#c6c6c8",
+   "rugosidad": 0.65,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Hierro forjado oscuro",
+   "color": "#adadaf",
+   "rugosidad": 0.55,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Cobre pulido",
+   "color": "#fad1c2",
+   "rugosidad": 0.1,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Cobre",
+   "color": "#fad1c2",
+   "rugosidad": 0.3,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Cobre envejecido",
+   "nota": "La pátina verde no es metal: usa una máscara en Painter.",
+   "color": "#e7bca6",
+   "metal": 1.0
+  },
+  {
+   "nombre": "Latón",
+   "color": "#f5e4ae",
+   "rugosidad": 0.25,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Latón envejecido",
+   "color": "#ddcb9b",
+   "rugosidad": 0.45,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Bronce",
+   "color": "#e7c4a0",
+   "rugosidad": 0.35,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Cromo",
+   "nota": "El cromo es más oscuro de lo que parece: brilla porque es muy liso.",
+   "color": "#c4c5c4",
+   "rugosidad": 0.03,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Níquel",
+   "color": "#d4cdc0",
+   "rugosidad": 0.2,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Titanio",
+   "color": "#c2bbb3",
+   "rugosidad": 0.3,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Titanio quemado",
+   "destinos": [
+    "render"
+   ],
+   "nota": "El arcoíris del titanio quemado es una película fina.",
+   "color": "#b3aac4",
+   "rugosidad": 0.25,
+   "metal": 1.0,
+   "pelicula": 0.8,
+   "grosor_pelicula": 420.0
+  },
+  {
+   "nombre": "Platino",
+   "color": "#d6d1c9",
+   "rugosidad": 0.15,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Zinc",
+   "color": "#d5eaed",
+   "rugosidad": 0.35,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Chapa galvanizada",
+   "color": "#daddde",
+   "rugosidad": 0.45,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Plomo",
+   "color": "#d0cfd1",
+   "metal": 1.0
+  },
+  {
+   "nombre": "Cobalto",
+   "color": "#d5d4d0",
+   "rugosidad": 0.25,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Mercurio",
+   "nota": "Metal líquido: rugosidad cero.",
+   "color": "#e5e4e4",
+   "rugosidad": 0.0,
+   "metal": 1.0
+  },
+  {
+   "nombre": "Espejo",
+   "nota": "Un espejo es plata detrás de un vidrio; aquí basta con plata sin rugosidad.",
+   "color": "#fcfaf5",
+   "rugosidad": 0.0,
+   "metal": 1.0
+  }
+ ]
+}

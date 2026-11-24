@@ -1,0 +1,161 @@
+{
+ "familia": "plasticos",
+ "nombre": "Plásticos y gomas",
+ "recetas": [
+  {
+   "nombre": "Plástico rojo brillante",
+   "nota": "Los plásticos son dieléctricos: metal a 0 e IOR cercano a 1,5.",
+   "color": "#c22a2a",
+   "rugosidad": 0.18
+  },
+  {
+   "nombre": "Plástico azul brillante",
+   "color": "#2257b8",
+   "rugosidad": 0.18
+  },
+  {
+   "nombre": "Plástico amarillo brillante",
+   "color": "#e8b31a",
+   "rugosidad": 0.18
+  },
+  {
+   "nombre": "Plástico verde brillante",
+   "color": "#2f9a4a",
+   "rugosidad": 0.18
+  },
+  {
+   "nombre": "Plástico blanco brillante",
+   "color": "#e6e6e3",
+   "rugosidad": 0.15
+  },
+  {
+   "nombre": "Plástico negro brillante",
+   "color": "#1c1c1c",
+   "rugosidad": 0.15
+  },
+  {
+   "nombre": "Plástico mate",
+   "color": "#2f6fb0",
+   "rugosidad": 0.6
+  },
+  {
+   "nombre": "Plástico mate gris",
+   "color": "#7a7c7e",
+   "rugosidad": 0.6
+  },
+  {
+   "nombre": "Plástico mate negro",
+   "color": "#232323",
+   "rugosidad": 0.6
+  },
+  {
+   "nombre": "Plástico rugoso texturizado",
+   "nota": "Carcasas de electrodomésticos. El granulado va en el mapa de normales.",
+   "color": "#3a3b3d",
+   "rugosidad": 0.75
+  },
+  {
+   "nombre": "Bloque de juguete",
+   "color": "#d01f1f",
+   "rugosidad": 0.12,
+   "ior": 1.52
+  },
+  {
+   "nombre": "Plástico blando de juguete",
+   "color": "#f2a33a",
+   "rugosidad": 0.4,
+   "subsuperficie": 0.2
+  },
+  {
+   "nombre": "PVC blanco",
+   "color": "#e3e2dc",
+   "rugosidad": 0.35
+  },
+  {
+   "nombre": "Nailon",
+   "color": "#d9d4c5",
+   "rugosidad": 0.45
+  },
+  {
+   "nombre": "Policarbonato transparente",
+   "color": "#ffffff",
+   "rugosidad": 0.03,
+   "transparencia": 1.0,
+   "ior": 1.58
+  },
+  {
+   "nombre": "Metacrilato",
+   "color": "#ffffff",
+   "rugosidad": 0.0,
+   "transparencia": 1.0,
+   "ior": 1.49
+  },
+  {
+   "nombre": "Metacrilato de color",
+   "color": "#e04a6a",
+   "rugosidad": 0.02,
+   "transparencia": 1.0,
+   "ior": 1.49
+  },
+  {
+   "nombre": "Plástico translúcido",
+   "nota": "Botellas de agua y tuppers: transmisión con rugosidad.",
+   "color": "#dfe7ea",
+   "rugosidad": 0.3,
+   "transparencia": 0.8
+  },
+  {
+   "nombre": "Plástico lechoso",
+   "destinos": [
+    "render"
+   ],
+   "color": "#efefea",
+   "rugosidad": 0.35,
+   "subsuperficie": 0.6,
+   "radio_subsuperficie": 0.5
+  },
+  {
+   "nombre": "Goma negra",
+   "color": "#1e1e1e",
+   "rugosidad": 0.8
+  },
+  {
+   "nombre": "Neumático",
+   "color": "#1f1f1f",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Goma de color",
+   "color": "#c94a2c",
+   "rugosidad": 0.7
+  },
+  {
+   "nombre": "Silicona",
+   "destinos": [
+    "render"
+   ],
+   "color": "#cfd7d6",
+   "rugosidad": 0.45,
+   "subsuperficie": 0.5,
+   "radio_subsuperficie": 0.3
+  },
+  {
+   "nombre": "Vinilo",
+   "color": "#1e1e1e",
+   "rugosidad": 0.25
+  },
+  {
+   "nombre": "Fibra de carbono",
+   "nota": "El tejido de la fibra va en una textura; el barniz da la profundidad.",
+   "color": "#1b1c1e",
+   "rugosidad": 0.3,
+   "barniz": 1.0,
+   "anisotropia": 0.5
+  },
+  {
+   "nombre": "Cinta aislante",
+   "color": "#1f1f1f",
+   "rugosidad": 0.4
+  }
+ ]
+}

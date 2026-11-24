@@ -1,0 +1,131 @@
+{
+ "familia": "telas",
+ "nombre": "Telas y piel animal",
+ "recetas": [
+  {
+   "nombre": "Algodón",
+   "nota": "La pelusa da el brillo suave del borde de las telas.",
+   "color": "#e2ded4",
+   "rugosidad": 0.9,
+   "pelusa": 0.6
+  },
+  {
+   "nombre": "Algodón de color",
+   "color": "#7d2f3a",
+   "rugosidad": 0.9,
+   "pelusa": 0.6
+  },
+  {
+   "nombre": "Lino",
+   "color": "#cfc4ad",
+   "rugosidad": 0.85,
+   "pelusa": 0.4
+  },
+  {
+   "nombre": "Lana",
+   "color": "#a8a094",
+   "rugosidad": 0.95,
+   "pelusa": 1.0,
+   "rugosidad_pelusa": 0.7
+  },
+  {
+   "nombre": "Fieltro",
+   "color": "#4a5a6a",
+   "rugosidad": 1.0,
+   "pelusa": 0.9
+  },
+  {
+   "nombre": "Terciopelo",
+   "color": "#5a1838",
+   "rugosidad": 0.8,
+   "pelusa": 1.0,
+   "rugosidad_pelusa": 0.3
+  },
+  {
+   "nombre": "Terciopelo azul",
+   "color": "#1a2f5a",
+   "rugosidad": 0.8,
+   "pelusa": 1.0,
+   "rugosidad_pelusa": 0.3
+  },
+  {
+   "nombre": "Seda",
+   "color": "#d8c7a0",
+   "rugosidad": 0.3,
+   "pelusa": 0.2,
+   "anisotropia": 0.8
+  },
+  {
+   "nombre": "Satén",
+   "color": "#b81f3a",
+   "rugosidad": 0.25,
+   "anisotropia": 0.6
+  },
+  {
+   "nombre": "Vaquero",
+   "color": "#33476b",
+   "rugosidad": 0.9,
+   "pelusa": 0.5
+  },
+  {
+   "nombre": "Lona",
+   "color": "#b9ad8c",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Poliéster deportivo",
+   "color": "#2a6ad1",
+   "rugosidad": 0.45
+  },
+  {
+   "nombre": "Toalla",
+   "color": "#f1efe8",
+   "rugosidad": 1.0,
+   "pelusa": 1.0,
+   "rugosidad_pelusa": 0.8
+  },
+  {
+   "nombre": "Cuero",
+   "color": "#5a3420",
+   "rugosidad": 0.55
+  },
+  {
+   "nombre": "Cuero negro",
+   "color": "#221d1a",
+   "rugosidad": 0.45
+  },
+  {
+   "nombre": "Cuero brillante",
+   "color": "#3a1f14",
+   "rugosidad": 0.3,
+   "barniz": 0.6,
+   "rugosidad_barniz": 0.15
+  },
+  {
+   "nombre": "Ante",
+   "color": "#9a7650",
+   "rugosidad": 0.95,
+   "pelusa": 0.7
+  },
+  {
+   "nombre": "Piel sintética",
+   "color": "#2a2a2a",
+   "rugosidad": 0.35,
+   "barniz": 0.4
+  },
+  {
+   "nombre": "Pelo corto",
+   "nota": "Para pelo real usa XGen; esto es para peluches o pelo lejano.",
+   "color": "#5a4532",
+   "rugosidad": 0.7,
+   "pelusa": 1.0
+  },
+  {
+   "nombre": "Pluma",
+   "color": "#e8e4da",
+   "rugosidad": 0.6,
+   "pelusa": 0.3,
+   "anisotropia": 0.4
+  }
+ ]
+}

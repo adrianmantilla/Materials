@@ -1,0 +1,151 @@
+{
+ "familia": "comida",
+ "nombre": "Comida",
+ "recetas": [
+  {
+   "nombre": "Manzana roja",
+   "color": "#a3141a",
+   "rugosidad": 0.3,
+   "subsuperficie": 0.4,
+   "barniz": 0.5
+  },
+  {
+   "nombre": "Manzana verde",
+   "color": "#7aa83a",
+   "rugosidad": 0.3,
+   "subsuperficie": 0.4,
+   "barniz": 0.5
+  },
+  {
+   "nombre": "Naranja",
+   "color": "#e87a12",
+   "rugosidad": 0.45,
+   "subsuperficie": 0.5
+  },
+  {
+   "nombre": "Limón",
+   "color": "#e8d21f",
+   "rugosidad": 0.4,
+   "subsuperficie": 0.5
+  },
+  {
+   "nombre": "Plátano",
+   "color": "#e6c840",
+   "subsuperficie": 0.3
+  },
+  {
+   "nombre": "Uva",
+   "destinos": [
+    "render"
+   ],
+   "color": "#4a1d3a",
+   "rugosidad": 0.2,
+   "subsuperficie": 0.8,
+   "barniz": 0.6
+  },
+  {
+   "nombre": "Fresa",
+   "color": "#c01e2a",
+   "rugosidad": 0.35,
+   "subsuperficie": 0.6,
+   "barniz": 0.4
+  },
+  {
+   "nombre": "Tomate",
+   "color": "#c42a16",
+   "rugosidad": 0.2,
+   "subsuperficie": 0.5,
+   "barniz": 0.8
+  },
+  {
+   "nombre": "Pan",
+   "color": "#c58a4a",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Corteza de pan tostada",
+   "color": "#8a4a1e",
+   "rugosidad": 0.7
+  },
+  {
+   "nombre": "Queso",
+   "color": "#f0c860",
+   "rugosidad": 0.45,
+   "subsuperficie": 0.7,
+   "radio_subsuperficie": 0.3
+  },
+  {
+   "nombre": "Mantequilla",
+   "destinos": [
+    "render"
+   ],
+   "color": "#f3dc8a",
+   "rugosidad": 0.4,
+   "subsuperficie": 0.8
+  },
+  {
+   "nombre": "Chocolate",
+   "color": "#4a2716",
+   "rugosidad": 0.4
+  },
+  {
+   "nombre": "Chocolate con leche",
+   "color": "#7a4a2a",
+   "rugosidad": 0.35
+  },
+  {
+   "nombre": "Caramelo duro",
+   "destinos": [
+    "render"
+   ],
+   "color": "#c2381c",
+   "rugosidad": 0.05,
+   "transparencia": 0.8,
+   "subsuperficie": 0.3
+  },
+  {
+   "nombre": "Carne cruda",
+   "destinos": [
+    "render"
+   ],
+   "color": "#a33a35",
+   "rugosidad": 0.4,
+   "subsuperficie": 0.8,
+   "radio_subsuperficie": 0.3
+  },
+  {
+   "nombre": "Carne asada",
+   "color": "#5a2a18",
+   "rugosidad": 0.6
+  },
+  {
+   "nombre": "Huevo (cáscara)",
+   "color": "#e6d2b5",
+   "rugosidad": 0.6,
+   "subsuperficie": 0.2
+  },
+  {
+   "nombre": "Yema",
+   "destinos": [
+    "render"
+   ],
+   "color": "#f0a41a",
+   "rugosidad": 0.15,
+   "subsuperficie": 0.8
+  },
+  {
+   "nombre": "Glaseado",
+   "color": "#f2c6d6",
+   "rugosidad": 0.2,
+   "subsuperficie": 0.4,
+   "barniz": 0.5
+  },
+  {
+   "nombre": "Café",
+   "color": "#3a1c0e",
+   "rugosidad": 0.0,
+   "transparencia": 0.6,
+   "ior": 1.34
+  }
+ ]
+}

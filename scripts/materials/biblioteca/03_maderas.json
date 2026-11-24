@@ -1,0 +1,137 @@
+{
+ "familia": "maderas",
+ "nombre": "Maderas",
+ "recetas": [
+  {
+   "nombre": "Roble",
+   "nota": "Sin textura de vetas una madera se ve como plástico: envíala a Painter.",
+   "color": "#a77a4e",
+   "rugosidad": 0.6
+  },
+  {
+   "nombre": "Roble barnizado",
+   "color": "#9a6b3f",
+   "rugosidad": 0.45,
+   "barniz": 0.8,
+   "rugosidad_barniz": 0.1
+  },
+  {
+   "nombre": "Nogal",
+   "color": "#6b4630",
+   "rugosidad": 0.55
+  },
+  {
+   "nombre": "Nogal barnizado",
+   "color": "#5e3c27",
+   "rugosidad": 0.45,
+   "barniz": 0.9,
+   "rugosidad_barniz": 0.08
+  },
+  {
+   "nombre": "Pino",
+   "color": "#d1a873",
+   "rugosidad": 0.6
+  },
+  {
+   "nombre": "Pino tratado",
+   "color": "#b49d6c",
+   "rugosidad": 0.7
+  },
+  {
+   "nombre": "Haya",
+   "color": "#d4a77e",
+   "rugosidad": 0.55
+  },
+  {
+   "nombre": "Arce",
+   "color": "#e1c59c"
+  },
+  {
+   "nombre": "Cerezo",
+   "color": "#9c5a3c",
+   "barniz": 0.6
+  },
+  {
+   "nombre": "Caoba",
+   "color": "#6e3426",
+   "rugosidad": 0.45,
+   "barniz": 0.8
+  },
+  {
+   "nombre": "Teca",
+   "color": "#9d6f42",
+   "rugosidad": 0.55
+  },
+  {
+   "nombre": "Ébano",
+   "color": "#2d2019",
+   "rugosidad": 0.4,
+   "barniz": 0.7
+  },
+  {
+   "nombre": "Bambú",
+   "color": "#d7c08a",
+   "rugosidad": 0.45
+  },
+  {
+   "nombre": "Madera envejecida",
+   "nota": "Madera gris de exterior, castigada por el sol.",
+   "color": "#8d8173",
+   "rugosidad": 0.8
+  },
+  {
+   "nombre": "Madera quemada",
+   "color": "#2a2420",
+   "rugosidad": 0.75
+  },
+  {
+   "nombre": "Madera pintada blanca",
+   "color": "#e5e2da"
+  },
+  {
+   "nombre": "Contrachapado",
+   "color": "#cfae83",
+   "rugosidad": 0.6
+  },
+  {
+   "nombre": "Tablero DM",
+   "color": "#a88663",
+   "rugosidad": 0.75
+  },
+  {
+   "nombre": "Aglomerado",
+   "color": "#b08f68",
+   "rugosidad": 0.8
+  },
+  {
+   "nombre": "Corcho",
+   "color": "#b68a5c",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Madera lacada piano",
+   "color": "#1d1d1d",
+   "rugosidad": 0.2,
+   "barniz": 1.0,
+   "rugosidad_barniz": 0.01
+  },
+  {
+   "nombre": "Parqué",
+   "color": "#b3824f",
+   "rugosidad": 0.4,
+   "barniz": 0.7,
+   "rugosidad_barniz": 0.15
+  },
+  {
+   "nombre": "Madera de palé",
+   "color": "#c1a37a",
+   "rugosidad": 0.85
+  },
+  {
+   "nombre": "Corteza",
+   "nota": "Necesita normal y altura: la forma la da la textura.",
+   "color": "#5a4a3c",
+   "rugosidad": 0.9
+  }
+ ]
+}
