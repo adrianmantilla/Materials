@@ -34,7 +34,7 @@
    "rugosidad": 0.0,
    "transparencia": 1.0,
    "ior": 1.52,
-   "profundidad_transmision": 10.0
+   "profundidad_transmision": 20.0
   },
   {
    "nombre": "Vidrio ámbar",
@@ -42,7 +42,7 @@
    "rugosidad": 0.0,
    "transparencia": 1.0,
    "ior": 1.52,
-   "profundidad_transmision": 10.0
+   "profundidad_transmision": 20.0
   },
   {
    "nombre": "Vidrio azul",
@@ -50,7 +50,7 @@
    "rugosidad": 0.0,
    "transparencia": 1.0,
    "ior": 1.52,
-   "profundidad_transmision": 10.0
+   "profundidad_transmision": 20.0
   },
   {
    "nombre": "Vidrio esmerilado",
@@ -164,7 +164,7 @@
    "rugosidad": 0.0,
    "transparencia": 1.0,
    "ior": 1.35,
-   "profundidad_transmision": 3.0
+   "profundidad_transmision": 10.0
   },
   {
    "nombre": "Vino blanco",
@@ -180,7 +180,7 @@
    "rugosidad": 0.0,
    "transparencia": 1.0,
    "ior": 1.34,
-   "profundidad_transmision": 8.0
+   "profundidad_transmision": 15.0
   },
   {
    "nombre": "Refresco de cola",
@@ -188,7 +188,7 @@
    "rugosidad": 0.0,
    "transparencia": 1.0,
    "ior": 1.34,
-   "profundidad_transmision": 2.5
+   "profundidad_transmision": 8.0
   },
   {
    "nombre": "Aceite",
@@ -207,7 +207,7 @@
    "rugosidad": 0.05,
    "transparencia": 1.0,
    "subsuperficie": 0.3,
-   "profundidad_transmision": 5.0
+   "profundidad_transmision": 10.0
   },
   {
    "nombre": "Gelatina",
