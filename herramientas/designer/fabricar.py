@@ -3,8 +3,9 @@
     venv/bin/python herramientas/designer/fabricar.py <paquete.sbs> <catalogo> [--res 1024] [--solo id,id]
 
 1. ``sbscooker`` cocina el paquete en .sbsar.
-2. ``sbsrender`` saca, por cada grafo, las salidas en bruto (piezas, gris, incl, nubes,
-   motas, grunge) a ``<catalogo>/_bruto/<id>/``.
+2. ``sbsrender`` saca, por cada grafo, las salidas en bruto (forma del aparejo, nubes, motas,
+   grunge) a ``<catalogo>/_bruto/<id>/``. Los cantos irregulares, el detalle fino y la numeración
+   de las piezas se hacen aquí en numpy: es rápido, repite sin costuras y mide en cm.
 3. ``componer`` las convierte en los mapas que lee Materials a tamaño real:
    ``estructuras/<id>/<res>/altura.png`` (16 bits), ``mascara.png`` (RGB sin alfa:
    R junta, G gris por pieza, B desgaste), ``normal.png`` (OpenGL), ``miniatura.png`` y
@@ -29,7 +30,7 @@ sys.path.insert(0, os.path.join(AQUI, "lib"))
 import estructuras_def as ed  # noqa: E402
 
 DESIGNER = "/Applications/Adobe Substance 3D Designer/Adobe Substance 3D Designer.app/Contents/MacOS"
-BRUTOS = ("piezas", "gris", "incl", "nubes", "motas", "grunge", "grano", "poros")
+BRUTOS = ("forma", "nubes", "motas", "grunge")
 CARPETA_RES = {256: "1k", 512: "1k", 1024: "1k", 2048: "2k", 4096: "4k"}
 
 
@@ -137,44 +138,200 @@ def costura(a):
     return round(float(peor), 2)
 
 
+def ruido_cm(forma, cm_px_x, cm_px_y, tam_cm, semilla, octavas=1):
+    """Ruido que repite sin costuras con rasgos de ``tam_cm`` a tamaño real (0-1, media 0,5).
+
+    Se filtra ruido blanco en frecuencia (FFT, periódica por naturaleza) con una gaussiana medida
+    en cm en cada eje, así un píxel no cuadrado no estira el grano. Mucho más rápido que los ruidos
+    FX-map de Designer a escalas altas.
+    """
+    rng = np.random.default_rng(semilla)
+    fy = np.fft.fftfreq(forma[0], d=cm_px_y)[:, None]
+    fx = np.fft.fftfreq(forma[1], d=cm_px_x)[None, :]
+    total = np.zeros(forma)
+    peso = 1.0
+    for o in range(octavas):
+        sigma = max(tam_cm / (2.0 ** o), 0.7 * max(cm_px_x, cm_px_y)) / 2.0
+        filtro = np.exp(-2.0 * (np.pi * sigma) ** 2 * (fx ** 2 + fy ** 2))
+        r = np.real(np.fft.ifft2(np.fft.fft2(rng.standard_normal(forma)) * filtro))
+        total += peso * r / (r.std() + 1e-9)
+        peso *= 0.5
+    total /= total.std() + 1e-9
+    return np.clip(0.5 + 0.18 * total, 0.0, 1.0)
+
+
+def deformar(forma, cm_px_x, cm_px_y, amplitud_cm, semilla):
+    """Desplaza la forma con un ruido suave (~3 cm, más un detalle de ~1 cm) y la vuelve a umbralizar.
+
+    Da cantos ondulados de pieza hecha a mano sin flecos. ``amplitud_cm`` es el desplazamiento típico.
+    """
+    if amplitud_cm <= 0:
+        return forma > 0.5
+    alto, ancho = forma.shape
+    desp = []
+    for k in range(2):
+        r = (ruido_cm(forma.shape, cm_px_x, cm_px_y, 3.0, semilla + k) - 0.5
+             + 0.35 * (ruido_cm(forma.shape, cm_px_x, cm_px_y, 1.0, semilla + 10 + k) - 0.5))
+        desp.append(r / 0.18 * amplitud_cm)
+    y, x = np.mgrid[0:alto, 0:ancho].astype(np.float64)
+    xs = x + desp[0] / cm_px_x
+    ys = y + desp[1] / cm_px_y
+    x0, y0 = np.floor(xs).astype(int), np.floor(ys).astype(int)
+    fx, fy = xs - x0, ys - y0
+
+    def en(yy, xx):
+        return forma[yy % alto, xx % ancho]
+
+    valor = ((en(y0, x0) * (1 - fx) + en(y0, x0 + 1) * fx) * (1 - fy)
+             + (en(y0 + 1, x0) * (1 - fx) + en(y0 + 1, x0 + 1) * fx) * fy)
+    return valor > 0.5
+
+
+def etiquetar(mascara):
+    """Numera las piezas (vecinos en cruz) teniendo en cuenta que la imagen repite.
+
+    Una pieza cortada por el borde es una sola. Devuelve (etiquetas, n) con -1 fuera de pieza.
+    Trabaja por tramos de cada fila, así que es rápido aunque haya muchas piezas.
+    """
+    alto, ancho = mascara.shape
+    padre = []
+
+    def raiz(i):
+        while padre[i] != i:
+            padre[i] = padre[padre[i]]
+            i = padre[i]
+        return i
+
+    def unir(a, b):
+        ra, rb = raiz(a), raiz(b)
+        if ra != rb:
+            padre[max(ra, rb)] = min(ra, rb)
+
+    filas = []
+    for fila in mascara.astype(np.int8):
+        cambio = np.diff(np.concatenate([[0], fila, [0]]))
+        ini, fin = np.flatnonzero(cambio == 1), np.flatnonzero(cambio == -1)
+        ids = list(range(len(padre), len(padre) + len(ini)))
+        padre.extend(ids)
+        if len(ini) >= 2 and ini[0] == 0 and fin[-1] == ancho:
+            unir(ids[0], ids[-1])
+        filas.append((ini, fin, ids))
+
+    def solapar(a, b):
+        (ia, fa, da), (ib, fb, db) = a, b
+        i = j = 0
+        while i < len(ia) and j < len(ib):
+            if ia[i] < fb[j] and ib[j] < fa[i]:
+                unir(da[i], db[j])
+            if fa[i] < fb[j]:
+                i += 1
+            else:
+                j += 1
+
+    for y in range(1, alto):
+        solapar(filas[y - 1], filas[y])
+    solapar(filas[-1], filas[0])
+    raices = np.array([raiz(i) for i in range(len(padre))], dtype=np.int64)
+    _, compacto = np.unique(raices, return_inverse=True)
+    etiquetas = np.full(mascara.shape, -1, dtype=np.int64)
+    for y, (ini, fin, ids) in enumerate(filas):
+        for a, b, i in zip(ini, fin, ids):
+            etiquetas[y, a:b] = compacto[i]
+    return etiquetas, (int(compacto.max()) + 1 if len(compacto) else 0)
+
+
+def limpiar_piezas(mascara, pieza_px):
+    """Quita islas de pieza sueltas en la junta y tapa agujeros de junta dentro de una pieza."""
+    lab, n = etiquetar(mascara)
+    area = np.bincount(lab[lab >= 0], minlength=n)
+    mascara = mascara & (area[np.maximum(lab, 0)] >= 0.05 * pieza_px)
+    hueco, m = etiquetar(~mascara)
+    area = np.bincount(hueco[hueco >= 0], minlength=m)
+    # La junta es una red conectada enorme; un trozo de junta pequeño es un agujero dentro de una pieza.
+    return mascara | ((hueco >= 0) & (area[np.maximum(hueco, 0)] < 0.02 * pieza_px))
+
+
+def por_pieza(lab, n, cm_px_x, cm_px_y, semilla):
+    """Datos aleatorios de cada pieza: gris, altura e inclinación (plano 0-1 en dirección al azar)."""
+    rng = np.random.default_rng(semilla)
+    alto, ancho = lab.shape
+    dentro = lab >= 0
+    l = lab[dentro]
+    y, x = np.nonzero(dentro)
+    centro = []
+    for v, tam in ((x, ancho), (y, alto)):
+        ang = 2 * np.pi * v / tam
+        c = np.arctan2(np.bincount(l, np.sin(ang), n), np.bincount(l, np.cos(ang), n)) * tam / (2 * np.pi)
+        centro.append(((v - c[l] + tam / 2.0) % tam - tam / 2.0))
+    dx, dy = centro[0] * cm_px_x, centro[1] * cm_px_y
+    ang = rng.uniform(0, 2 * np.pi, n)
+    u = dx * np.cos(ang[l]) + dy * np.sin(ang[l])
+    lo = np.full(n, np.inf)
+    hi = np.full(n, -np.inf)
+    np.minimum.at(lo, l, u)
+    np.maximum.at(hi, l, u)
+    incl = np.zeros(lab.shape)
+    incl[dentro] = (u - lo[l]) / np.maximum(hi[l] - lo[l], 1e-6)
+    gris, alt = np.full(lab.shape, 0.5), np.full(lab.shape, 0.5)
+    gris[dentro] = rng.uniform(0, 1, n)[l]
+    alt[dentro] = rng.uniform(0, 1, n)[l]
+    return gris, alt, incl
+
+
 def componer(d, bruto, destino_raiz, res):
     b = {n: leer(os.path.join(bruto, n + ".png")) for n in BRUTOS}
-    n = b["piezas"].shape[0]
+    forma = b["forma"].shape
     tw, th = ed.tile_cm(d)
-    cm_px_x, cm_px_y = tw / b["piezas"].shape[1], th / n
-    mascara = b["piezas"] > 0.5
-    bisel = max(d["bisel_cm"], 0.6 * max(cm_px_x, cm_px_y))
-    dist = distancia_interior(mascara, cm_px_x, cm_px_y, bisel * 3.0)
-    perfil = suave(dist, 0.0, bisel)  # 0 en el canto, 1 en la cara
+    cm_px_x, cm_px_y = tw / forma[1], th / forma[0]
+    pix = max(cm_px_x, cm_px_y)
+    pieza_px = d["pieza_cm"][0] * d["pieza_cm"][1] / (cm_px_x * cm_px_y)
+    mascara = deformar(b["forma"], cm_px_x, cm_px_y, 0.35 * d["irregular"], 21)
+    mascara = limpiar_piezas(mascara, pieza_px)
+    lab, n = etiquetar(mascara)
+    gris_p, alt_p, incl = por_pieza(lab, n, cm_px_x, cm_px_y, semilla=len(d["id"]) * 7 + 1)
     av, ru, ir = d["altura_var"], d["rugoso"], d["irregular"]
     po, mo, qu = d.get("poros", 0.0), d.get("moteado", 0.0), d.get("quemado", 0.0)
-    pix = max(cm_px_x, cm_px_y)
-    # Canto redondeado (cuarto de círculo), no una rampa recta.
-    t = np.clip(dist / bisel, 0.0, 1.0)
+    bisel = max(d["bisel_cm"], 0.6 * pix)
+    dist = distancia_interior(mascara, cm_px_x, cm_px_y, max(bisel * 3.0, 3.0))
+    # Ruidos finos a tamaño real (numpy): grano de ~5 mm, arena de ~1,5 mm, poros de ~3 mm, canto de ~1 cm.
+    grano = ruido_cm(forma, cm_px_x, cm_px_y, 0.5, 11, octavas=3)
+    arena = ruido_cm(forma, cm_px_x, cm_px_y, 0.15, 13, octavas=2)
+    poros = ruido_cm(forma, cm_px_x, cm_px_y, 0.3, 12)
+    canto = ruido_cm(forma, cm_px_x, cm_px_y, 1.0, 14, octavas=2)
+    golpe = ruido_cm(forma, cm_px_x, cm_px_y, 1.0, 15, octavas=3)
+
+    # Canto redondeado (cuarto de círculo) que no es una línea perfecta: el redondeo varía a lo largo.
+    dist_c = np.maximum(dist + ir * bisel * 1.2 * (canto - 0.5) * 2.0, 0.0)
+    t = np.clip(dist_c / bisel, 0.0, 1.0)
     perfil = np.sqrt(1.0 - (1.0 - t) ** 2)
-    cara = (0.70 + 0.10 * av * (b["gris"] - 0.5) + 0.08 * av * (b["incl"] - 0.5)
-            + 0.05 * ru * (b["motas"] - 0.5) + 0.03 * ru * (b["nubes"] - 0.5)
-            + 0.025 * ru * (b["grano"] - 0.5))
-    # Poros: hoyos pequeños de paredes rectas.
-    hoyo = suave(b["poros"], 0.78, 0.86) * po
-    cara = cara - 0.06 * hoyo
-    # Desconchones: más cerca del canto y de las esquinas, con el borde vivo y el fondo áspero.
-    cerca = 1.0 - suave(dist, bisel * 0.5, bisel * 4.0)
-    mancha = 1.0 - b["grunge"]  # grunge_map_001 es casi blanco con manchas oscuras
-    umbral = 0.62 - 0.22 * ir
-    desconchon = suave(mancha * (0.6 + 0.6 * cerca), umbral, umbral + 0.05) * ir
-    cara = cara - desconchon * (0.22 + 0.08 * b["grano"])
-    # Mortero rehundido y con arena.
-    junta = 0.10 + 0.05 * b["nubes"] + 0.035 * b["grano"] + 0.03 * suave(b["poros"], 0.6, 0.9)
+    # Cara: cada pieza a su altura y algo inclinada; ondulación suave, grano y poros.
+    cara = (0.72 + av * (0.12 * (alt_p - 0.5) + 0.07 * (incl - 0.5))
+            + ru * (0.03 * (b["nubes"] - 0.5) + 0.025 * (b["motas"] - 0.5) + 0.035 * (grano - 0.5)
+                    + 0.012 * (arena - 0.5)))
+    hoyo = suave(poros, 0.80, 0.84) * po
+    cara = cara - 0.07 * hoyo
+    # Desconchones: casi siempre junto al canto, con pared viva y fondo áspero.
+    banda = 1.0 - suave(dist, 0.2, 0.6 + 1.2 * ir)
+    golpeado = golpe + 0.25 * banda + 0.05 * (1.0 - b["grunge"])
+    umbral = 0.97 - 0.12 * ir
+    desconchon = suave(golpeado, umbral, umbral + 0.02) * min(1.0, 2.0 * ir)
+    cara = cara - desconchon * (0.16 + 0.10 * golpe + 0.05 * arena)
+    # Mortero rehundido, con arena y alguna oquedad.
+    junta = (0.10 + 0.025 * b["nubes"] + 0.02 * (grano - 0.5) + 0.03 * (arena - 0.5)
+             - 0.03 * suave(poros, 0.78, 0.86))
     altura = junta + (np.maximum(cara, junta) - junta) * perfil
     altura = np.clip(altura, 0.0, 1.0)
-    desgaste = np.clip(1.5 * mancha * (1.0 - 0.6 * perfil) - 0.25 + 0.8 * desconchon, 0.0, 1.0) * mascara
+
+    mancha = 1.0 - b["grunge"]  # grunge_map_001 es casi blanco con manchas oscuras
+    desgaste = np.clip(1.2 * mancha * (1.0 - 0.5 * perfil) - 0.2 + 0.9 * desconchon
+                       + 0.25 * (1.0 - perfil), 0.0, 1.0) * mascara
     tv = d.get("tono_var", 0.5)
-    # Tono: uno por pieza, manchado dentro de la pieza, un extremo más quemado y motas de hierro.
-    tono = (0.5 + (b["gris"] - 0.5) * tv
-            + 0.22 * mo * (b["nubes"] - 0.5) + 0.12 * mo * (b["motas"] - 0.5)
-            - 0.18 * qu * suave(b["incl"], 0.65, 1.0)
-            - 0.10 * po * suave(b["poros"], 0.88, 0.95))
+    # Tono: uno por pieza, manchado dentro, un extremo más quemado, motas de hierro y canto algo más oscuro.
+    tono = (0.5 + (gris_p - 0.5) * tv
+            + 0.20 * mo * (b["nubes"] - 0.5) + 0.12 * mo * (b["motas"] - 0.5) + 0.06 * mo * (grano - 0.5)
+            - 0.20 * qu * suave(incl, 0.6, 1.0)
+            - 0.12 * po * suave(poros, 0.86, 0.92)
+            - 0.06 * (1.0 - perfil))
     gris = np.where(mascara, np.clip(tono, 0.0, 1.0), 0.5)
     en_junta = 1.0 - suave(dist, 0.0, 1.5 * pix)  # canto suavizado un píxel
     mascara_rgb = np.dstack([en_junta, gris, desgaste])
@@ -190,20 +347,19 @@ def componer(d, bruto, destino_raiz, res):
     mini.save(os.path.join(carpeta, "miniatura.png"))
     datos = {k: d[k] for k in ("id", "nombre", "familia", "junta", "recomendado_para", "etiquetas", "relieve_cm")}
     datos.update(tile_cm=[round(tw, 3), round(th, 3)], pieza_cm=d["pieza_cm"][0], color2=False, licencia="CC0",
-                 fabrica="designer", version=1)
+                 fabrica="designer", version=2)
     with open(os.path.join(carpeta, "motivo.json"), "w", encoding="utf-8") as f:
         json.dump(datos, f, ensure_ascii=False, indent=2)
     junta_real = 1.0 - (d["pieza_cm"][0] * d["pieza_cm"][1]) / ((d["pieza_cm"][0] + d["junta_cm"]) *
                                                               (d["pieza_cm"][1] + d["junta_cm"]))
-    informe = {"id": d["id"], "res": [int(x) for x in b["piezas"].shape],
+    area = np.bincount(lab[lab >= 0], minlength=n)
+    informe = {"id": d["id"], "res": [int(x) for x in forma],
                "junta_px": round(float(1.0 - mascara.mean()), 4), "junta_esperada": round(junta_real, 4),
-               "grises_distintos": int(len(np.unique(np.round(b["gris"][dist > 3 * max(cm_px_x, cm_px_y)], 2)))),
-               # Píxeles de pieza (lejos del canto) cuyo gris cambia con el vecino: el flood fill ha fallado.
-               "gris_ruidoso": round(float((np.abs(b["gris"] - np.roll(b["gris"], 2, axis=1))[dist > 3 * max(cm_px_x, cm_px_y)]
-                                            > 0.02).mean()), 4),
-               "piezas_esperadas": d["piezas"][0] * d["piezas"][1],
+               "piezas_contadas": int((area > 0.3 * pieza_px).sum()), "piezas_esperadas": d["piezas"][0] * d["piezas"][1],
+               "piezas_pegadas": int((area > 1.6 * pieza_px).sum()),
                "costura_altura": costura(altura), "costura_mascara": costura(mascara_rgb[..., 0]),
                "altura_min_max": [round(float(altura.min()), 3), round(float(altura.max()), 3)],
+               "desconchon": round(float(desconchon[mascara].mean()), 3),
                "desgaste_medio": round(float(desgaste.mean()), 3)}
     return mini, informe
 
