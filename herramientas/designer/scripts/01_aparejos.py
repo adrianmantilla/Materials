@@ -42,25 +42,25 @@ def montar(paquete, d, detalle=False):
     nubes = g.bib("noise_clouds_2", "clouds_2", scale=max(1, int(round(tw / 60.0))))
     motas = g.bib("noise_bnw_spots_1", "bnw_spots_1", scale=max(1, int(round(tw / 12.0))))
     grunge = g.bib("noise_grunge_map_001", "grunge_map_001", balance=0.5, contrast=0.6)
-    fino = g.bib("noise_perlin_noise", "perlin_noise", scale=max(8, int(round(tw / 1.5))))
-    # Cantos irregulares: deformar con ruido fino + nubes y volver a umbralizar.
-    deform = g.mezcla(nubes, fino, fsd.SUMA_RESTA, 0.5)
-    warp = g.atomo("warp", intensity=0.6 * d["irregular"] * (d["junta_cm"] / mx) * 4.0)
+    # Cantos irregulares: deformar con un ruido suave (sin flecos) y volver a umbralizar.
+    # Los desconchones se hacen en la altura (componer.py), no en el contorno.
+    deform = g.bib("noise_perlin_noise", "perlin_noise", scale=max(4, int(round(tw / 8.0))))
+    warp = g.atomo("warp", intensity=0.35 * d["irregular"] * (d["junta_cm"] / mx) * 4.0)
     g.unir(ladrillos, warp, "input1")
     g.unir(deform, warp, "inputgradient", indice_entrada=1)
     piezas = g.bib("histogram_scan", Position=0.5, Contrast=1.0)
     g.unir(warp, piezas)
-    relleno = g.bib("flood_fill", "flood_fill")
+    relleno = g.bib("flood_fill_2", "flood_fill")
     g.unir(piezas, relleno)
-    gris = g.bib("flood_fill", "flood_fill_to_random_grayscale")
+    gris = g.bib("flood_fill_2", "flood_fill_to_random_grayscale")
     g.unir(relleno, gris)
-    incl = g.bib("flood_fill", "flood_fill_to_gradient", angle=0.0, angle_variation=1.0)
+    incl = g.bib("flood_fill_2", "flood_fill_to_gradient", angle=0.0, angle_variation=1.0)
     g.unir(relleno, incl)
     for nodo, nombre in ((piezas, "piezas"), (gris, "gris"), (incl, "incl"), (nubes, "nubes"),
                          (motas, "motas"), (grunge, "grunge"), (ladrillos, "forma")):
         g.salida(nodo, nombre)
     if detalle:
-        for nodo in (ladrillos, warp, piezas, relleno, gris, incl, nubes, motas, grunge, fino, deform):
+        for nodo in (ladrillos, warp, piezas, relleno, gris, incl, nubes, motas, grunge, deform):
             print("  ", fsd.describir_nodo(nodo))
     return g
 

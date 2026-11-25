@@ -151,12 +151,13 @@ def componer(d, bruto, destino_raiz, res):
             + 0.06 * ru * (b["motas"] - 0.5) + 0.04 * ru * (b["nubes"] - 0.5))
     # Desconchones cerca del canto en piezas hechas a mano.
     cerca = 1.0 - suave(dist, bisel, bisel * 3.0)
-    desconchon = suave(b["grunge"], 0.62 - 0.12 * ir, 0.75 - 0.12 * ir) * cerca * ir
+    mancha = 1.0 - b["grunge"]  # grunge_map_001 es casi blanco con manchas oscuras
+    desconchon = suave(mancha, 0.45 - 0.15 * ir, 0.6 - 0.15 * ir) * cerca * ir
     cara = cara - 0.25 * desconchon
     junta = 0.12 + 0.10 * b["nubes"] + 0.04 * b["motas"]
     altura = junta + (np.maximum(cara, junta) - junta) * perfil
     altura = np.clip(altura, 0.0, 1.0)
-    desgaste = np.clip(1.4 * b["grunge"] * (1.0 - 0.6 * perfil) - 0.35 + 0.5 * desconchon, 0.0, 1.0) * mascara
+    desgaste = np.clip(1.6 * mancha * (1.0 - 0.5 * perfil) - 0.15 + 0.5 * desconchon, 0.0, 1.0) * mascara
     gris = np.where(mascara, b["gris"], 0.5)
     en_junta = 1.0 - suave(dist, 0.0, 1.5 * max(cm_px_x, cm_px_y))  # canto suavizado un píxel
     mascara_rgb = np.dstack([en_junta, gris, desgaste])
@@ -179,7 +180,10 @@ def componer(d, bruto, destino_raiz, res):
                                                               (d["pieza_cm"][1] + d["junta_cm"]))
     informe = {"id": d["id"], "res": [int(x) for x in b["piezas"].shape],
                "junta_px": round(float(1.0 - mascara.mean()), 4), "junta_esperada": round(junta_real, 4),
-               "grises_distintos": int(len(np.unique(np.round(gris[mascara], 3)))) if mascara.any() else 0,
+               "grises_distintos": int(len(np.unique(np.round(gris[dist > 3 * max(cm_px_x, cm_px_y)], 2)))),
+               # Píxeles de pieza (lejos del canto) cuyo gris cambia con el vecino: el flood fill ha fallado.
+               "gris_ruidoso": round(float((np.abs(gris - np.roll(gris, 2, axis=1))[dist > 3 * max(cm_px_x, cm_px_y)]
+                                            > 0.02).mean()), 4),
                "piezas_esperadas": d["piezas"][0] * d["piezas"][1],
                "costura_altura": costura(altura), "costura_mascara": costura(mascara_rgb[..., 0]),
                "altura_min_max": [round(float(altura.min()), 3), round(float(altura.max()), 3)],
