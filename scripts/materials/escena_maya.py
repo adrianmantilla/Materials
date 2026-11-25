@@ -20,6 +20,7 @@ from maya import cmds, mel
 
 from materials import color as col
 from materials import intercambio as ic
+from materials import motivo_maya as mm
 from materials import receta as rc
 from materials import texturas as tx
 from materials.i18n import t
@@ -166,6 +167,11 @@ class ServiciosMaya(object):
                     cmds.setAttr(plug, valor)
             except RuntimeError:
                 omitidos.append(atributo)
+        ctrl = mm.control_de(material)
+        if ctrl:
+            # Con motivo, color, rugosidad y metal entran a la red por el nodo de control.
+            mm.poner_base(ctrl, atributos["baseColor"], atributos["specularRoughness"], atributos["baseMetalness"],
+                          espacio)
         if _hay(material, ATTR_RECETA):
             datos = {k: v for k, v in rc.normalizar(receta).items() if k in rc.DEFECTO}
             cmds.setAttr(material + "." + ATTR_RECETA, json.dumps(datos, ensure_ascii=False), type="string")
@@ -189,6 +195,10 @@ class ServiciosMaya(object):
             if isinstance(valor, list) and valor and isinstance(valor[0], tuple):
                 valor = col.desde_espacio_render(valor[0], espacio) if atributo in COLOR_ATTRS else valor[0]
             valores[atributo] = valor
+        base = mm.leer_base(material, espacio)
+        if base:
+            valores["baseColor"] = col.hex_a_lineal(base[0])
+            valores["specularRoughness"], valores["baseMetalness"] = base[1], base[2]
         viva = rc.desde_atributos(valores, nombre=guardada.get("nombre") or material)
         if guardada:
             for clave in ("nombre", "nota", "familia", "destinos"):
@@ -200,6 +210,9 @@ class ServiciosMaya(object):
                     viva[clave] = None
         final = rc.normalizar(viva)
         final["texturas"] = self.texturas_de(material)
+        motivo = mm.leer(material, espacio)
+        if motivo:
+            final["motivo"] = motivo
         return final
 
     def material_seleccionado(self):
@@ -245,6 +258,8 @@ class ServiciosMaya(object):
             return 0
         with _Bloque("Materials: asignar"):
             cmds.sets(validos, edit=True, forceElement=self._grupo(material))
+            if mm.control_de(material):
+                self._proyectar(material)
         return len(validos)
 
     def tamano_objetos(self, material):
@@ -303,7 +318,9 @@ class ServiciosMaya(object):
             objetos = sorted({m.split(".")[0] for m in miembros})
             texturas = self.texturas_de(material) if tipo == TIPO else {}
             rotas = [e for e, info in texturas.items() if not info.get("existe", True)]
+            ctrl = mm.control_de(material) if tipo == TIPO else None
             salida.append({"nombre": material, "tipo": tipo, "objetos": len(objetos), "texturas": len(texturas),
+                           "motivo": mm.leer(material, _espacio_render()) if ctrl else None,
                            "rotas": len(rotas), "materials": _hay(material, ATTR_RECETA),
                            "destino": cmds.getAttr(material + "." + ATTR_DESTINO) if _hay(material, ATTR_DESTINO)
                            else "", "con_prefijo": material.startswith("M_")})
@@ -313,6 +330,8 @@ class ServiciosMaya(object):
         sin_usar = [m["nombre"] for m in self.materiales() if m["objetos"] == 0]
         with _Bloque("Materials: borrar sin usar"):
             for material in sin_usar:
+                if mm.control_de(material):
+                    mm.quitar(material)
                 grupos = cmds.listConnections(material + ".outColor", type="shadingEngine") or []
                 aguas_arriba = cmds.listHistory(material) or []
                 borrar = [n for n in aguas_arriba if cmds.nodeType(n) in ("file", "place2dTexture", "bump2d",
@@ -320,6 +339,69 @@ class ServiciosMaya(object):
                                                                         "multiplyDivide", "condition")]
                 cmds.delete([material] + grupos + borrar)
         return len(sin_usar)
+
+    # --- Motivos ---------------------------------------------------------------------------
+
+    def motivo_de(self, material):
+        """Motivo del material (valores vivos del nodo de control) o None."""
+        if not material or not cmds.objExists(material):
+            return None
+        return mm.leer(material, _espacio_render())
+
+    def aplicar_motivo(self, material, plan, receta, destino):
+        """Monta o rehace la red del motivo según ``plan`` (:func:`motivos.plan`); None lo quita."""
+        if not material or not cmds.objExists(material):
+            return None
+        if plan is None:
+            self.quitar_motivo(material, receta, destino)
+            return None
+        r = rc.para_juego(receta) if destino == rc.JUEGO else rc.normalizar(receta)
+        base = (col.hex_a_lineal(r["color"]), r["rugosidad"], r["metal"])
+        with _Bloque("Materials: motivo"):
+            grupo = self._grupo(material)
+            escala = mm.densidad_uv(grupo) if plan["motivo"]["proyeccion"] == "uv" else 100.0
+            ctrl = mm.montar(material, plan, base, _espacio_render(), _espacio_entrada(ESPACIO_SRGB),
+                             _espacio_entrada(ESPACIO_RAW), escala)
+            self._proyectar(material)
+        return ctrl
+
+    def _proyectar(self, material):
+        ctrl = mm.control_de(material)
+        if not ctrl:
+            return []
+        motivo = mm.leer(material, _espacio_render())
+        formas = mm.proyectar(material, self._grupo(material), motivo, mm.tile_u_de(ctrl))
+        mm.conectar_conjuntos(material, ctrl, formas)
+        return formas
+
+    def ajustar_motivo(self, material, motivo):
+        """Cambios en vivo (pieza, rotación, colores, desgaste...): solo valores del nodo de control."""
+        ctrl = mm.control_de(material)
+        if not ctrl:
+            return False
+        mm.poner_valores(ctrl, motivo, _espacio_render())
+        return True
+
+    def reproyectar(self, material):
+        """Vuelve a proyectar (tras mover, escalar o editar los objetos). Devuelve las formas."""
+        if not mm.control_de(material):
+            return []
+        with _Bloque("Materials: reproyectar motivo"):
+            return self._proyectar(material)
+
+    def quitar_motivo(self, material, receta, destino):
+        if not mm.control_de(material):
+            return False
+        with _Bloque("Materials: quitar motivo"):
+            mm.quitar(material)
+            self.actualizar_material(material, receta, destino)
+        return True
+
+    def seleccionar_control_motivo(self, material):
+        ctrl = mm.control_de(material)
+        if ctrl:
+            cmds.select(ctrl, replace=True)
+        return ctrl
 
     def receta_de(self, material):
         """Receta con los valores de un Standard Surface, aiStandardSurface, Lambert... (o de un OpenPBR)."""

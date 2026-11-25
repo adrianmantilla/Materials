@@ -19,6 +19,8 @@ DEFECTOS = {
     "ruta_painter": "",
     "abrir_painter": True,
     "ultima_carpeta_texturas": "",
+    "carpeta_motivos": "",          # además de <preferencias>/materials/motivos
+    "resolucion_motivos": "1k",
 }
 
 
