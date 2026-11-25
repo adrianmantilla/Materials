@@ -259,7 +259,7 @@ def _pixeles(ruta):
     imagen = om.MImage()
     imagen.readFromFile(ruta)
     ancho, alto = imagen.getSize()
-    datos = imagen.getPixels()
+    datos = bytes(imagen.pixels())
     valores = [datos[i] for i in range(0, ancho * alto * 4, 4)]
     return valores, ancho, alto
 
@@ -278,13 +278,17 @@ def _render(cmds, s, mv, cat, receta, temporal, renders):
     # UV de map1 aplastadas: si Arnold no leyera tt_motivo, la pared saldría lisa.
     cmds.polyEditUV(plano + ".map[*]", scaleU=0.0, scaleV=0.0, pivotU=0.5, pivotV=0.5)
     cmds.select(plano)
-    material = s.crear_material(rc.nueva(nombre="Pared", color="#b04a2c", rugosidad=0.6), "render")
+    receta = rc.nueva(nombre="Pared", color="#b04a2c", rugosidad=0.6)
+    material = s.crear_material(receta, "render")
     s.asignar(material)
     camara, camara_forma = cmds.camera(name="cam_prueba")
     cmds.setAttr(camara + ".translateZ", 600)
     cmds.setAttr(camara_forma + ".focalLength", 35)
     luz = cmds.directionalLight(name="sol")
-    cmds.setAttr(cmds.listRelatives(luz, parent=True)[0] + ".rotateX", -30)
+    sol = cmds.listRelatives(luz, parent=True)[0]
+    cmds.setAttr(sol + ".rotateX", -15)
+    cmds.setAttr(sol + ".rotateY", 20)
+    cmds.setAttr(luz + ".intensity", 3.0)
     cmds.setAttr("defaultRenderGlobals.currentRenderer", "arnold", type="string")
     try:
         import mtoa.core
