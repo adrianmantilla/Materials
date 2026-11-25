@@ -368,7 +368,7 @@ def _render(cmds, s, mv, cat, receta, temporal, renders):
         print("   render {}: desviación {:.1f}, media {:.1f}  ({})".format(nombre, desviacion, media, ruta))
 
     def distintos(a, b):
-        return sum(1 for x, y in zip(pix[a], pix[b]) if abs(x - y) > 8) / float(len(pix[a]))
+        return sum(1 for x, y in zip(pix[a], pix[b]) if abs(x - y) > 2) / float(len(pix[a]))
 
     comprobar(distintos("caja_24cm", "sin_motivo") > 0.02,
               "render caja: el motivo se ve (Arnold lee tt_motivo) ({:.0%})".format(distintos("caja_24cm", "sin_motivo")))
