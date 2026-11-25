@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.join(AQUI, "lib"))
 import estructuras_def as ed  # noqa: E402
 
 DESIGNER = "/Applications/Adobe Substance 3D Designer/Adobe Substance 3D Designer.app/Contents/MacOS"
-BRUTOS = ("piezas", "gris", "incl", "nubes", "motas", "grunge")
+BRUTOS = ("piezas", "gris", "incl", "nubes", "motas", "grunge", "grano", "poros")
 CARPETA_RES = {256: "1k", 512: "1k", 1024: "1k", 2048: "2k", 4096: "4k"}
 
 
@@ -147,19 +147,36 @@ def componer(d, bruto, destino_raiz, res):
     dist = distancia_interior(mascara, cm_px_x, cm_px_y, bisel * 3.0)
     perfil = suave(dist, 0.0, bisel)  # 0 en el canto, 1 en la cara
     av, ru, ir = d["altura_var"], d["rugoso"], d["irregular"]
+    po, mo, qu = d.get("poros", 0.0), d.get("moteado", 0.0), d.get("quemado", 0.0)
+    pix = max(cm_px_x, cm_px_y)
+    # Canto redondeado (cuarto de círculo), no una rampa recta.
+    t = np.clip(dist / bisel, 0.0, 1.0)
+    perfil = np.sqrt(1.0 - (1.0 - t) ** 2)
     cara = (0.70 + 0.10 * av * (b["gris"] - 0.5) + 0.08 * av * (b["incl"] - 0.5)
-            + 0.06 * ru * (b["motas"] - 0.5) + 0.04 * ru * (b["nubes"] - 0.5))
-    # Desconchones cerca del canto en piezas hechas a mano.
-    cerca = 1.0 - suave(dist, bisel, bisel * 3.0)
+            + 0.05 * ru * (b["motas"] - 0.5) + 0.03 * ru * (b["nubes"] - 0.5)
+            + 0.025 * ru * (b["grano"] - 0.5))
+    # Poros: hoyos pequeños de paredes rectas.
+    hoyo = suave(b["poros"], 0.78, 0.86) * po
+    cara = cara - 0.06 * hoyo
+    # Desconchones: más cerca del canto y de las esquinas, con el borde vivo y el fondo áspero.
+    cerca = 1.0 - suave(dist, bisel * 0.5, bisel * 4.0)
     mancha = 1.0 - b["grunge"]  # grunge_map_001 es casi blanco con manchas oscuras
-    desconchon = suave(mancha, 0.45 - 0.15 * ir, 0.6 - 0.15 * ir) * cerca * ir
-    cara = cara - 0.25 * desconchon
-    junta = 0.12 + 0.10 * b["nubes"] + 0.04 * b["motas"]
+    umbral = 0.62 - 0.22 * ir
+    desconchon = suave(mancha * (0.6 + 0.6 * cerca), umbral, umbral + 0.05) * ir
+    cara = cara - desconchon * (0.22 + 0.08 * b["grano"])
+    # Mortero rehundido y con arena.
+    junta = 0.10 + 0.05 * b["nubes"] + 0.035 * b["grano"] + 0.03 * suave(b["poros"], 0.6, 0.9)
     altura = junta + (np.maximum(cara, junta) - junta) * perfil
     altura = np.clip(altura, 0.0, 1.0)
-    desgaste = np.clip(1.6 * mancha * (1.0 - 0.5 * perfil) - 0.15 + 0.5 * desconchon, 0.0, 1.0) * mascara
-    gris = np.where(mascara, 0.5 + (b["gris"] - 0.5) * d.get("tono_var", 0.5), 0.5)
-    en_junta = 1.0 - suave(dist, 0.0, 1.5 * max(cm_px_x, cm_px_y))  # canto suavizado un píxel
+    desgaste = np.clip(1.5 * mancha * (1.0 - 0.6 * perfil) - 0.25 + 0.8 * desconchon, 0.0, 1.0) * mascara
+    tv = d.get("tono_var", 0.5)
+    # Tono: uno por pieza, manchado dentro de la pieza, un extremo más quemado y motas de hierro.
+    tono = (0.5 + (b["gris"] - 0.5) * tv
+            + 0.22 * mo * (b["nubes"] - 0.5) + 0.12 * mo * (b["motas"] - 0.5)
+            - 0.18 * qu * suave(b["incl"], 0.65, 1.0)
+            - 0.10 * po * suave(b["poros"], 0.88, 0.95))
+    gris = np.where(mascara, np.clip(tono, 0.0, 1.0), 0.5)
+    en_junta = 1.0 - suave(dist, 0.0, 1.5 * pix)  # canto suavizado un píxel
     mascara_rgb = np.dstack([en_junta, gris, desgaste])
     normal = normal_opengl(altura, d["relieve_cm"], cm_px_x, cm_px_y)
 
@@ -180,9 +197,9 @@ def componer(d, bruto, destino_raiz, res):
                                                               (d["pieza_cm"][1] + d["junta_cm"]))
     informe = {"id": d["id"], "res": [int(x) for x in b["piezas"].shape],
                "junta_px": round(float(1.0 - mascara.mean()), 4), "junta_esperada": round(junta_real, 4),
-               "grises_distintos": int(len(np.unique(np.round(gris[dist > 3 * max(cm_px_x, cm_px_y)], 2)))),
+               "grises_distintos": int(len(np.unique(np.round(b["gris"][dist > 3 * max(cm_px_x, cm_px_y)], 2)))),
                # Píxeles de pieza (lejos del canto) cuyo gris cambia con el vecino: el flood fill ha fallado.
-               "gris_ruidoso": round(float((np.abs(gris - np.roll(gris, 2, axis=1))[dist > 3 * max(cm_px_x, cm_px_y)]
+               "gris_ruidoso": round(float((np.abs(b["gris"] - np.roll(b["gris"], 2, axis=1))[dist > 3 * max(cm_px_x, cm_px_y)]
                                             > 0.02).mean()), 4),
                "piezas_esperadas": d["piezas"][0] * d["piezas"][1],
                "costura_altura": costura(altura), "costura_mascara": costura(mascara_rgb[..., 0]),

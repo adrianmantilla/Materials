@@ -136,7 +136,7 @@ def _empezar(archivo):
             pasos = espacio.get("pasos")
             if callable(pasos):
                 tarea.pasos = pasos()
-    except Exception:
+    except BaseException:  # la API de Designer lanza excepciones que no heredan de Exception
         tarea.texto.write(traceback.format_exc())
         _terminar(tarea, "error")
         return
@@ -163,7 +163,7 @@ def _avanzar(tarea):
     except StopIteration:
         _terminar(tarea, "ok")
         return
-    except Exception:
+    except BaseException:  # la API de Designer lanza excepciones que no heredan de Exception
         tarea.texto.write(traceback.format_exc())
         _terminar(tarea, "error")
         return

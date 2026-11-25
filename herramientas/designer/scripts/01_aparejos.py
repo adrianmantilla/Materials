@@ -42,6 +42,9 @@ def montar(paquete, d, detalle=False):
     nubes = g.bib("noise_clouds_2", "clouds_2", scale=max(1, int(round(tw / 60.0))))
     motas = g.bib("noise_bnw_spots_1", "bnw_spots_1", scale=max(1, int(round(tw / 12.0))))
     grunge = g.bib("noise_grunge_map_001", "grunge_map_001", balance=0.5, contrast=0.6)
+    # Detalle de superficie a tamaño real: grano de ~5 mm y poros de ~3 mm.
+    grano = g.bib("noise_perlin_noise", "perlin_noise", scale=min(256, max(16, int(round(tw / 0.5)))))
+    poros = g.bib("noise_bnw_spots_1", "bnw_spots_1", scale=min(256, max(8, int(round(tw / 1.2)))))
     # Cantos irregulares: deformar con un ruido suave (sin flecos) y volver a umbralizar.
     # Los desconchones se hacen en la altura (componer.py), no en el contorno.
     deform = g.bib("noise_perlin_noise", "perlin_noise", scale=max(4, int(round(tw / 8.0))))
@@ -57,7 +60,8 @@ def montar(paquete, d, detalle=False):
     incl = g.bib("flood_fill_2", "flood_fill_to_gradient", angle=0.0, angle_variation=1.0)
     g.unir(relleno, incl)
     for nodo, nombre in ((piezas, "piezas"), (gris, "gris"), (incl, "incl"), (nubes, "nubes"),
-                         (motas, "motas"), (grunge, "grunge"), (ladrillos, "forma")):
+                         (motas, "motas"), (grunge, "grunge"), (grano, "grano"), (poros, "poros"),
+                         (ladrillos, "forma")):
         g.salida(nodo, nombre)
     if detalle:
         for nodo in (ladrillos, warp, piezas, relleno, gris, incl, nubes, motas, grunge, deform):

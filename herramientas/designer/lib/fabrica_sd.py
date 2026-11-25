@@ -74,21 +74,61 @@ def _valor(tipo, v):
         return SDValueInt2.sNew(int2(*[int(x) for x in v]))
     if tipo == "string":
         return SDValueString.sNew(str(v))
-    if tipo.startswith("sbs::") or "enum" in tipo.lower():
-        # Enumerados (modo de fusión, formato...): se pasa el número de la opción.
-        from sd.api.sdvalueenum import SDValueEnum
-        return SDValueEnum.sFromValue(tipo, int(v))
     raise TypeError("tipo no soportado: {} ({!r})".format(tipo, v))
 
 
+_ENUMS = {}
+
+
+def opciones_enum(tipo):
+    """[(identificador, valor)] de un tipo enumerado (se apunta en el log la primera vez)."""
+    ident = tipo.getId()
+    if ident not in _ENUMS:
+        lista = []
+        try:
+            for e in tipo.getEnumerators():
+                try:
+                    valor = e.getDefaultValue().get()
+                except BaseException:
+                    valor = None
+                lista.append((e.getId(), valor))
+        except BaseException as error:
+            avisar("no puedo leer las opciones de {}: {}".format(ident, error))
+        _ENUMS[ident] = lista
+        print("ENUM", ident, lista)
+    return _ENUMS[ident]
+
+
+def _valor_enum(tipo, v):
+    from sd.api.sdvalueenum import SDValueEnum
+    ident = tipo.getId()
+    opciones = opciones_enum(tipo)
+    if isinstance(v, str):
+        return SDValueEnum.sFromValueId(ident, v)
+    for nombre, valor in opciones:
+        if valor == int(v):
+            return SDValueEnum.sFromValueId(ident, nombre)
+    if 0 <= int(v) < len(opciones):  # sin valores: por posición
+        return SDValueEnum.sFromValueId(ident, opciones[int(v)][0])
+    return SDValueEnum.sFromValue(ident, int(v))
+
+
 def poner(nodo, **params):
-    """Fija parámetros por identificador, convirtiendo al tipo de la propiedad."""
+    """Fija parámetros por identificador, convirtiendo al tipo de la propiedad.
+
+    Los enumerados aceptan el número de la opción o su identificador (texto).
+    """
     for ident, v in params.items():
         p = nodo.getPropertyFromId(ident, ENTRADA)
         if p is None:
             avisar("{}: no hay parámetro {}".format(_nombre(nodo), ident))
             continue
-        nodo.setPropertyValue(p, _valor(p.getType().getId(), v))
+        tipo = p.getType()
+        if hasattr(tipo, "getEnumerators") or tipo.getId().startswith("sbs::") or "enum" in tipo.getId().lower():
+            valor = _valor_enum(tipo, v)
+        else:
+            valor = _valor(tipo.getId(), v)
+        nodo.setPropertyValue(p, valor)
     return nodo
 
 

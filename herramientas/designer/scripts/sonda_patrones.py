@@ -48,8 +48,8 @@ for nombre, paquete_bib, grafo, params in casos:
         nodo = g.bib(paquete_bib, grafo, **params)
         calcular(g, nodo, nombre)
         print("ok", nombre)
-    except Exception:
-        print("ERROR", nombre)
+    except BaseException as e:  # la API de Designer lanza excepciones que no heredan de Exception
+        print("ERROR", nombre, type(e).__mro__, e)
         traceback.print_exc()
 
 for paquete_bib in ("pattern_polygon_1", "pattern_polygon_2", "pattern_alveolus", "pattern_arc_pavement",
@@ -62,6 +62,6 @@ for paquete_bib in ("pattern_polygon_1", "pattern_polygon_2", "pattern_alveolus"
         nodo = g.bib(paquete_bib)
         print("  ", fsd.describir_nodo(nodo))
         calcular(g, nodo, "x_" + paquete_bib)
-    except Exception:
-        print("ERROR", paquete_bib)
+    except BaseException as e:
+        print("ERROR", paquete_bib, type(e).__mro__, e)
         traceback.print_exc()
