@@ -33,7 +33,8 @@ from materials import motivos as mv
 
 ATTR = "materialsMotivo"            # en cada nodo de la red: el material al que pertenece
 ATTR_DATOS = "materialsMotivoDatos"  # en el control: el motivo en JSON
-ATTR_ANTES = "materialsMotivoAntes"  # en el control: lo que estaba conectado antes
+ATTR_ANTES = "materialsMotivoAntes"
+ATTR_CONTROL = "materialsMotivoControl"  # en el material: conexión desde el control  # en el control: lo que estaba conectado antes
 SALIDAS = ("baseColor", "specularRoughness", "baseMetalness", "normalCamera")
 TIPOS_PROYECCION = ("polyPlanarProj", "polyCylProj", "polySphProj")
 # aiTriplanar: escala para que una unidad de textura mida un metro (se comprueba en el Mac).
@@ -116,7 +117,11 @@ def control_de(material):
     """Nodo de control del motivo del material, o None."""
     if not material or not cmds.objExists(material):
         return None
-    for nodo in cmds.listConnections(material + ".message", destination=True, source=False) or []:
+    candidatos = []
+    if _hay(material, ATTR_CONTROL):
+        candidatos += cmds.listConnections(material + "." + ATTR_CONTROL, source=True, destination=False) or []
+    candidatos += cmds.listConnections(material + ".message", destination=True, source=False) or []
+    for nodo in candidatos:
         if cmds.nodeType(nodo) == "network" and _hay(nodo, ATTR_DATOS):
             return nodo
     return None
@@ -128,8 +133,11 @@ def control_de(material):
 def _crear_control(material):
     ctrl = cmds.createNode("network", name=_nombre(material, "control"), skipSelect=True)
     _marcar(ctrl, material)
-    cmds.addAttr(ctrl, longName="material", attributeType="message")
-    _unir(material + ".message", ctrl + ".material")
+    # El control apunta al material (y no al revés): así siempre tiene una conexión de salida y
+    # Maya no lo borra solo cuando se borra la red que colgaba de él.
+    if not _hay(material, ATTR_CONTROL):
+        cmds.addAttr(material, longName=ATTR_CONTROL, attributeType="message")
+    _unir(ctrl + ".message", material + "." + ATTR_CONTROL)
     for nombre in (ATTR_DATOS, ATTR_ANTES, "estructura", "acabado"):
         cmds.addAttr(ctrl, longName=nombre, dataType="string")
     cmds.addAttr(ctrl, longName="proyeccion", attributeType="enum", enumName=":".join(mv.PROYECCIONES))
@@ -379,7 +387,7 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
         inverso = _nodo("reverse", material, "desgasteInverso")
         _unir(ctrl + ".desgaste", inverso + ".inputX")
         tope = _suma(material, "desgasteTope", [inverso + ".outputX", 0.2])
-        remap = _nodo("remapValue", material, "desgaste")
+        remap = _nodo("remapValue", material, "desgasteMapa")
         _unir(mascara + ".outColorB", remap + ".inputValue")
         _unir(inverso + ".outputX", remap + ".inputMin")
         _unir(tope, remap + ".inputMax")
@@ -406,7 +414,7 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
     altura = None
     if altura_e and altura_a:
         parte = _producto(material, "alturaAcabado", altura_a + ".outAlpha", ctrl + ".alturaAcabado")
-        altura = _suma(material, "altura", [altura_e + ".outAlpha", parte])
+        altura = _suma(material, "alturaTotal", [altura_e + ".outAlpha", parte])
     elif altura_e or altura_a:
         altura = (altura_e or altura_a) + ".outAlpha"
 
@@ -479,9 +487,9 @@ def quitar(material):
         antes = {}
     formas = borrar_proyecciones(material)
     nodos = nodos_de(material)
-    if nodos:
-        cmds.delete(nodos)
-    cmds.delete(ctrl)
+    for nodo in nodos + [ctrl]:
+        if cmds.objExists(nodo):
+            cmds.delete(nodo)
     for atributo, origen in antes.items():
         if cmds.objExists(origen.split(".")[0]):
             try:
