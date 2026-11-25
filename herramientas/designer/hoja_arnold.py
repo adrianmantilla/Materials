@@ -76,11 +76,11 @@ def main():
         cmds.setAttr(camara + ".translateZ", 150.0 * 50.0 / 36.0)
         cmds.setAttr(forma + ".focalLength", 50)
         # Sol rasante desde arriba a la izquierda, para que se lean juntas y biseles.
-        sol = cmds.listRelatives(cmds.directionalLight(name="sol", intensity=3.2), parent=True)[0]
+        sol = cmds.listRelatives(cmds.directionalLight(name="sol", intensity=4.5), parent=True)[0]
         cmds.setAttr(sol + ".rotateX", -55)
         cmds.setAttr(sol + ".rotateY", -50)
         cielo = cmds.shadingNode("aiSkyDomeLight", asLight=True, name="cielo")
-        cmds.setAttr(cielo + ".intensity", 0.35)
+        cmds.setAttr(cielo + ".intensity", 0.6)
         cmds.setAttr("defaultRenderGlobals.currentRenderer", "arnold", type="string")
         mtoa.core.createOptions()
         cmds.setAttr("defaultArnoldDriver.ai_translator", "png", type="string")
