@@ -342,8 +342,9 @@ def componer(d, bruto, destino_raiz, res):
     if mz > 0:
         rng = np.random.default_rng(len(d["id"]) * 13 + 5)
         calido = np.array([0.08, 0.015, -0.09])
-        # La madera no tira a morado; el ladrillo y la piedra sí (más o menos cocidos, óxidos).
-        morado = np.array([0.0, 0.0, 0.0]) if d["familia"] == "Madera" else np.array([0.02, -0.05, 0.035])
+        # Solo el ladrillo tira a morado (más o menos cocido); madera y piedra varían de cálido a frío,
+        # nunca a verde.
+        morado = np.array([0.02, -0.05, 0.035]) if d["familia"] == "Ladrillo y bloque" else np.zeros(3)
         exponente = mz * (rng.standard_normal((n, 1)) * calido + rng.standard_normal((n, 1)) * morado
                           + 0.10 * rng.standard_normal((n, 1)))
         mult = np.ones(forma + (3,))

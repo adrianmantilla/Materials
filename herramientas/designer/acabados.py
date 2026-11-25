@@ -78,19 +78,19 @@ def arenisca(forma, cx, cy):
     # Gradina: surcos paralelos diagonales de ~6 mm, a tramos (golpes del cincel).
     tramos = ruido_cm(forma, cx, cy, 4.0, 305) - 0.5
     fase = 2 * np.pi * (x * cx + y * cy) / 0.6
-    surcos = np.sin(fase + 3.0 * tramos) * suave(tramos, -0.05, 0.15)
-    lum = 0.5 + 0.18 * estrato + 0.22 * manchas + 0.10 * grano
+    surcos = np.sin(fase + 3.0 * tramos) * suave(tramos, 0.05, 0.2)
+    lum = 0.5 + 0.10 * estrato + 0.12 * manchas + 0.10 * grano
     color = np.dstack([lum, lum * 0.99, lum * 0.96])
     color = color * (1 + oxido[..., None] * np.array([0.10, 0.0, -0.12]) * (0.5 + manchas[..., None]))
-    rugosidad = 0.5 + 0.08 * grano + 0.03 * surcos
-    altura = 0.5 + 0.30 * grano + 0.10 * estrato + 0.08 * surcos
+    rugosidad = 0.5 + 0.08 * grano + 0.015 * surcos
+    altura = 0.5 + 0.30 * grano + 0.10 * estrato + 0.03 * surcos
     return color, rugosidad, altura
 
 
 def granito(forma, cx, cy):
     """Granito abujardado: cristales claros y oscuros de 2-5 mm y superficie áspera."""
     feldespato = _salpicado(forma, cx, cy, 0.4, 401, 0.30)
-    mica = _salpicado(forma, cx, cy, 0.25, 402, 0.12)
+    mica = _salpicado(forma, cx, cy, 0.25, 402, 0.07)
     cuarzo = _salpicado(forma, cx, cy, 0.3, 403, 0.15)
     grano = ruido_cm(forma, cx, cy, 0.07, 404, octavas=2) - 0.5
     manchas = ruido_cm(forma, cx, cy, 8.0, 405, octavas=2) - 0.5
@@ -98,7 +98,7 @@ def granito(forma, cx, cy):
     color = np.dstack([lum, lum, lum])
     color = _mezclar(color, (0.66, 0.62, 0.60), 0.7 * feldespato)
     color = _mezclar(color, (0.58, 0.58, 0.60), 0.6 * cuarzo)
-    color = _mezclar(color, (0.16, 0.16, 0.17), 0.9 * mica)
+    color = _mezclar(color, (0.22, 0.22, 0.23), 0.8 * mica)
     rugosidad = 0.5 + 0.10 * grano - 0.10 * cuarzo
     altura = 0.5 + 0.45 * grano + 0.05 * feldespato - 0.05 * mica
     return color, rugosidad, altura
