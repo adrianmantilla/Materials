@@ -2,6 +2,9 @@
 
     /Applications/Autodesk/maya2027/Maya.app/Contents/bin/mayapy herramientas/prueba_motivo_maya.py [carpeta_renders]
 
+Si mayapy no tiene numpy y Pillow: ``python3 herramientas/generar_motivos_prueba.py /tmp/mot --res 256`` y
+``MATERIALS_MOTIVOS_PRUEBA=/tmp/mot mayapy herramientas/prueba_motivo_maya.py``.
+
 Genera los motivos de prueba en una carpeta temporal y comprueba: montar la red,
 cambios en vivo desde el nodo de control, leer la receta con su motivo, proyecciones
 caja / planar / cilíndrica / esférica / uv a tamaño real, triplanar, quitar el motivo
@@ -89,14 +92,18 @@ def entrada(cmds, nodo, atributo):
 
 
 def _pruebas(cmds, temporal, renders):
-    import generar_motivos_prueba as gen
     from materials import motivo_maya as mm
     from materials import motivos as mv
     from materials import receta as rc
     from materials.escena_maya import ServiciosMaya
 
-    carpeta = os.path.join(temporal, "motivos")
-    gen.generar(carpeta, 256)
+    # Los motivos de prueba necesitan numpy y Pillow; si mayapy no los tiene, se generan antes
+    # con otro Python y se pasa la carpeta en MATERIALS_MOTIVOS_PRUEBA.
+    carpeta = os.environ.get("MATERIALS_MOTIVOS_PRUEBA")
+    if not carpeta:
+        import generar_motivos_prueba as gen
+        carpeta = os.path.join(temporal, "motivos")
+        gen.generar(carpeta, 256)
     cat = mv.Catalogo(carpeta)
     comprobar(len(cat) == 6, "catálogo de prueba con 6 motivos")
     cmds.loadPlugin(os.path.join(RAIZ, "plug-ins", "materials_plugin.py"), quiet=True)
