@@ -4,8 +4,9 @@ Un motivo es opcional y está apagado en todas las recetas. Se compone de:
 
 - **Estructura** (ladrillo, sillería, baldosa, tablas...): solo forma. Sus mapas son
   ``altura`` y ``mascara`` (RGB sin alfa: R junta, G gris distinto por pieza, B desgaste),
-  más ``zona2`` opcional (gris: dónde va el «color 2»). No llevan color: el color sale de
-  la receta. La máscara nunca lleva alfa: Arnold premultiplica y un alfa vacío borraría
+  más ``zona2`` opcional (gris: dónde va el «color 2») y ``tono`` opcional (RGB alrededor
+  de gris medio: matiz distinto por pieza, que tiñe el color de la receta y sigue al
+  deslizador «Variación»). No llevan color propio: el color sale de la receta. La máscara nunca lleva alfa: Arnold premultiplica y un alfa vacío borraría
   las juntas.
 - **Acabado** (cepillado, poro de naranja, piel de mejilla, veta de nogal...): el detalle
   fino de la superficie. Mapas ``color`` (variación alrededor de un gris medio, que
@@ -46,7 +47,7 @@ from materials import color as col
 ESTRUCTURAS = "estructuras"
 ACABADOS = "acabados"
 TIPOS = (ESTRUCTURAS, ACABADOS)
-MAPAS = {ESTRUCTURAS: ("altura", "mascara", "normal", "zona2"), ACABADOS: ("color", "rugosidad", "altura", "normal")}
+MAPAS = {ESTRUCTURAS: ("altura", "mascara", "normal", "zona2", "tono"), ACABADOS: ("color", "rugosidad", "altura", "normal")}
 OBLIGATORIOS = {ESTRUCTURAS: ("altura", "mascara"), ACABADOS: ("color", "rugosidad")}
 EXTENSIONES = (".png", ".jpg", ".jpeg", ".tif", ".tiff", ".exr", ".tx")
 RESOLUCIONES = ("1k", "2k", "4k")

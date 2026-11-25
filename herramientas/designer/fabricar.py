@@ -8,7 +8,8 @@
    de las piezas se hacen aquí en numpy: es rápido, repite sin costuras y mide en cm.
 3. ``componer`` las convierte en los mapas que lee Materials a tamaño real:
    ``estructuras/<id>/<res>/altura.png`` (16 bits), ``mascara.png`` (RGB sin alfa:
-   R junta, G gris por pieza, B desgaste), ``normal.png`` (OpenGL), ``miniatura.png`` y
+   R junta, G gris por pieza, B desgaste), ``normal.png`` (OpenGL), ``tono.png`` (matiz por
+   pieza, si la estructura tiene ``matiz``), ``miniatura.png`` y
    ``motivo.json``. Además deja ``<catalogo>/_hoja_<paquete>.jpg`` con todas las miniaturas
    y ``_informe_<paquete>.json`` con medidas de control (costuras, proporción de junta...).
 
@@ -110,7 +111,7 @@ def hex_a_rgb(h):
     return np.array([int(h[i:i + 2], 16) / 255.0 for i in (0, 2, 4)])
 
 
-def vista(altura, normal, mascara_rgb, junta_hex, lado=256):
+def vista(altura, normal, mascara_rgb, junta_hex, lado=256, tono=None):
     """Miniatura sombreada: pieza gris cálido con variación, junta de su color, luz rasante."""
     n = normal * 2 - 1
     luz = np.array([-0.55, 0.45, 0.70])
@@ -118,6 +119,8 @@ def vista(altura, normal, mascara_rgb, junta_hex, lado=256):
     lambert = np.clip((n * luz).sum(axis=2), 0, 1)
     pieza = np.array([0.62, 0.42, 0.33]) * (0.8 + 0.4 * mascara_rgb[..., 1:2])
     pieza = pieza * (1 - 0.35 * mascara_rgb[..., 2:3]) + 0.35 * mascara_rgb[..., 2:3] * np.array([0.75, 0.7, 0.62])
+    if tono is not None:
+        pieza = pieza * 2 * tono
     base = pieza * (1 - mascara_rgb[..., 0:1]) + hex_a_rgb(junta_hex) * mascara_rgb[..., 0:1]
     color = base * (0.25 + 0.9 * lambert[..., None])
     im = Image.fromarray((np.clip(color, 0, 1) ** (1 / 2.2) * 255).astype(np.uint8), "RGB")
@@ -333,6 +336,23 @@ def componer(d, bruto, destino_raiz, res):
             - 0.12 * po * suave(poros, 0.86, 0.92)
             - 0.06 * (1.0 - perfil))
     gris = np.where(mascara, np.clip(tono, 0.0, 1.0), 0.5)
+    # Matiz por pieza (mapa tono, RGB alrededor de 0,5): más naranja o más fría, más morada o
+    # más parda; el extremo quemado tira a morado y hay manchas de color dentro de la pieza.
+    mz = d.get("matiz", 0.0)
+    if mz > 0:
+        rng = np.random.default_rng(len(d["id"]) * 13 + 5)
+        calido = np.array([0.08, 0.015, -0.09])
+        # La madera no tira a morado; el ladrillo y la piedra sí (más o menos cocidos, óxidos).
+        morado = np.array([0.0, 0.0, 0.0]) if d["familia"] == "Madera" else np.array([0.02, -0.05, 0.035])
+        exponente = mz * (rng.standard_normal((n, 1)) * calido + rng.standard_normal((n, 1)) * morado
+                          + 0.10 * rng.standard_normal((n, 1)))
+        mult = np.ones(forma + (3,))
+        mult[mascara] = np.exp(exponente[lab[mascara]])
+        mult *= np.exp(-qu * mz * suave(incl, 0.7, 1.0)[..., None] * np.array([0.20, 0.35, 0.25]))
+        mult *= np.exp(mz * 0.10 * (b["nubes"] - 0.5)[..., None] * np.array([1.0, 0.5, -0.3]))
+        tono_rgb = np.where(mascara[..., None], np.clip(0.5 * mult, 0.0, 1.0), 0.5)
+    else:
+        tono_rgb = None
     en_junta = 1.0 - suave(dist, 0.0, 1.5 * pix)  # canto suavizado un píxel
     mascara_rgb = np.dstack([en_junta, gris, desgaste])
     normal = normal_opengl(altura, d["relieve_cm"], cm_px_x, cm_px_y)
@@ -343,7 +363,9 @@ def componer(d, bruto, destino_raiz, res):
     Image.fromarray((altura * 65535).round().astype(np.uint16)).save(os.path.join(sub, "altura.png"))
     Image.fromarray((mascara_rgb * 255).round().astype(np.uint8), "RGB").save(os.path.join(sub, "mascara.png"))
     Image.fromarray((normal * 255).round().astype(np.uint8), "RGB").save(os.path.join(sub, "normal.png"))
-    mini = vista(altura, normal, mascara_rgb, d["junta"])
+    if tono_rgb is not None:
+        Image.fromarray((tono_rgb * 255).round().astype(np.uint8), "RGB").save(os.path.join(sub, "tono.png"))
+    mini = vista(altura, normal, mascara_rgb, d["junta"], tono=tono_rgb)
     mini.save(os.path.join(carpeta, "miniatura.png"))
     datos = {k: d[k] for k in ("id", "nombre", "familia", "junta", "recomendado_para", "etiquetas", "relieve_cm")}
     datos.update(tile_cm=[round(tw, 3), round(th, 3)], pieza_cm=d["pieza_cm"][0], color2=False, licencia="CC0",

@@ -1,6 +1,6 @@
 """Hoja de contacto con Arnold de las estructuras de un catálogo (para aprobar lotes).
 
-    mayapy herramientas/designer/hoja_arnold.py <catalogo> <salida> [--solo id,id] [--res 360]
+    mayapy herramientas/designer/hoja_arnold.py <catalogo> <salida> [--solo id,id] [--res 360] [--encuadre 150]
 
 Por cada estructura: una pared de 2 × 2 m con la receta típica de su familia, el motivo en
 proyección caja a tamaño real, luz rasante de sol y cielo. Deja ``<salida>/<id>.png`` y,
@@ -35,6 +35,7 @@ def main():
     p.add_argument("salida")
     p.add_argument("--solo", default="")
     p.add_argument("--res", type=int, default=360)
+    p.add_argument("--encuadre", type=float, default=150.0, help="cm de pared que llenan la imagen")
     a = p.parse_args()
     import maya.standalone
     maya.standalone.initialize(name="python")
@@ -72,8 +73,8 @@ def main():
                         "variacion": 0.5, "relieve": 0.8, "azar": False}, cat, receta)
         s.aplicar_motivo(material, plan, receta, "render")
         camara, forma = cmds.camera(name="cam")
-        # Encuadre: 1,5 m de pared llenan la imagen (36 mm de película horizontal).
-        cmds.setAttr(camara + ".translateZ", 150.0 * 50.0 / 36.0)
+        # Encuadre: a.encuadre cm de pared llenan la imagen (36 mm de película horizontal).
+        cmds.setAttr(camara + ".translateZ", a.encuadre * 50.0 / 36.0)
         cmds.setAttr(forma + ".focalLength", 50)
         # Sol rasante desde arriba a la izquierda, para que se lean juntas y biseles.
         sol = cmds.listRelatives(cmds.directionalLight(name="sol", intensity=4.5), parent=True)[0]

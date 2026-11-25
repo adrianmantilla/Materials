@@ -110,7 +110,7 @@ def veta_madera(forma, cx, cy):
     y = np.mgrid[0:alto, 0:ancho][0]
     yc = y * cy
     # Desvío de la veta (cm): lento a lo largo de la tabla, para que los anillos vayan casi paralelos.
-    onda = ((ruido_cm(forma, cx * 0.04, cy, 1.2, 501, octavas=2) - 0.5) * 8.0
+    onda = ((ruido_cm(forma, cx * 0.04, cy, 1.2, 501, octavas=2) - 0.5) * 20.0
             + (ruido_cm(forma, cx * 0.15, cy, 0.8, 506) - 0.5) * 0.8)
     tono = ruido_cm(forma, cx * 0.1, cy, 3.0, 502, octavas=2) - 0.5
     fibra = ruido_cm(forma, cx * 0.04, cy, 0.05, 503, octavas=2) - 0.5
@@ -119,7 +119,12 @@ def veta_madera(forma, cx, cy):
     periodo = alto * cy / max(1, round(alto * cy / 0.45))  # número entero de anillos: repite
     t = ((yc + onda) / periodo) % 1.0
     tardio = suave(t, 0.62, 0.72) * (1.0 - suave(t, 0.9, 1.0))
-    lum = 0.5 + 0.20 * tono + 0.08 * fibra - 0.14 * tardio - 0.06 * suave(poros, 0.2, 0.35)
+    # Bandas de varios anillos (claras y oscuras) que siguen la veta: lo que se ve de lejos.
+    largo = alto * cy
+    k1, k2 = max(1, round(largo / periodo / 7)), max(1, round(largo / periodo / 17))  # enteros: repite
+    bandas = (np.sin(2 * np.pi * (yc + onda) * k1 / largo)
+              + 0.6 * np.sin(2 * np.pi * (yc + 0.7 * onda) * k2 / largo))
+    lum = 0.5 + 0.20 * tono + 0.06 * bandas + 0.08 * fibra - 0.14 * tardio - 0.06 * suave(poros, 0.2, 0.35)
     color = np.dstack([lum * 1.02, lum, lum * 0.96])
     rugosidad = 0.5 + 0.05 * fibra + 0.06 * tardio
     altura = 0.5 + 0.25 * fibra - 0.12 * tardio - 0.20 * suave(poros, 0.2, 0.35)

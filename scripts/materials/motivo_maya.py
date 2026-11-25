@@ -9,6 +9,7 @@ Cadena de color (con estructura y acabado)::
 
     color pieza ─┬─ blendColors(color 2, máscara A)
                  ├─ × (1 + 2·(G − 0,5)·variación)        tono distinto por pieza
+                 ├─ × mezcla(1, tono × 2, variación/0,3)  matiz por pieza (si hay mapa tono)
                  ├─ × color del acabado × 2               el acabado gira alrededor de 0,5
                  ├─ blendColors(color junta, máscara R)
                  └─ blendColors(color desgaste, remap(B)) desgaste
@@ -36,6 +37,7 @@ ATTR_DATOS = "materialsMotivoDatos"  # en el control: el motivo en JSON
 ATTR_ANTES = "materialsMotivoAntes"
 ATTR_CONTROL = "materialsMotivoControl"  # en el material: conexión desde el control  # en el control: lo que estaba conectado antes
 SALIDAS = ("baseColor", "specularRoughness", "baseMetalness", "normalCamera")
+VARIACION_DEFECTO = mv.DEFECTO["variacion"]  # con este valor el mapa tono se ve tal cual
 TIPOS_PROYECCION = ("polyPlanarProj", "polyCylProj", "polySphProj")
 # aiTriplanar: escala para que una unidad de textura mida un metro (se comprueba en el Mac).
 TRIPLANAR_ESCALA = 0.01
@@ -347,7 +349,7 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
         cmds.setAttr("{}.{}".format(ctrl, clave), f[clave] * escala)
     cmds.setAttr(ctrl + ".relieveCm", (est or aca)["relieve_cm"])
 
-    mascara = altura_e = zona2 = color_a = rug_a = altura_a = None
+    mascara = altura_e = zona2 = tono = color_a = rug_a = altura_a = None
     places = []
     if est:
         pe = _place(material, "uvEstructura", ctrl, ("kU", "pieza"), ("kV", "pieza"))
@@ -356,6 +358,9 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
         altura_e = _imagen(material, "altura", est["mapas"]["altura"], espacio_raw, pe, True)
         if est.get("color2") and est["mapas"].get("zona2"):
             zona2 = _imagen(material, "zona2", est["mapas"]["zona2"], espacio_raw, pe, True)
+        if est["mapas"].get("tono"):
+            tono = _imagen(material, "tono", est["mapas"]["tono"], espacio_raw, pe, False)
+            cmds.setAttr(tono + ".colorGain", 2, 2, 2, type="double3")
     if aca:
         pa = _place(material, "uvAcabado", ctrl, ("aU", "repeticion"), ("aV", "repeticion"))
         places.append(pa)
@@ -379,6 +384,19 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
         for canal in "XYZ":
             _unir(factor, md + ".input2" + canal)
         color = md + ".output"
+        if tono:
+            # El matiz por pieza llega entero con Variación 0,3 (el valor por defecto) y se apaga en 0.
+            cuanto = _nodo("clamp", material, "tonoCuanto")
+            _unir(_producto(material, "tonoPor", ctrl + ".variacion", 1.0 / VARIACION_DEFECTO), cuanto + ".inputR")
+            cmds.setAttr(cuanto + ".maxR", 1.0)
+            bc = _nodo("blendColors", material, "tonoMezcla")
+            _unir(tono + ".outColor", bc + ".color1")
+            cmds.setAttr(bc + ".color2", 1.0, 1.0, 1.0, type="double3")
+            _unir(cuanto + ".outputR", bc + ".blender")
+            md = _nodo("multiplyDivide", material, "tono")
+            _unir(color, md + ".input1")
+            _unir(bc + ".output", md + ".input2")
+            color = md + ".output"
     if aca:
         md = _nodo("multiplyDivide", material, "acabado")
         _unir(color, md + ".input1")
