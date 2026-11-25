@@ -77,5 +77,9 @@ for i, d in enumerate(ed.LOTE_1):
     except Exception:
         print("ERROR en", d["id"])
         traceback.print_exc()
+        if not hechos:
+            break  # el primero falla: los demás fallarán igual
 fsd.guardar(paquete, PAQUETE)
 print("guardado", PAQUETE, "con", len(hechos), "grafos:", " ".join(hechos))
+if not hechos:
+    raise RuntimeError("no se ha montado ningún grafo")

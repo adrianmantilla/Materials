@@ -74,6 +74,10 @@ def _valor(tipo, v):
         return SDValueInt2.sNew(int2(*[int(x) for x in v]))
     if tipo == "string":
         return SDValueString.sNew(str(v))
+    if tipo.startswith("sbs::") or "enum" in tipo.lower():
+        # Enumerados (modo de fusión, formato...): se pasa el número de la opción.
+        from sd.api.sdvalueenum import SDValueEnum
+        return SDValueEnum.sFromValue(tipo, int(v))
     raise TypeError("tipo no soportado: {} ({!r})".format(tipo, v))
 
 
