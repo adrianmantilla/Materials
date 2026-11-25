@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.join(RAIZ, "herramientas", "designer"))
 try:
     import numpy as np
     import fabricar  # noqa: E402
+    import acabados  # noqa: E402
 except ImportError:  # sin numpy o Pillow
     fabricar = None
 
@@ -42,6 +43,16 @@ class Fabrica(unittest.TestCase):
         _, _, incl = fabricar.por_pieza(lab, n, 1.0, 1.0, 1)
         self.assertAlmostEqual(float(incl[m].min()), 0.0, places=6)
         self.assertAlmostEqual(float(incl[m].max()), 1.0, places=6)
+
+    def test_acabados_repiten_y_giran_alrededor_de_gris_medio(self):
+        for d in acabados.ACABADOS:
+            forma = (256, 256)
+            color, rug, altura = d["funcion"](forma, d["tile_cm"][0] / 256, d["tile_cm"][1] / 256)
+            self.assertEqual(color.shape, forma + (3,), d["id"])
+            self.assertAlmostEqual(float(color.mean()), 0.5, delta=0.06, msg=d["id"])
+            self.assertAlmostEqual(float(rug.mean()), 0.5, delta=0.06, msg=d["id"])
+            self.assertLess(fabricar.costura(color.mean(axis=2)), 1.3, d["id"])
+            self.assertLess(fabricar.costura(altura), 1.3, d["id"])
 
 
 if __name__ == "__main__":
