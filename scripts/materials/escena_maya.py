@@ -550,24 +550,42 @@ class ServiciosMaya(object):
         return plug
 
     def conectar_texturas(self, material, conexiones, opciones=None):
-        """``conexiones``: lista de dicts de :meth:`texturas.Conexion.como_dict`. Devuelve entradas conectadas."""
+        """``conexiones``: lista de dicts de :meth:`texturas.Conexion.como_dict`. Devuelve entradas conectadas.
+
+        ``opciones["relieve"]`` elige cómo se da relieve: ``normal`` (mapa de normales; la altura
+        solo si no hay normales), ``altura`` (la altura como bump; las normales solo si no hay
+        altura) o ``desplazamiento`` (la altura mueve la geometría y las normales se conectan).
+        """
         opciones = opciones or {}
+        modo = tx.relieve_de(opciones)
         proyecto = self.proyecto()
         hechas = []
+        hay = set(c["entrada"] for c in conexiones)
+        usar_normal = "normal" in hay and (modo != "altura" or "altura" not in hay)
+        if modo == "desplazamiento":
+            destino_altura = "desplazamiento"
+        elif "altura" in hay and (modo == "altura" or "normal" not in hay):
+            destino_altura = "bump"
+        else:
+            destino_altura = None
+        if usar_normal or destino_altura == "bump":
+            # No se pisa un relieve ajeno (por ejemplo, el de un motivo): solo los nuestros.
+            fuente = cmds.listConnections(material + ".normalCamera", source=True, destination=False) or []
+            propios = ("{}_altura_bump".format(material), "{}_normal_bump".format(material))
+            if fuente and fuente[0] not in propios:
+                usar_normal = False
+                destino_altura = None if destino_altura == "bump" else destino_altura
         with _Bloque("Materials: conectar texturas"):
             for c in conexiones:
                 entrada = c["entrada"]
                 if entrada == "ao":
                     continue
                 # Decidir antes de crear el nodo, para no dejar imágenes sueltas sin conectar.
-                altura_como_bump = False
-                if entrada == "altura" and not opciones.get("desplazamiento"):
-                    fuente = cmds.listConnections(material + ".normalCamera", source=True, destination=False) or []
-                    altura_como_bump = not any(x["entrada"] == "normal" for x in conexiones) and \
-                        (not fuente or fuente[0] == "{}_altura_bump".format(material))
-                    if not altura_como_bump:
-                        continue
-                elif entrada not in ("normal", "altura", "color", "emision"):
+                if entrada == "altura" and destino_altura is None:
+                    continue
+                if entrada == "normal" and not usar_normal:
+                    continue
+                if entrada not in ("normal", "altura", "color", "emision"):
                     atributo = ENTRADA_ATRIBUTO.get(entrada)
                     if not atributo or not _hay(material, atributo):
                         continue
@@ -578,7 +596,7 @@ class ServiciosMaya(object):
                 if entrada == "normal":
                     self._conectar_normal(material, nodo, c.get("convencion") or opciones.get("normal", "opengl"))
                 elif entrada == "altura":
-                    if altura_como_bump:
+                    if destino_altura == "bump":
                         self._conectar_bump(material, nodo)
                     else:
                         self._conectar_desplazamiento(material, nodo, opciones.get("escala_altura", 0.5))

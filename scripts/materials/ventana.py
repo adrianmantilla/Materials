@@ -551,11 +551,17 @@ class VentanaMaterials(QtWidgets.QWidget):
         for clave in ("auto", "opengl", "directx"):
             self.combo_normal.addItem(t("normal_" + clave), clave)
         formulario.addRow(t("tex_normal"), self.combo_normal)
-        self.casilla_desplazamiento = QtWidgets.QCheckBox(t("tex_desplazamiento"))
-        self.casilla_desplazamiento.setToolTip(t("tex_desplazamiento_ayuda"))
-        self.casilla_desplazamiento.setChecked(self._ajuste("desplazamiento"))
-        self.casilla_desplazamiento.toggled.connect(lambda v: self._guardar_ajuste("desplazamiento", bool(v)))
-        formulario.addRow("", self.casilla_desplazamiento)
+        self.combo_relieve = QtWidgets.QComboBox()
+        for clave in tx.RELIEVES:
+            self.combo_relieve.addItem(t("relieve_" + clave), clave)
+            self.combo_relieve.setItemData(self.combo_relieve.count() - 1, t("relieve_" + clave + "_ayuda"),
+                                           Qt.ToolTipRole)
+        self.combo_relieve.setToolTip(t("tex_relieve_ayuda"))
+        guardado = tx.relieve_de({"relieve": self._ajuste("relieve"),
+                                  "desplazamiento": self._ajuste("desplazamiento")})
+        self.combo_relieve.setCurrentIndex(max(0, self.combo_relieve.findData(guardado)))
+        self.combo_relieve.currentIndexChanged.connect(self._cambiar_relieve)
+        formulario.addRow(t("tex_relieve"), self.combo_relieve)
         capa.addLayout(formulario)
         fila = QtWidgets.QHBoxLayout()
         self.boton_conectar = QtWidgets.QPushButton(t("tex_conectar"))
@@ -1159,8 +1165,7 @@ class VentanaMaterials(QtWidgets.QWidget):
                     destino += " · " + t("invertido")
                 if entrada == "normal":
                     destino += " · " + (c.mapa.convencion or "opengl").upper()
-                if entrada == "altura" and not self.casilla_desplazamiento.isChecked():
-                    destino += " · " + t("tex_altura_bump")
+                destino += self._nota_relieve(entrada, juego.conexiones)
                 QtWidgets.QTreeWidgetItem(raiz, [c.mapa.nombre + (" (UDIM)" if c.mapa.udim else ""), destino,
                                                  c.espacio])
             for nombre, motivo in juego.ignorados:
@@ -1172,6 +1177,28 @@ class VentanaMaterials(QtWidgets.QWidget):
             self.mensaje(t("tex_nada"), error=True)
         else:
             self.mensaje(t("tex_encontrados", n=len(self.analisis)))
+
+    def relieve(self):
+        return self.combo_relieve.currentData() or "normal"
+
+    def _cambiar_relieve(self, *_):
+        self._guardar_ajuste("relieve", self.relieve())
+        self._guardar_ajuste("desplazamiento", self.relieve() == "desplazamiento")
+        if self.analisis:
+            self.analizar_carpeta()
+
+    def _nota_relieve(self, entrada, conexiones):
+        """Qué se hará con la altura y las normales según el selector «Relieve»."""
+        modo = self.relieve()
+        if entrada == "altura":
+            if modo == "desplazamiento":
+                return " · " + t("tex_altura_desplaza")
+            if modo == "altura" or "normal" not in conexiones:
+                return " · " + t("tex_altura_bump")
+            return " · " + t("tex_no_se_usa")
+        if entrada == "normal" and modo == "altura" and "altura" in conexiones:
+            return " · " + t("tex_no_se_usa")
+        return ""
 
     def _rellenar_combo_materiales(self):
         self.combo_material_tex.clear()
@@ -1190,7 +1217,7 @@ class VentanaMaterials(QtWidgets.QWidget):
             if not self.analisis:
                 return
         elegido = self.combo_material_tex.currentData()
-        opciones = {"desplazamiento": self.casilla_desplazamiento.isChecked(),
+        opciones = {"relieve": self.relieve(), "desplazamiento": self.relieve() == "desplazamiento",
                     "normal": ic.NORMAL_DE_MOTOR.get(self._motor_actual(), "opengl")}
         materiales = [m["nombre"] for m in self._seguro(self.servicios.materiales) or []
                       if m["tipo"] == "openPBRSurface"]
@@ -1307,7 +1334,8 @@ class VentanaMaterials(QtWidgets.QWidget):
 
     def _aplicar_manifiesto(self, carpeta):
         resultado = self._seguro(self.servicios.aplicar_manifiesto, carpeta,
-                                 {"desplazamiento": self.casilla_desplazamiento.isChecked()})
+                                 {"relieve": self.relieve(),
+                                  "desplazamiento": self.relieve() == "desplazamiento"})
         self._huellas[carpeta] = ic.huella_manifiesto(carpeta)
         if not resultado:
             return
