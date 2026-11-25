@@ -200,7 +200,7 @@ def _pruebas(cmds, temporal, renders):
     ctrl_s = mm.control_de(m_suelo)
     comprobar(ctrl_s is not None, "rehacer la red (planar → uv) conserva el control")
     if mm.RECREADOS:
-        avisar("Maya borró el control al rehacer la red y se ha vuelto a crear: {} al borrar {}".format(
+        print("   info: Maya borró el control al rehacer la red y se ha vuelto a crear: {} al borrar {}".format(
             mm.RECREADOS, mm.RECREADOS_POR))
     pe_s = [p for p in mm.places_de(ctrl_s) if "uvEstructura" in p][0]
     # UV 0-1 sobre 2 m: una imagen de baldosa (60,8 cm) cabe 200 / 60,8 veces.
@@ -286,6 +286,11 @@ def _render(cmds, s, mv, cat, receta, temporal, renders):
     luz = cmds.directionalLight(name="sol")
     cmds.setAttr(cmds.listRelatives(luz, parent=True)[0] + ".rotateX", -30)
     cmds.setAttr("defaultRenderGlobals.currentRenderer", "arnold", type="string")
+    try:
+        import mtoa.core
+        mtoa.core.createOptions()   # en mayapy defaultArnoldDriver no existe hasta aquí
+    except Exception as error:
+        avisar("no se pudieron crear las opciones de Arnold: {}".format(error))
     cmds.setAttr("defaultArnoldDriver.ai_translator", "png", type="string")
     cmds.setAttr("defaultArnoldRenderOptions.AASamples", 2)
     salida = renders or os.path.join(temporal, "renders")
