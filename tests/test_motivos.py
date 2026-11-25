@@ -147,6 +147,10 @@ class PruebaCatalogo(unittest.TestCase):
         self.assertEqual(p["motivo"]["color_junta"], "#9a948a")
         self.assertEqual(set(p["capas"]), {"estructura", "acabado"})
         self.assertTrue(os.path.isfile(p["capas"]["estructura"]["mapas"]["mascara"]))
+        # La máscara va en RGB sin alfa: Arnold premultiplica y un alfa vacío borraría juntas y desgaste.
+        with open(p["capas"]["estructura"]["mapas"]["mascara"], "rb") as f:
+            cabecera = f.read(26)
+        self.assertEqual(cabecera[25], 2)  # tipo de color PNG 2 = RGB
         self.assertAlmostEqual(p["tile_u_cm"], 50.0)
         # Un metro de muro = 2 imágenes de ladrillo a lo ancho y 8 a lo alto.
         r = mv.repeticiones(p["motivo"], self.cat.estructura("ladrillo_soga"), self.cat.acabado("cepillado"))

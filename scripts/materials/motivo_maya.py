@@ -347,13 +347,15 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
         cmds.setAttr("{}.{}".format(ctrl, clave), f[clave] * escala)
     cmds.setAttr(ctrl + ".relieveCm", (est or aca)["relieve_cm"])
 
-    mascara = altura_e = color_a = rug_a = altura_a = None
+    mascara = altura_e = zona2 = color_a = rug_a = altura_a = None
     places = []
     if est:
         pe = _place(material, "uvEstructura", ctrl, ("kU", "pieza"), ("kV", "pieza"))
         places.append(pe)
         mascara = _imagen(material, "mascara", est["mapas"]["mascara"], espacio_raw, pe, False)
         altura_e = _imagen(material, "altura", est["mapas"]["altura"], espacio_raw, pe, True)
+        if est.get("color2") and est["mapas"].get("zona2"):
+            zona2 = _imagen(material, "zona2", est["mapas"]["zona2"], espacio_raw, pe, True)
     if aca:
         pa = _place(material, "uvAcabado", ctrl, ("aU", "repeticion"), ("aV", "repeticion"))
         places.append(pa)
@@ -367,8 +369,8 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
     color = ctrl + ".colorPieza"
     desgaste = None
     if est:
-        if est.get("color2"):
-            color = _mezcla(material, "color2", ctrl + ".color2", color, mascara + ".outAlpha")
+        if zona2:
+            color = _mezcla(material, "color2", ctrl + ".color2", color, zona2 + ".outAlpha")
         g = _suma(material, "variacionG", [mascara + ".outColorG", -0.5])
         gv = _producto(material, "variacionPor", g, ctrl + ".variacion")
         factor = _suma(material, "variacionFactor", [1.0, gv, gv])

@@ -92,7 +92,7 @@ def _estructura(n, ancho, alto, filas, junta, desfases, semilla, bisel, pieza_la
     altura = np.where(en_junta > 0, 0.18 + 0.05 * ruido,
                       0.55 + 0.4 * _suave(borde, 0, bisel) - 0.06 * fino * _suave(borde, 0, bisel))
     desgaste = np.clip(1.15 * ruido - 0.6 * _suave(borde, 0, bisel * 3) + 0.25 * fino, 0, 1)
-    mascara = np.dstack([en_junta, gris, desgaste, np.zeros_like(gris)])
+    mascara = np.dstack([en_junta, gris, desgaste])  # RGB: sin alfa (Arnold premultiplica)
     tono = (0.35 + 0.5 * altura) * (0.8 + 0.4 * gris)
     mini = np.dstack([tono * 0.95, tono * 0.8, tono * 0.7])
     return {"altura": (altura, 16), "mascara": (mascara, 8)}, mini

@@ -3,8 +3,10 @@
 Un motivo es opcional y está apagado en todas las recetas. Se compone de:
 
 - **Estructura** (ladrillo, sillería, baldosa, tablas...): solo forma. Sus mapas son
-  ``altura`` y ``mascara`` (RGBA: R junta, G gris distinto por pieza, B desgaste,
-  A zona de «color 2»). No llevan color: el color sale de la receta.
+  ``altura`` y ``mascara`` (RGB sin alfa: R junta, G gris distinto por pieza, B desgaste),
+  más ``zona2`` opcional (gris: dónde va el «color 2»). No llevan color: el color sale de
+  la receta. La máscara nunca lleva alfa: Arnold premultiplica y un alfa vacío borraría
+  las juntas.
 - **Acabado** (cepillado, poro de naranja, piel de mejilla, veta de nogal...): el detalle
   fino de la superficie. Mapas ``color`` (variación alrededor de un gris medio, que
   tiñe el color de la receta), ``rugosidad`` (alrededor de 0,5), ``altura``.
@@ -23,7 +25,7 @@ El catálogo se lee de carpetas::
      "tile_cm": [50, 12.5],      # medida real de la imagen entera
      "pieza_cm": 24,             # ancho de una pieza con esa medida (lo que ve el alumno)
      "relieve_cm": 1.0,          # profundidad de la junta o del relieve con relieve = 1
-     "color2": false,            # usa el canal A de la máscara
+     "color2": false,            # usa el mapa zona2.png
      "junta": "#8f8a80",         # color de junta propuesto
      "recomendado_para": ["ladrill", "construccion"],   # trozos de nombre o familia de receta
      "etiquetas": ["fachada"], "licencia": "CC0"}
@@ -44,7 +46,7 @@ from materials import color as col
 ESTRUCTURAS = "estructuras"
 ACABADOS = "acabados"
 TIPOS = (ESTRUCTURAS, ACABADOS)
-MAPAS = {ESTRUCTURAS: ("altura", "mascara", "normal"), ACABADOS: ("color", "rugosidad", "altura", "normal")}
+MAPAS = {ESTRUCTURAS: ("altura", "mascara", "normal", "zona2"), ACABADOS: ("color", "rugosidad", "altura", "normal")}
 OBLIGATORIOS = {ESTRUCTURAS: ("altura", "mascara"), ACABADOS: ("color", "rugosidad")}
 EXTENSIONES = (".png", ".jpg", ".jpeg", ".tif", ".tiff", ".exr", ".tx")
 RESOLUCIONES = ("1k", "2k", "4k")

@@ -349,10 +349,14 @@ def _render(cmds, s, mv, cat, receta, temporal, renders):
     plan = mv.plan({"activo": True, "estructura": "ladrillo_soga", "proyeccion": "caja", "desgaste": 0.0}, cat, receta)
     s.aplicar_motivo(material, plan, receta, "render")
     rutas = {}
-    for nombre, cambio in (("caja_24cm", None), ("caja_96cm", 96.0)):
-        if cambio:
-            cmds.setAttr(mm_control(s, material) + ".pieza", cambio)
-        rutas[nombre] = render("motivo_" + nombre)
+    rutas["caja_24cm"] = render("motivo_caja_24cm")
+    ctrl = mm_control(s, material)
+    junta = cmds.getAttr(ctrl + ".colorJunta")[0]
+    cmds.setAttr(ctrl + ".colorJunta", 1, 1, 1, type="double3")
+    rutas["junta_blanca"] = render("motivo_junta_blanca")
+    cmds.setAttr(ctrl + ".colorJunta", *junta, type="double3")
+    cmds.setAttr(ctrl + ".pieza", 96.0)
+    rutas["caja_96cm"] = render("motivo_caja_96cm")
     plan_t = mv.plan(dict(plan["motivo"], proyeccion="triplanar"), cat, receta)
     s.aplicar_motivo(material, plan_t, receta, "render")
     rutas["triplanar_24cm"] = render("motivo_triplanar_24cm")
@@ -377,6 +381,9 @@ def _render(cmds, s, mv, cat, receta, temporal, renders):
     comprobar(distintos("caja_24cm", "caja_96cm") > 0.02,
               "render: cambiar la pieza en el control cambia el render ({:.0%})".format(
                   distintos("caja_24cm", "caja_96cm")))
+    comprobar(distintos("caja_24cm", "junta_blanca") > 0.02,
+              "render: la junta blanca cambia el render (la máscara llega a Arnold) ({:.0%})".format(
+                  distintos("caja_24cm", "junta_blanca")))
     if renders:
         print("   imágenes en", salida)
 

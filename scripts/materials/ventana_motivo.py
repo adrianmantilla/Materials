@@ -304,7 +304,7 @@ class PestanaMotivo(QtWidgets.QWidget):
         con_acabado = self._acabado() is not None
         self.deslizadores["repeticion_cm"].setVisible(con_acabado)
         self.rotulos["repeticion_cm"].setVisible(con_acabado)
-        con_color2 = bool(estructura and estructura.color2)
+        con_color2 = bool(estructura and estructura.color2 and estructura.mapa("zona2"))
         self.colores["color2"].setVisible(con_color2)
         self.rotulos["color2"].setVisible(con_color2)
         triplanar = m["proyeccion"] == "triplanar"
