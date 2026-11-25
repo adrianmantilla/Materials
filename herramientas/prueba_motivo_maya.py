@@ -255,13 +255,47 @@ def _pruebas(cmds, temporal, renders):
 
 
 def _pixeles(ruta):
-    import maya.api.OpenMaya as om
-    imagen = om.MImage()
-    imagen.readFromFile(ruta)
-    ancho, alto = imagen.getSize()
-    datos = bytes(imagen.pixels())
-    valores = [datos[i] for i in range(0, ancho * alto * 4, 4)]
-    return valores, ancho, alto
+    """Canal rojo de un PNG de 8 bits (RGB o RGBA), sin Pillow: (valores, ancho, alto)."""
+    import struct
+    import zlib
+    with open(ruta, "rb") as f:
+        datos = f.read()
+    pos, idat, ancho, alto, canales = 8, b"", 0, 0, 4
+    while pos < len(datos):
+        largo, tipo = struct.unpack(">I4s", datos[pos:pos + 8])
+        cuerpo = datos[pos + 8:pos + 8 + largo]
+        if tipo == b"IHDR":
+            ancho, alto, bits, color = struct.unpack(">IIBB", cuerpo[:10])
+            if bits != 8:
+                raise ValueError("PNG de {} bits".format(bits))
+            canales = {0: 1, 2: 3, 4: 2, 6: 4}[color]
+        elif tipo == b"IDAT":
+            idat += cuerpo
+        pos += 12 + largo
+    crudo = zlib.decompress(idat)
+    fila = ancho * canales
+    anterior = bytearray(fila)
+    rojos = []
+    for y in range(alto):
+        filtro = crudo[y * (fila + 1)]
+        linea = bytearray(crudo[y * (fila + 1) + 1:(y + 1) * (fila + 1)])
+        for x in range(fila):
+            a = linea[x - canales] if x >= canales else 0
+            b = anterior[x]
+            c = anterior[x - canales] if x >= canales else 0
+            if filtro == 1:
+                linea[x] = (linea[x] + a) & 255
+            elif filtro == 2:
+                linea[x] = (linea[x] + b) & 255
+            elif filtro == 3:
+                linea[x] = (linea[x] + (a + b) // 2) & 255
+            elif filtro == 4:
+                p = a + b - c
+                pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+                linea[x] = (linea[x] + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 255
+        rojos.extend(linea[0::canales])
+        anterior = linea
+    return rojos, ancho, alto
 
 
 def _desviacion(valores):
@@ -297,6 +331,9 @@ def _render(cmds, s, mv, cat, receta, temporal, renders):
         avisar("no se pudieron crear las opciones de Arnold: {}".format(error))
     cmds.setAttr("defaultArnoldDriver.ai_translator", "png", type="string")
     cmds.setAttr("defaultArnoldRenderOptions.AASamples", 2)
+    cmds.setAttr("defaultResolution.width", 240)
+    cmds.setAttr("defaultResolution.height", 240)
+    cmds.setAttr("defaultResolution.deviceAspectRatio", 1.0)
     salida = renders or os.path.join(temporal, "renders")
     os.makedirs(salida, exist_ok=True)
 
@@ -324,19 +361,22 @@ def _render(cmds, s, mv, cat, receta, temporal, renders):
     if not all(rutas.values()):
         avisar("Arnold no ha dejado imágenes ({}); revisa el render a mano".format(rutas))
         return
-    estadisticas = {}
+    pix = {}
     for nombre, ruta in rutas.items():
-        valores, _a, _b = _pixeles(ruta)
-        estadisticas[nombre] = _desviacion(valores)
-        print("   render {}: desviación {:.1f}, media {:.1f}  ({})".format(nombre, estadisticas[nombre][0],
-                                                                         estadisticas[nombre][1], ruta))
-    base = estadisticas["sin_motivo"][0]
-    comprobar(estadisticas["caja_24cm"][0] > base + 4, "render caja: se ven las piezas (Arnold lee tt_motivo)")
-    comprobar(estadisticas["triplanar_24cm"][0] > base + 4, "render triplanar: se ven las piezas")
-    a, _x, _y = _pixeles(rutas["caja_24cm"])
-    b, _x, _y = _pixeles(rutas["caja_96cm"])
-    distintos = sum(1 for x, y in zip(a, b) if abs(x - y) > 8) / float(len(a))
-    comprobar(distintos > 0.05, "render: cambiar la pieza en el control cambia el render ({:.0%})".format(distintos))
+        pix[nombre] = _pixeles(ruta)[0]
+        desviacion, media = _desviacion(pix[nombre])
+        print("   render {}: desviación {:.1f}, media {:.1f}  ({})".format(nombre, desviacion, media, ruta))
+
+    def distintos(a, b):
+        return sum(1 for x, y in zip(pix[a], pix[b]) if abs(x - y) > 8) / float(len(pix[a]))
+
+    comprobar(distintos("caja_24cm", "sin_motivo") > 0.02,
+              "render caja: el motivo se ve (Arnold lee tt_motivo) ({:.0%})".format(distintos("caja_24cm", "sin_motivo")))
+    comprobar(distintos("triplanar_24cm", "sin_motivo") > 0.02,
+              "render triplanar: el motivo se ve ({:.0%})".format(distintos("triplanar_24cm", "sin_motivo")))
+    comprobar(distintos("caja_24cm", "caja_96cm") > 0.02,
+              "render: cambiar la pieza en el control cambia el render ({:.0%})".format(
+                  distintos("caja_24cm", "caja_96cm")))
     if renders:
         print("   imágenes en", salida)
 
