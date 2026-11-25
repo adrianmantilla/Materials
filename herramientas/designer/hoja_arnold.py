@@ -69,16 +69,18 @@ def main():
         material = s.crear_material(receta, "render")
         s.asignar(material)
         plan = mv.plan({"activo": True, "estructura": est.id, "proyeccion": "caja", "desgaste": 0.2,
-                        "variacion": 0.35, "relieve": 0.6, "azar": False}, cat, receta)
+                        "variacion": 0.5, "relieve": 0.8, "azar": False}, cat, receta)
         s.aplicar_motivo(material, plan, receta, "render")
         camara, forma = cmds.camera(name="cam")
-        cmds.setAttr(camara + ".translateZ", 420)
+        # Encuadre: 1,5 m de pared llenan la imagen (36 mm de película horizontal).
+        cmds.setAttr(camara + ".translateZ", 150.0 * 50.0 / 36.0)
         cmds.setAttr(forma + ".focalLength", 50)
-        sol = cmds.listRelatives(cmds.directionalLight(name="sol", intensity=2.6), parent=True)[0]
-        cmds.setAttr(sol + ".rotateX", -38)
-        cmds.setAttr(sol + ".rotateY", -32)
+        # Sol rasante desde arriba a la izquierda, para que se lean juntas y biseles.
+        sol = cmds.listRelatives(cmds.directionalLight(name="sol", intensity=3.2), parent=True)[0]
+        cmds.setAttr(sol + ".rotateX", -55)
+        cmds.setAttr(sol + ".rotateY", -50)
         cielo = cmds.shadingNode("aiSkyDomeLight", asLight=True, name="cielo")
-        cmds.setAttr(cielo + ".intensity", 0.5)
+        cmds.setAttr(cielo + ".intensity", 0.35)
         cmds.setAttr("defaultRenderGlobals.currentRenderer", "arnold", type="string")
         mtoa.core.createOptions()
         cmds.setAttr("defaultArnoldDriver.ai_translator", "png", type="string")

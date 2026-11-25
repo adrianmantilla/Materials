@@ -158,7 +158,7 @@ def componer(d, bruto, destino_raiz, res):
     altura = junta + (np.maximum(cara, junta) - junta) * perfil
     altura = np.clip(altura, 0.0, 1.0)
     desgaste = np.clip(1.6 * mancha * (1.0 - 0.5 * perfil) - 0.15 + 0.5 * desconchon, 0.0, 1.0) * mascara
-    gris = np.where(mascara, b["gris"], 0.5)
+    gris = np.where(mascara, 0.5 + (b["gris"] - 0.5) * d.get("tono_var", 0.5), 0.5)
     en_junta = 1.0 - suave(dist, 0.0, 1.5 * max(cm_px_x, cm_px_y))  # canto suavizado un píxel
     mascara_rgb = np.dstack([en_junta, gris, desgaste])
     normal = normal_opengl(altura, d["relieve_cm"], cm_px_x, cm_px_y)
