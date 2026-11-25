@@ -198,6 +198,10 @@ def _pruebas(cmds, temporal, renders):
     plan_uv = mv.plan(dict(plan_p["motivo"], proyeccion="uv"), cat, receta)
     s.aplicar_motivo(m_suelo, plan_uv, receta, "render")
     ctrl_s = mm.control_de(m_suelo)
+    comprobar(ctrl_s is not None, "rehacer la red (planar → uv) conserva el control")
+    if mm.RECREADOS:
+        avisar("Maya borró el control al rehacer la red y se ha vuelto a crear: {} al borrar {}".format(
+            mm.RECREADOS, mm.RECREADOS_POR))
     pe_s = [p for p in mm.places_de(ctrl_s) if "uvEstructura" in p][0]
     # UV 0-1 sobre 2 m: una imagen de baldosa (60,8 cm) cabe 200 / 60,8 veces.
     comprobar(cerca(cmds.getAttr(pe_s + ".repeatU"), 200.0 / 60.8, 0.05),

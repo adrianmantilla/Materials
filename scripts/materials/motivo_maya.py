@@ -56,6 +56,8 @@ NUMEROS = (
 COLORES = (("color2", "color2", "Color 2"), ("colorJunta", "color_junta", "Color de junta"),
            ("colorDesgaste", "color_desgaste", "Color del desgaste"))
 OCULTOS = ("kU", "kV", "aU", "aV", "relieveCm", "alturaAcabado")
+RECREADOS = []   # controles que Maya borró al rehacer la red (para la prueba en Maya)
+RECREADOS_POR = []
 
 
 def _unir(origen, destino):
@@ -309,17 +311,26 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
     aca = capas.get("acabado")
     ctrl = control_de(material)
     if ctrl is None:
-        antes = _conexiones_previas(material)
-        ctrl = _crear_control(material)
-        cmds.setAttr(ctrl + "." + ATTR_ANTES, json.dumps(antes), type="string")
+        antes = json.dumps(_conexiones_previas(material))
+    else:
+        antes = cmds.getAttr(ctrl + "." + ATTR_ANTES) or "{}"
     for atributo in SALIDAS:
         plug = "{}.{}".format(material, atributo)
         for origen in cmds.listConnections(plug, source=True, destination=False, plugs=True) or []:
             cmds.disconnectAttr(origen, plug)
-    viejos = nodos_de(material)
-    viejos = [n for n in viejos if cmds.nodeType(n) not in TIPOS_PROYECCION]
-    if viejos:
-        cmds.delete(viejos)
+    viejos = [n for n in nodos_de(material) if n != ctrl and cmds.nodeType(n) not in TIPOS_PROYECCION]
+    for nodo in viejos:
+        if cmds.objExists(nodo):
+            cmds.delete(nodo)
+        if ctrl is not None and not cmds.objExists(ctrl) and not RECREADOS_POR:
+            RECREADOS_POR.append("{} ({})".format(nodo, ",".join(viejos)))
+    if ctrl is not None and not cmds.objExists(ctrl):
+        # Maya puede llevarse el control al borrar la red vieja: se crea de nuevo con lo que había antes.
+        RECREADOS.append(ctrl)
+        ctrl = None
+    if ctrl is None:
+        ctrl = _crear_control(material)
+        cmds.setAttr(ctrl + "." + ATTR_ANTES, antes, type="string")
     poner_valores(ctrl, m, espacio)
     poner_base(ctrl, base[0], base[1], base[2], espacio)
     f = plan["factores"]
