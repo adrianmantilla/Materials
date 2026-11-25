@@ -204,7 +204,29 @@ def hoja(minis, ruta, columnas=6):
     return ruta
 
 
+def hoja_renders(carpeta, ruta, lado=360, columnas=4):
+    """Junta los PNG de hoja_arnold.py en una hoja con el nombre debajo de cada uno."""
+    minis = []
+    for f in sorted(os.listdir(carpeta)):
+        if f.endswith(".png"):
+            im = Image.open(os.path.join(carpeta, f)).convert("RGB").resize((lado, lado), Image.LANCZOS)
+            minis.append((os.path.splitext(f)[0], im))
+    filas = (len(minis) + columnas - 1) // columnas
+    lienzo = Image.new("RGB", (columnas * lado, filas * (lado + 20)), (24, 24, 24))
+    dibujo = ImageDraw.Draw(lienzo)
+    for i, (nombre, im) in enumerate(minis):
+        x, y = (i % columnas) * lado, (i // columnas) * (lado + 20)
+        lienzo.paste(im, (x, y))
+        dibujo.text((x + 5, y + lado + 4), nombre, fill=(225, 225, 225))
+    lienzo.save(ruta, quality=90)
+    print("hoja:", ruta, len(minis), "renders")
+    return ruta
+
+
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "--hoja-renders":
+        hoja_renders(sys.argv[2], sys.argv[3])
+        return
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("sbs")
     p.add_argument("catalogo")
