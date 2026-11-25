@@ -27,7 +27,7 @@ TIEMPO_MAX = 40 * 60
 
 
 def orden(args, **kw):
-    r = subprocess.run(args, capture_output=True, text=True, **kw)
+    r = subprocess.run(args, capture_output=True, text=True, encoding="utf-8", errors="replace", **kw)
     print("$", " ".join(args), "->", r.returncode)
     texto = (r.stdout + r.stderr).strip()
     if texto:
@@ -58,12 +58,13 @@ def pasos():
     print("$", " ".join(args))
     registro = os.path.join(BASE, "catalogo_fabricar.log")
     with open(registro, "w") as salida:
-        proceso = subprocess.Popen(args, stdout=salida, stderr=subprocess.STDOUT, cwd=REPO)
+        entorno = dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONUNBUFFERED="1")
+        proceso = subprocess.Popen(args, stdout=salida, stderr=subprocess.STDOUT, cwd=REPO, env=entorno)
         inicio = time.time()
         while proceso.poll() is None:
             yield
         print("fabricar.py ->", proceso.returncode, "en", round(time.time() - inicio, 1), "s")
-    with open(registro) as f:
+    with open(registro, encoding="utf-8", errors="replace") as f:
         lineas = f.read().splitlines()
     for linea in lineas:
         if linea.startswith(("OK", "ERROR", "FALTAN", "hoja", "Traceback")) or "Error" in linea:
