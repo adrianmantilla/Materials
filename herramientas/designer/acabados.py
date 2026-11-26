@@ -221,10 +221,11 @@ ACABADOS = [
 import acab_metal  # noqa: E402
 import acab_plastico  # noqa: E402
 import acab_tela  # noqa: E402
+import acab_organico  # noqa: E402
 
 # Lotes de acabados: el primero son los de las estructuras de los lotes 1-3.
 LOTES = {"base": ACABADOS, "metal": acab_metal.ACABADOS, "plastico": acab_plastico.ACABADOS,
-         "tela": acab_tela.ACABADOS}
+         "tela": acab_tela.ACABADOS, "organico": acab_organico.ACABADOS}
 TODOS = [d for lote in LOTES.values() for d in lote]
 
 
