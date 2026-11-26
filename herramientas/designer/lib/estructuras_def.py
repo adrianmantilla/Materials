@@ -1005,7 +1005,7 @@ LOTE_14 = [
          patron=dict(tipo="sillar_irregular", alturas=(2.5, 5.0, 7.5), anchos=(5.0, 15.0), semilla=43),
          junta_cm=0.2, bisel_cm=0.1, relieve_cm=0.6, irregular=0.05, rugoso=0.4, altura_var=0.3,
          recomendado_para=["mosaico", "piedra", "tiras", "pizarra"], etiquetas=["pared"]),
-    dict(id="panel_hexagonal_3d", matiz=0.0, poros=0.0, moteado=0.1, quemado=0.0, tono_var=0.3,
+    dict(id="panel_hexagonal_3d", acabado_propuesto="fieltro", matiz=0.0, poros=0.0, moteado=0.1, quemado=0.0, tono_var=0.3,
          nombre="Panel hexagonal acolchado", familia="Revestimiento", tile_cm=(R3 * 10.0 * 4, 60.0),
          pieza_cm=(17.3, 20.0), patron=dict(tipo="hexagono", radio=10.0), perfil=dict(tipo="cupula", fuerza=0.8),
          junta_cm=0.6, junta_alt=0.0, bisel_cm=1.0, relieve_cm=2.0, irregular=0.0, rugoso=0.3, altura_var=0.15,
