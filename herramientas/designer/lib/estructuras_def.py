@@ -1102,7 +1102,7 @@ LOTE_16 = [
          pieza_cm=(9.8, 9.8), patron=dict(tipo="paralelogramos", a1=(_D, _D), a2=(-_D, _D)),
          zona2=dict(tipo="arlequin", a1=(_D, _D), a2=(-_D, _D)), junta_cm=0.2,
          recomendado_para=["damero", "diagonal", "ajedrez"], etiquetas=["suelo"]),
-    dict(PIEDRA, id="losas_irregulares_cesped", nombre="Losas irregulares en césped", tile_cm=(200.0, 200.0),
+    dict(PIEDRA, id="losas_irregulares_cesped", acabado_propuesto="arenisca", nombre="Losas irregulares en césped", tile_cm=(200.0, 200.0),
          pieza_cm=(40.0, 40.0), patron=dict(tipo="voronoi", celdas=(5, 5), pesos=0.6, redondeo=2.0, semilla=49),
          junta_cm=6.0, junta_alt=0.0, irregular=0.4, relieve_cm=3.0, junta=CESPED,
          recomendado_para=["losa", "jardin", "cesped", "camino"], etiquetas=["suelo", "jardín"]),
