@@ -41,7 +41,7 @@ RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6)}
 COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a", "octogono_taco": "#1e1e1e"}
 
 
-def _aclarar(hex_color, minimo=0.16):
+def _aclarar(hex_color, minimo=0.3):
     """En la hoja, un acabado casi negro no deja ver nada: se aclara hasta un gris oscuro legible."""
     h = hex_color.lstrip("#")
     rgb = [int(h[i:i + 2], 16) / 255.0 for i in (0, 2, 4)]
