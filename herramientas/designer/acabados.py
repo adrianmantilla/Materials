@@ -21,7 +21,10 @@ from PIL import Image
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, AQUI)
-from fabricar import CARPETA_RES, costura, normal_opengl, ruido_cm, suave  # noqa: E402
+from fabricar import CARPETA_RES, costura, distancia_interior, normal_opengl, ruido_cm, suave  # noqa: E402
+
+sys.path.insert(0, os.path.join(AQUI, "lib"))
+import patrones  # noqa: E402
 
 
 def _mezclar(base, color, peso):
@@ -131,6 +134,65 @@ def veta_madera(forma, cx, cy):
     return color, rugosidad, altura
 
 
+def terrazo(forma, cx, cy):
+    """Terrazo pulido: trozos angulosos de mármol (blanco, negro, rojo, gris) en cemento claro."""
+    alto, ancho = forma
+    tile = (ancho * cx, alto * cy)
+    yy, xx = np.mgrid[0:alto, 0:ancho].astype(np.float64)
+    x, y = (xx + 0.5) * cx, (yy + 0.5) * cy
+    celdas = (max(4, int(round(tile[0] / 0.7))), max(4, int(round(tile[1] / 0.7))))
+    ids = patrones.voronoi_azar(x, y, tile, celdas, 601, temblor=0.9, pesos=0.8)
+    rng = np.random.default_rng(602)
+    n = celdas[0] * celdas[1]
+    tipo = rng.choice(5, n, p=[0.55, 0.22, 0.10, 0.08, 0.05])  # cemento, blanco, gris, negro, rojo
+    paleta = np.array([[0.50, 0.49, 0.46], [0.66, 0.65, 0.62], [0.47, 0.47, 0.47], [0.16, 0.16, 0.17],
+                       [0.50, 0.33, 0.28]])
+    tono = np.where(tipo == 0, 1.0, rng.uniform(0.9, 1.1, n))  # el cemento no deja ver sus celdas
+    borde = (ids != np.roll(ids, 1, 0)) | (ids != np.roll(ids, 1, 1))
+    hueco = distancia_interior(~borde, cx, cy, 0.3) < 0.09  # cemento entre trozos
+    color = paleta[tipo[ids]] * tono[ids][..., None]
+    color = np.where(hueco[..., None], paleta[0], color)
+    grano = ruido_cm(forma, cx, cy, 0.05, 603) - 0.5
+    color = color + 0.04 * grano[..., None]
+    rugosidad = 0.5 + 0.03 * grano + 0.04 * hueco
+    altura = 0.5 + 0.03 * grano - 0.05 * hueco
+    return color, rugosidad, altura
+
+
+def pizarra(forma, cx, cy):
+    """Pizarra de exfoliación: lajas finas en escalones, vetas claras y brillo irregular."""
+    capas = ruido_cm(forma, cx * 0.25, cy, 2.0, 701, octavas=3) - 0.5
+    escalon = np.floor((capas + 0.5) * 6.0) / 6.0 - 0.5
+    manchas = ruido_cm(forma, cx, cy, 8.0, 702, octavas=2) - 0.5
+    grano = ruido_cm(forma, cx, cy, 0.05, 703) - 0.5
+    lum = 0.5 + 0.10 * escalon + 0.10 * manchas + 0.05 * grano
+    color = np.dstack([lum * 0.98, lum, lum * 1.03])
+    rugosidad = 0.5 + 0.10 * manchas + 0.04 * grano
+    altura = 0.5 + 0.35 * escalon + 0.10 * grano
+    return color, rugosidad, altura
+
+
+def marmol(forma, cx, cy):
+    """Mármol veteado: fondo blanco con nubes grises y vetas finas que se ramifican."""
+    base = ruido_cm(forma, cx, cy, 6.0, 801, octavas=4) - 0.5
+    giro = ruido_cm(forma, cx, cy, 10.0, 802, octavas=3) - 0.5
+    fino = ruido_cm(forma, cx, cy, 1.5, 803, octavas=3) - 0.5
+    alto, ancho = forma
+    y, x = np.mgrid[0:alto, 0:ancho].astype(np.float64)
+    largo = ancho * cx
+    # Vetas: isolíneas de un campo retorcido (periódico en X con número entero de ondas).
+    alto_cm = alto * cy
+    campo = 2 * np.pi * (2 * x * cx / largo + y * cy / alto_cm) + 5.0 * giro + 1.2 * fino
+    veta = (np.exp(-(np.sin(campo) / 0.09) ** 2) * (0.6 + 0.8 * suave(base, -0.1, 0.15))
+            + 0.4 * np.exp(-(np.sin(2.0 * campo + 3 * base) / 0.04) ** 2) * suave(base, 0.0, 0.15))
+    nube = suave(base + 0.3 * giro, 0.05, 0.3)
+    lum = 0.56 + 0.04 * base - 0.06 * nube - 0.20 * np.clip(veta, 0, 1)
+    color = np.dstack([lum, lum * 0.995, lum * 0.985])
+    rugosidad = 0.5 + 0.02 * fino + 0.03 * veta
+    altura = 0.5 + 0.02 * fino
+    return color, rugosidad, altura
+
+
 ACABADOS = [
     dict(id="arcilla_ladrillo", funcion=arcilla_ladrillo, nombre="Arcilla cocida", familia="Construcción",
          tile_cm=(50.0, 50.0), relieve_cm=0.4, muestra="#a5502f",
@@ -144,6 +206,12 @@ ACABADOS = [
     dict(id="granito", funcion=granito, nombre="Granito abujardado", familia="Piedra",
          tile_cm=(40.0, 40.0), relieve_cm=0.3, muestra="#77726c",
          recomendado_para=["granito", "adoquin", "basalto"]),
+    dict(id="terrazo", funcion=terrazo, nombre="Terrazo", familia="Construcción", tile_cm=(40.0, 40.0),
+         relieve_cm=0.05, muestra="#cfc8bc", recomendado_para=["terrazo"]),
+    dict(id="pizarra", funcion=pizarra, nombre="Pizarra", familia="Piedra", tile_cm=(40.0, 40.0),
+         relieve_cm=0.3, muestra="#4a4d52", recomendado_para=["pizarra"]),
+    dict(id="marmol", funcion=marmol, nombre="Mármol veteado", familia="Piedra", tile_cm=(80.0, 80.0),
+         relieve_cm=0.02, muestra="#e6e3de", recomendado_para=["marmol"]),
     dict(id="veta_madera", funcion=veta_madera, nombre="Veta de madera", familia="Madera",
          tile_cm=(160.0, 20.0), relieve_cm=0.15, muestra="#8a5a35",
          recomendado_para=["madera", "tablas", "tarima", "parquet", "roble", "pino", "nogal"]),

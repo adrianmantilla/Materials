@@ -269,11 +269,12 @@ def por_pieza(lab, n, cm_px_x, cm_px_y, semilla):
     dentro = lab >= 0
     l = lab[dentro]
     y, x = np.nonzero(dentro)
-    centro = []
+    centro, medio = [], []
     for v, tam in ((x, ancho), (y, alto)):
         ang = 2 * np.pi * v / tam
         c = np.arctan2(np.bincount(l, np.sin(ang), n), np.bincount(l, np.cos(ang), n)) * tam / (2 * np.pi)
         centro.append(((v - c[l] + tam / 2.0) % tam - tam / 2.0))
+        medio.append(c % tam)
     dx, dy = centro[0] * cm_px_x, centro[1] * cm_px_y
     ang = rng.uniform(0, 2 * np.pi, n)
     u = dx * np.cos(ang[l]) + dy * np.sin(ang[l])
@@ -289,9 +290,68 @@ def por_pieza(lab, n, cm_px_x, cm_px_y, semilla):
     # Dirección larga de cada pieza (para la veta de una tabla) y posición dentro de la pieza en cm.
     sxx, syy, sxy = (np.bincount(l, w, n) for w in (dx * dx, dy * dy, dx * dy))
     eje = 0.5 * np.arctan2(2 * sxy, sxx - syy)
-    px, py, giro = (np.zeros(lab.shape) for _ in range(3))
+    px, py, giro, cx, cy = (np.zeros(lab.shape) for _ in range(5))
     px[dentro], py[dentro], giro[dentro] = dx, dy, eje[l]
-    return gris, alt, incl, px, py, giro
+    # Centro de cada pieza en cm desde la esquina de la imagen (para saber qué pieza es cuál).
+    cx[dentro], cy[dentro] = medio[0][l] * cm_px_x, medio[1][l] * cm_px_y
+    return gris, alt, incl, px, py, giro, cx, cy
+
+
+def perfil_pieza(perfil, lab, n, mascara, pos_x, pos_y, cen_x):
+    """Forma de la cara de cada pieza (fracción del relieve): teja curva, escalón de solape, cúpula.
+
+    ``perfil``: dict(tipo="cilindro"|"escalon"|"cupula", fuerza=..., alterna=ancho_cm). Con
+    ``alterna``, las columnas impares (por el centro de la pieza) van al revés: cobija y canal.
+    """
+    dentro = lab >= 0
+    l = lab[dentro]
+    u, v = np.zeros(lab.shape), np.zeros(lab.shape)
+    for eje, destino in ((pos_x, u), (pos_y, v)):
+        lo, hi = np.full(n, np.inf), np.full(n, -np.inf)
+        np.minimum.at(lo, l, eje[dentro])
+        np.maximum.at(hi, l, eje[dentro])
+        destino[dentro] = (eje[dentro] - lo[l]) / np.maximum(hi[l] - lo[l], 1e-6)
+    total = np.zeros(lab.shape)
+    for p in perfil if isinstance(perfil, (list, tuple)) else [perfil]:
+        k = p.get("fuerza", 0.2)
+        if p["tipo"] == "cilindro":
+            forma = np.sqrt(np.clip(1.0 - (2 * u - 1) ** 2, 0.0, 1.0)) - 0.5
+            if p.get("alterna"):
+                signo = np.where(np.floor(cen_x / p["alterna"]) % 2 == 1, -1.0, 1.0)
+                forma = forma * signo - 0.35 * (signo < 0)
+            total += k * forma
+        elif p["tipo"] == "escalon":
+            total += k * (v - 0.5)  # el borde de abajo monta sobre la pieza siguiente
+        elif p["tipo"] == "cupula":
+            r2 = (2 * u - 1) ** 2 + (2 * v - 1) ** 2
+            total += k * (np.sqrt(np.clip(1.0 - 0.5 * r2, 0.0, 1.0)) - 0.6)
+    return total * mascara
+
+
+def zona_color2(zona, forma, cm_px_x, cm_px_y):
+    """Mapa zona2 (0-1: dónde va el «color 2») según la posición real en cm."""
+    alto, ancho = forma
+    y, x = np.mgrid[0:alto, 0:ancho].astype(np.float64)
+    x, y = (x + 0.5) * cm_px_x, (y + 0.5) * cm_px_y
+    lado = zona["lado"]
+    if zona["tipo"] == "damero":
+        return ((np.floor(x / lado) + np.floor(y / lado)) % 2).astype(np.float64)
+    if zona["tipo"] == "roseta":
+        # Baldosa hidráulica: estrella de ocho puntas en el centro y cuartos de círculo en las esquinas,
+        # que al juntar cuatro baldosas forman otra flor.
+        u, v = (x % lado) / lado - 0.5, (y % lado) / lado - 0.5
+        r = np.hypot(u, v)
+        ang = np.arctan2(v, u)
+        estrella = r < 0.20 + 0.09 * np.cos(8 * ang)
+        esquina = np.hypot(0.5 - np.abs(u), 0.5 - np.abs(v)) < 0.18
+        borde = (np.maximum(np.abs(u), np.abs(v)) > 0.44)
+        zona = estrella | esquina | borde
+        return desenfocar_suave(zona.astype(np.float64), cm_px_x, cm_px_y, 0.6 * max(cm_px_x, cm_px_y))
+    raise ValueError("zona desconocida: " + zona["tipo"])
+
+
+def desenfocar_suave(a, cm_px_x, cm_px_y, sigma_cm):
+    return np.clip(patrones.desenfocar(a, cm_px_x, cm_px_y, sigma_cm), 0.0, 1.0)
 
 
 def componer(d, bruto, destino_raiz, res):
@@ -306,7 +366,7 @@ def componer(d, bruto, destino_raiz, res):
     mascara = deformar(b["forma"], cm_px_x, cm_px_y, 0.35 * d["irregular"], 21)
     mascara = limpiar_piezas(mascara, pieza_px)
     lab, n = etiquetar(mascara)
-    gris_p, alt_p, incl, pos_x, pos_y, giro = por_pieza(lab, n, cm_px_x, cm_px_y, semilla=len(d["id"]) * 7 + 1)
+    gris_p, alt_p, incl, pos_x, pos_y, giro, cen_x, cen_y = por_pieza(lab, n, cm_px_x, cm_px_y, semilla=len(d["id"]) * 7 + 1)
     av, ru, ir = d["altura_var"], d["rugoso"], d["irregular"]
     po, mo, qu = d.get("poros", 0.0), d.get("moteado", 0.0), d.get("quemado", 0.0)
     bisel = max(d["bisel_cm"], 0.6 * pix)
@@ -326,6 +386,8 @@ def componer(d, bruto, destino_raiz, res):
     cara = (0.72 + av * (0.12 * (alt_p - 0.5) + 0.07 * (incl - 0.5))
             + ru * (0.03 * (b["nubes"] - 0.5) + 0.025 * (b["motas"] - 0.5) + 0.035 * (grano - 0.5)
                     + 0.012 * (arena - 0.5)))
+    if d.get("perfil"):
+        cara = cara + perfil_pieza(d["perfil"], lab, n, mascara, pos_x, pos_y, cen_x)
     veta = None
     if d.get("veta"):
         # Veta de cada tabla en su propia dirección: anillos (tardío oscuro) y bandas que ondulan.
@@ -397,10 +459,14 @@ def componer(d, bruto, destino_raiz, res):
     Image.fromarray((normal * 255).round().astype(np.uint8), "RGB").save(os.path.join(sub, "normal.png"))
     if tono_rgb is not None:
         Image.fromarray((tono_rgb * 255).round().astype(np.uint8), "RGB").save(os.path.join(sub, "tono.png"))
+    if d.get("zona2"):
+        zona = zona_color2(d["zona2"], forma, cm_px_x, cm_px_y) * mascara
+        Image.fromarray((zona * 255).round().astype(np.uint8), "L").save(os.path.join(sub, "zona2.png"))
     mini = vista(altura, normal, mascara_rgb, d["junta"], tono=tono_rgb)
     mini.save(os.path.join(carpeta, "miniatura.png"))
     datos = {k: d[k] for k in ("id", "nombre", "familia", "junta", "recomendado_para", "etiquetas", "relieve_cm")}
-    datos.update(tile_cm=[round(tw, 3), round(th, 3)], pieza_cm=d["pieza_cm"][0], color2=False, licencia="CC0",
+    datos.update(tile_cm=[round(tw, 3), round(th, 3)], pieza_cm=d["pieza_cm"][0], color2=bool(d.get("zona2")),
+                 licencia="CC0",
                  fabrica="designer", version=2)
     if "acabado_propuesto" in d:
         datos["acabado_propuesto"] = d["acabado_propuesto"]

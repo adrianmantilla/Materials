@@ -104,8 +104,35 @@ def voronoi_azar(x, y, tile, celdas, semilla, temblor=0.85, pesos=0.0, estirar=1
     return ids
 
 
-def abanico(x, y, paso, adoquin):
-    """Adoquín en abanico (arcos que se solapan como escamas), cada arco partido en adoquines."""
+def guijarros(x, y, tile, celdas, semilla, tam=0.9):
+    """Cantos rodados: una elipse al azar (tamaño, forma y giro) por celda; fuera de ellas, mortero (-1)."""
+    nx, ny = celdas
+    cw, ch = tile[0] / nx, tile[1] / ny
+    rng = np.random.default_rng(semilla)
+    jit = rng.uniform(-0.12, 0.12, (ny, nx, 2))
+    eje_a = 0.5 * min(cw, ch) * tam * rng.uniform(0.85, 1.15, (ny, nx))
+    eje_b = eje_a * rng.uniform(0.55, 0.9, (ny, nx))
+    giro = rng.uniform(0, np.pi, (ny, nx))
+    gx, gy = np.floor(x / cw).astype(np.int64), np.floor(y / ch).astype(np.int64)
+    ids = np.full(x.shape, -1, dtype=np.int64)
+    for i in range(-1, 2):
+        for j in range(-1, 2):
+            cx, cy = gx + i, gy + j
+            mx, my = cx % nx, cy % ny
+            dx = x - (cx + 0.5 + jit[my, mx, 0]) * cw
+            dy = y - (cy + 0.5 + jit[my, mx, 1]) * ch
+            c, s_ = np.cos(giro[my, mx]), np.sin(giro[my, mx])
+            u, v = (c * dx + s_ * dy) / eje_a[my, mx], (-s_ * dx + c * dy) / eje_b[my, mx]
+            dentro = (u * u + v * v < 1.0) & (ids < 0)
+            ids = np.where(dentro, my * nx + mx, ids)
+    return ids
+
+
+def abanico(x, y, paso, adoquin, unica=False):
+    """Adoquín en abanico (arcos que se solapan como escamas), cada arco partido en adoquines.
+
+    Con ``unica`` cada arco es una sola pieza: tejas de escama.
+    """
     radio = 0.72 * paso
     fila = np.floor(y / (paso / 2)).astype(np.int64)
     ids = np.full(x.shape, -1, dtype=np.int64)
@@ -127,6 +154,8 @@ def abanico(x, y, paso, adoquin):
             n = np.maximum(1, np.round(np.pi * rm / adoquin)).astype(np.int64)
             giro = (anillo * 0.618 + (i * 7 + j * 3) * 0.37) % 1.0  # juntas radiales sin alinear
             tramo = np.floor((ang / np.pi + 0.5) * n + giro).astype(np.int64)
+            if unica:
+                anillo, tramo = np.zeros_like(anillo), np.zeros_like(tramo)
             codigo = _codigo(np.clip(anillo, 0, 999) * 1000 + (tramo + 500) % 1000, i, j)
             ids = np.where(dentro, codigo, ids)
     return ids
@@ -170,8 +199,10 @@ def ids_de(d, x, y):
     if tipo == "voronoi":
         return voronoi_azar(x, y, d["tile_cm"], p["celdas"], p.get("semilla", 1), p.get("temblor", 0.85),
                             p.get("pesos", 0.0), p.get("estirar", 1.0))
+    if tipo == "guijarros":
+        return guijarros(x, y, d["tile_cm"], p["celdas"], p.get("semilla", 1), p.get("tam", 0.9))
     if tipo == "abanico":
-        return abanico(x, y, p["paso"], p["adoquin"])
+        return abanico(x, y, p["paso"], p["adoquin"], p.get("unica", False))
     if tipo == "sillar_irregular":
         return sillar_irregular(x, y, d["tile_cm"], p.get("semilla", 1), p["alturas"], p["anchos"])
     raise ValueError("patrón desconocido: " + tipo)
@@ -186,13 +217,13 @@ def forma(d, res, distancia):
     x, y = (xx + 0.5) * px, (yy + 0.5) * py
     ids = ids_de(d, x, y)
     cubierto = float((ids >= 0).mean())
-    if cubierto < CUBRE_MIN:
+    if cubierto < CUBRE_MIN and d["patron"]["tipo"] != "guijarros":
         raise ValueError("{}: el patrón deja sin pieza el {:.2%} de la imagen".format(d["id"], 1 - cubierto))
     borde = (ids != ids_de(d, x + px, y)) | (ids != ids_de(d, x, y + py))
     junta = d["junta_cm"]
     dist = distancia(~borde, px, py, max(junta, 3.0 * max(px, py)))
     # Una junta de menos de dos píxeles se rompería en diagonal y pegaría piezas.
-    mascara = dist >= max(junta / 2.0, 1.2 * max(px, py))
+    mascara = (dist >= max(junta / 2.0, 1.2 * max(px, py))) & (ids >= 0)
     redondeo = d["patron"].get("redondeo", 0.0)
     if redondeo > 0:
         # Esquinas redondeadas (cantos rodados, mampuestos): desenfocar y volver a umbralizar.

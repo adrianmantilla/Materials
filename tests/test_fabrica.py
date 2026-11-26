@@ -57,7 +57,7 @@ class Fabrica(unittest.TestCase):
             self.assertLess(fabricar.costura(altura), 1.3, d["id"])
 
     def test_patrones_del_lote_2_cubren_y_repiten(self):
-        for d in ed.LOTE_2:
+        for d in ed.LOTE_2 + ed.LOTE_3:
             m = patrones.forma(d, 256, fabricar.distancia_interior)
             self.assertGreater(m.mean(), 0.5, d["id"])
             self.assertLess(fabricar.costura(m.astype(float)), 1.5, d["id"])

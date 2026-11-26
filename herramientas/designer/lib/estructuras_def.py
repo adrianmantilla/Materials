@@ -146,7 +146,82 @@ LOTE_2 = [
          recomendado_para=["ladrill", "fachada"], etiquetas=["fachada", "muro"]),
 ]
 
-LOTES = {"lote1": LOTE_1, "lote2": LOTE_2}
+# Lote 3: cubiertas y más suelos. ``perfil``: forma de la cara de cada pieza (teja curva, escalón de
+# solape, cúpula de canto rodado). ``zona2``: dónde va el «color 2» (baldosa hidráulica, damero).
+LOTE_3 = [
+    dict(id="teja_arabe", matiz=0.8, poros=0.5, moteado=0.9, quemado=0.5, tono_var=0.6,
+         nombre="Teja árabe", familia="Cubierta", tile_cm=(120.0, 105.0), pieza_cm=(15.0, 35.0),
+         patron=dict(tipo="rectangulos", a1=(30.0, 0.0), a2=(0.0, 35.0), rects=[(0, 0, 15, 35), (15, 0, 15, 35)]),
+         perfil=[dict(tipo="cilindro", fuerza=0.55, alterna=15.0), dict(tipo="escalon", fuerza=0.15)],
+         junta_cm=0.8, bisel_cm=0.3, relieve_cm=6.0, irregular=0.2, rugoso=0.5, altura_var=0.25, junta="#2b2622",
+         recomendado_para=["teja", "tejado", "cubierta"], etiquetas=["cubierta"]),
+    dict(id="pizarra_cubierta", matiz=0.1, poros=0.0, moteado=0.4, quemado=0.0, tono_var=0.35,
+         acabado_propuesto="pizarra", nombre="Pizarra en cubierta", familia="Cubierta", tile_cm=(120.0, 120.0),
+         pieza_cm=(30.0, 20.0),
+         patron=dict(tipo="rectangulos", a1=(30.0, 0.0), a2=(15.0, 20.0), rects=[(0, 0, 30, 20)]),
+         perfil=dict(tipo="escalon", fuerza=0.35), junta_cm=0.4, bisel_cm=0.15, relieve_cm=1.2, irregular=0.35,
+         rugoso=0.6, altura_var=0.35, junta="#1d1d1f",
+         recomendado_para=["pizarra", "tejado", "cubierta"], etiquetas=["cubierta"]),
+    dict(id="tejas_escama", matiz=0.6, poros=0.3, moteado=0.6, quemado=0.2, tono_var=0.5,
+         nombre="Tejas de escama", familia="Cubierta", tile_cm=(96.0, 96.0), pieza_cm=(24.0, 18.0),
+         patron=dict(tipo="abanico", paso=24.0, adoquin=99.0, unica=True), perfil=dict(tipo="escalon", fuerza=0.4),
+         junta_cm=0.5, bisel_cm=0.3, relieve_cm=2.0, irregular=0.1, rugoso=0.4, altura_var=0.3, junta="#2b2622",
+         recomendado_para=["teja", "escama", "cubierta"], etiquetas=["cubierta"]),
+    dict(id="terrazo_baldosa", matiz=0.05, poros=0.0, moteado=0.1, quemado=0.0, tono_var=0.1,
+         acabado_propuesto="terrazo", nombre="Terrazo en baldosa 40 × 40", familia="Baldosa y azulejo",
+         tile_cm=(120.0, 120.0), pieza_cm=(39.85, 39.85),
+         patron=dict(tipo="rectangulos", a1=(40.0, 0.0), a2=(0.0, 40.0), rects=[(0, 0, 40, 40)]),
+         junta_cm=0.15, bisel_cm=0.05, relieve_cm=0.15, irregular=0.0, rugoso=0.02, altura_var=0.02,
+         junta="#bdb6aa", recomendado_para=["terrazo", "baldosa"], etiquetas=["suelo"]),
+    dict(id="baldosa_hidraulica", matiz=0.1, poros=0.1, moteado=0.4, quemado=0.0, tono_var=0.2,
+         acabado_propuesto="", nombre="Baldosa hidráulica", familia="Baldosa y azulejo", tile_cm=(80.0, 80.0),
+         pieza_cm=(19.85, 19.85),
+         patron=dict(tipo="rectangulos", a1=(20.0, 0.0), a2=(0.0, 20.0), rects=[(0, 0, 20, 20)]),
+         zona2=dict(tipo="roseta", lado=20.0), junta_cm=0.15, bisel_cm=0.1, relieve_cm=0.2, irregular=0.02,
+         rugoso=0.15, altura_var=0.05, junta="#cfc9bd",
+         recomendado_para=["hidraulic", "baldosa", "cemento"], etiquetas=["suelo", "cocina"]),
+    dict(id="damero_marmol", matiz=0.05, poros=0.0, moteado=0.1, quemado=0.0, tono_var=0.1,
+         acabado_propuesto="marmol", nombre="Damero de mármol", familia="Baldosa y azulejo", tile_cm=(160.0, 160.0),
+         pieza_cm=(39.9, 39.9),
+         patron=dict(tipo="rectangulos", a1=(40.0, 0.0), a2=(0.0, 40.0), rects=[(0, 0, 40, 40)]),
+         zona2=dict(tipo="damero", lado=40.0), junta_cm=0.1, bisel_cm=0.05, relieve_cm=0.1, irregular=0.0,
+         rugoso=0.02, altura_var=0.02, junta="#d9d4cb",
+         recomendado_para=["marmol", "damero", "baldosa"], etiquetas=["suelo"]),
+    dict(id="adoquin_hormigon", matiz=0.1, poros=0.8, moteado=0.4, quemado=0.0, tono_var=0.35,
+         acabado_propuesto="hormigon", nombre="Adoquín de hormigón", familia="Pavimento", tile_cm=(80.0, 80.0),
+         pieza_cm=(19.6, 9.6),
+         patron=dict(tipo="rectangulos", a1=(20.0, 0.0), a2=(10.0, 10.0), rects=[(0, 0, 20, 10)]),
+         junta_cm=0.4, bisel_cm=0.6, relieve_cm=1.0, irregular=0.05, rugoso=0.6, altura_var=0.15,
+         junta="#8a857b", recomendado_para=["hormigon", "adoquin", "pavimento"], etiquetas=["suelo", "calle"]),
+    dict(id="baldosa_barro", matiz=0.8, poros=0.6, moteado=0.9, quemado=0.3, tono_var=0.7,
+         acabado_propuesto="arcilla_ladrillo", nombre="Baldosa de barro 30 × 30", familia="Baldosa y azulejo",
+         tile_cm=(124.0, 124.0), pieza_cm=(30.0, 30.0),
+         patron=dict(tipo="rectangulos", a1=(31.0, 0.0), a2=(0.0, 31.0), rects=[(0, 0, 31, 31)]),
+         junta_cm=1.0, bisel_cm=0.6, relieve_cm=1.0, irregular=0.4, rugoso=0.5, altura_var=0.3, junta="#a39c90",
+         recomendado_para=["barro", "terracota", "rustic"], etiquetas=["suelo", "rústico"]),
+    dict(id="cantos_rodados", matiz=0.4, poros=0.0, moteado=0.4, quemado=0.0, tono_var=0.9,
+         acabado_propuesto="", nombre="Cantos rodados", familia="Pavimento", tile_cm=(80.0, 80.0),
+         pieza_cm=(6.0, 6.0),
+         patron=dict(tipo="guijarros", celdas=(13, 13), tam=1.2, semilla=7),
+         perfil=dict(tipo="cupula", fuerza=0.6), junta_cm=0.3, bisel_cm=1.5, relieve_cm=2.5, irregular=0.1,
+         rugoso=0.2, altura_var=0.4, junta="#8f897e",
+         recomendado_para=["canto", "rodado", "guijarro", "piedra"], etiquetas=["suelo", "jardín"]),
+    dict(id="tablas_verticales", matiz=0.5, poros=0.0, moteado=0.3, quemado=0.0, tono_var=0.5, veta=True,
+         acabado_propuesto="", nombre="Tablas verticales", familia="Madera", tile_cm=(108.0, 180.0),
+         pieza_cm=(11.6, 180.0),
+         patron=dict(tipo="rectangulos", a1=(12.0, 60.0), a2=(0.0, 180.0), rects=[(0, 0, 12, 180)]),
+         junta_cm=0.4, bisel_cm=0.3, relieve_cm=0.6, irregular=0.02, rugoso=0.3, altura_var=0.15,
+         junta="#1f1a16", recomendado_para=["madera", "fachada", "revestimiento"], etiquetas=["fachada", "pared"]),
+    dict(id="tablas_solapadas", matiz=0.5, poros=0.0, moteado=0.3, quemado=0.0, tono_var=0.5, veta=True,
+         acabado_propuesto="", nombre="Tablas solapadas", familia="Madera", tile_cm=(240.0, 180.0),
+         pieza_cm=(240.0, 15.0),
+         patron=dict(tipo="rectangulos", a1=(240.0, 0.0), a2=(80.0, 15.0), rects=[(0, 0, 240, 15)]),
+         perfil=dict(tipo="escalon", fuerza=0.6), junta_cm=0.3, bisel_cm=0.15, relieve_cm=1.5, irregular=0.02,
+         rugoso=0.3, altura_var=0.1, junta="#1f1a16",
+         recomendado_para=["madera", "fachada", "cabaña"], etiquetas=["fachada"]),
+]
+
+LOTES = {"lote1": LOTE_1, "lote2": LOTE_2, "lote3": LOTE_3}
 
 
 def tile_cm(d):
@@ -158,7 +233,7 @@ def tile_cm(d):
 
 
 def por_id(ident, lote=None):
-    for d in lote or LOTE_1 + LOTE_2:
+    for d in lote or LOTE_1 + LOTE_2 + LOTE_3:
         if d["id"] == ident:
             return d
     raise KeyError(ident)
