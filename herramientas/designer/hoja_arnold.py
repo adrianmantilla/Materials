@@ -41,7 +41,7 @@ RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6)}
 COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a", "octogono_taco": "#1e1e1e"}
 
 
-def _aclarar(hex_color, minimo=0.3):
+def _aclarar(hex_color, minimo=0.42):
     """En la hoja, un acabado casi negro no deja ver nada: se aclara hasta un gris oscuro legible."""
     h = hex_color.lstrip("#")
     rgb = [int(h[i:i + 2], 16) / 255.0 for i in (0, 2, 4)]
@@ -51,6 +51,14 @@ def _aclarar(hex_color, minimo=0.3):
     k = minimo / max(m, 1e-3)
     rgb = [min(1.0, c * k) if m > 0.02 else minimo for c in rgb]
     return "#" + "".join("{:02x}".format(int(round(c * 255))) for c in rgb)
+
+
+def _exposicion(hex_color):
+    """Factor de luz para la hoja de acabados: los blancos no se queman y los oscuros se leen."""
+    h = hex_color.lstrip("#")
+    r, g, b = [(int(h[i:i + 2], 16) / 255.0) ** 2.2 for i in (0, 2, 4)]
+    lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return max(0.5, min(2.2, (0.32 / max(lum, 1e-3)) ** 0.5))
 
 
 def main():
@@ -89,9 +97,11 @@ def main():
         proyecto = os.path.join(temporal, "proyecto")
         os.makedirs(os.path.join(proyecto, "images"), exist_ok=True)
         cmds.workspace(proyecto, openWorkspace=True)
-        es_metal = a.acabados and float(est.datos.get("muestra_metal", 0.0)) > 0.5
+        # Un metal o un acabado brillante en una pared plana solo refleja el horizonte: en esfera
+        # (con cielo) se leen sus reflejos y su relieve fino.
+        es_metal = a.acabados and (float(est.datos.get("muestra_metal", 0.0)) > 0.5
+                                   or float(est.datos.get("muestra_rug", 0.5)) < 0.35)
         if es_metal:
-            # Un metal en una pared plana solo refleja el horizonte: en esfera se lee mejor.
             pared = cmds.polySphere(name="pared", radius=a.encuadre * 0.45, subdivisionsX=96,
                                     subdivisionsY=64)[0]
         else:
@@ -136,13 +146,14 @@ def main():
         cmds.setAttr(cielo + ".intensity", 0.6)
         if a.acabados and not es_metal:
             # Luz rasante: el sol llega más débil a la pared; se compensa para que la hoja no salga oscura.
-            cmds.setAttr(sol + ".intensity", 9.0)
-            cmds.setAttr(cielo + ".intensity", 1.0)
+            k = _exposicion(color)
+            cmds.setAttr(sol + ".intensity", 9.0 * k)
+            cmds.setAttr(cielo + ".intensity", 1.0 * k)
         if es_metal:
             fisico = cmds.shadingNode("aiPhysicalSky", asTexture=True)
             cmds.setAttr(fisico + ".elevation", 35)
             cmds.connectAttr(fisico + ".outColor", cielo + ".color", force=True)
-            cmds.setAttr(cielo + ".intensity", 4.0)
+            cmds.setAttr(cielo + ".intensity", 4.0 * (_exposicion(color) if a.acabados else 1.0))
             if cmds.attributeQuery("enableSun", node=fisico, exists=True):
                 cmds.setAttr(fisico + ".enableSun", False)  # el brillo ya lo da el sol direccional
         cmds.setAttr("defaultRenderGlobals.currentRenderer", "arnold", type="string")
