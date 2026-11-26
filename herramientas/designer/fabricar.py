@@ -259,7 +259,10 @@ def limpiar_piezas(mascara, pieza_px):
     hueco, m = etiquetar(~mascara, diagonal=True)
     area = np.bincount(hueco[hueco >= 0], minlength=m)
     # La junta es una red conectada enorme; un trozo de junta pequeño es un agujero dentro de una pieza.
-    return mascara | ((hueco >= 0) & (area[np.maximum(hueco, 0)] < 0.02 * pieza_px))
+    # Con piezas muy grandes (tableros) la red entera puede medir menos que el 2 % de una pieza: nunca se
+    # tapa el trozo de junta más grande.
+    tope = min(0.02 * pieza_px, 0.5 * float(area.max())) if m else 0.0
+    return mascara | ((hueco >= 0) & (area[np.maximum(hueco, 0)] < tope))
 
 
 def por_pieza(lab, n, cm_px_x, cm_px_y, semilla):

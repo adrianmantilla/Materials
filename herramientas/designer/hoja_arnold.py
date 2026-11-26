@@ -84,7 +84,10 @@ COLORES_PIEZA = {"bloque_hormigon": "#8e8b85", "baldosa_30": "#b9a58c", "baldosa
                  "opus_spicatum": "#a85a3c", "ladrillo_manual_irregular": "#a05a3c", "tarima_anchos_alternos": "#a87e56",
                  "rodajas_madera": "#9a7a54", "mosaico_cubos": "#e6e2d8", "azulejo_rombo_alargado": "#4a7a6a",
                  "baldosa_romboide": "#c8a888", "pizarra_anchos_variados": "#4a4d52", "tejuela_cedro": "#8a6a4a",
-                 "panel_perforado_acustico": "#c8a878"}
+                 "panel_perforado_acustico": "#c8a878", "mosaico_octogono": "#e6e2d8", "octogono_grande": "#e8e4dc",
+                 "damero_diagonal": "#e6e2d8", "losas_irregulares_cesped": "#bfb39c", "adoquin_junta_cesped": "#8a8680",
+                 "muro_ciclopeo": "#a89c86", "listones_verticales": "#a07a52", "mosaico_botones_grandes": "#5a8ab0",
+                 "panel_viroc": "#a8a49c"}
 # Rugosidad y metal propios (chapas).
 RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6), "bloque_vidrio": (0.05, 0.0), "panel_composite": (0.3, 0.0),
              "chapa_junta_alzada": (0.4, 1.0)}
@@ -92,7 +95,8 @@ RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6), "bloqu
 COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a", "octogono_taco": "#1e1e1e", "cubos_3d": "#3a3a3a", "damero_ceramico": "#1e1e1e", "estrella_cruz": "#2f5f8f", "arlequin": "#3a3a3a", "mosaico_estrella_cruz": "#2f5f8f",
           "mosaico_damero": "#1e1e1e", "hexagono_triangulo": "#2f5f8f", "baldosa_rayuela": "#5a3a2a",
           "mosaico_molinete": "#2a2a2a", "damero_piedra": "#3a3c40",
-          "mosaico_hexagono_triangulo": "#2a2a2a", "mosaico_rayuela": "#2f5f8f", "mosaico_cubos": "#3a3a3a"}
+          "mosaico_hexagono_triangulo": "#2a2a2a", "mosaico_rayuela": "#2f5f8f", "mosaico_cubos": "#3a3a3a",
+          "mosaico_octogono": "#1e1e1e", "octogono_grande": "#2a2a2a", "damero_diagonal": "#1e1e1e"}
 
 
 def _aclarar(hex_color, minimo=0.42):

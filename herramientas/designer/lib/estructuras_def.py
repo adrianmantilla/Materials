@@ -607,7 +607,7 @@ LOTE_8 = [
          pieza_cm=(24.0, 5.5),
          patron=dict(tipo="rectangulos", a1=(25.0, 0.0), a2=(25.0 / 3.0, 6.5), rects=[(0, 0, 25.0, 6.5)]),
          recomendado_para=["ladrill", "tercios", "fachada"]),
-    dict(PIEDRA, id="losas_soga", acabado_propuesto="caliza", nombre="Losas de piedra a soga",
+    dict(PIEDRA, id="losas_soga", acabado_propuesto="travertino", nombre="Losas de piedra a soga",
          tile_cm=(160.0, 160.0), pieza_cm=(79.0, 39.0),
          patron=dict(tipo="rectangulos", a1=(80.0, 0.0), a2=(40.0, 40.0), rects=[(0, 0, 80.0, 40.0)]),
          junta_cm=0.8, irregular=0.1, recomendado_para=["losa", "caliza", "piedra", "plaza"],
@@ -629,7 +629,7 @@ LOTE_8 = [
          patron=dict(tipo="sillar_irregular", alturas=(3.0, 4.0, 6.0, 8.0), anchos=(15.0, 60.0), semilla=32),
          junta_cm=0.4, junta_alt=0.0, irregular=0.4, junta="#1e1d1b",
          recomendado_para=["laja", "mamposteria seca", "piedra", "chapado"], etiquetas=["muro", "fachada"]),
-    dict(PIEDRA, id="opus_incertum", acabado_propuesto="caliza", nombre="Opus incertum",
+    dict(PIEDRA, id="opus_incertum", acabado_propuesto="arenisca", nombre="Opus incertum",
          tile_cm=(120.0, 120.0), pieza_cm=(15.0, 15.0),
          patron=dict(tipo="voronoi", celdas=(8, 8), pesos=0.5, temblor=0.95, semilla=33),
          junta_cm=1.5, irregular=0.5, recomendado_para=["opus incertum", "romano", "mamposteria"],
@@ -1082,10 +1082,61 @@ LOTE_15 = [
          recomendado_para=["acustico", "perforado", "panel"], etiquetas=["pared", "techo", "interior"]),
 ]
 
+
+# Lote 16: octógonos (mosaico y grande), damero en diagonal, juntas de césped (losas irregulares y adoquín),
+# muro ciclópeo, listones verticales, botones grandes y panel de cemento y madera atornillado.
+_D = 10.0 / R2  # damero en diagonal: cuadrados de 10 cm girados 45°
+_TORNILLOS = ([(f, 0.03) for f in (0.03, 0.25, 0.5, 0.75, 0.97)] + [(f, 0.97) for f in (0.03, 0.25, 0.5, 0.75, 0.97)]
+              + [(0.03, f) for f in (0.2, 0.4, 0.6, 0.8)] + [(0.97, f) for f in (0.2, 0.4, 0.6, 0.8)])
+LOTE_16 = [
+    dict(CERAMICA, id="mosaico_octogono", nombre="Mosaico de octógono y taco", tile_cm=(30.0, 30.0),
+         pieza_cm=(5.0, 5.0), patron=dict(tipo="octogono", lado=5.0, corte=1.2),
+         zona2=dict(tipo="octogono", lado=5.0, corte=1.2), junta_cm=0.12, bisel_cm=0.05, relieve_cm=0.2,
+         recomendado_para=["octogono", "taco", "mosaico", "baño"]),
+    dict(PIEDRA, id="octogono_grande", nombre="Octógono de mármol con taco", tile_cm=(180.0, 180.0),
+         pieza_cm=(45.0, 45.0), patron=dict(tipo="octogono", lado=45.0, corte=10.0),
+         zona2=dict(tipo="octogono", lado=45.0, corte=10.0), matiz=0.05, poros=0.0, moteado=0.2, tono_var=0.15,
+         junta_cm=0.3, bisel_cm=0.2, relieve_cm=0.4, irregular=0.0, rugoso=0.05, altura_var=0.03, junta="#d8d4cc",
+         acabado_propuesto="marmol", recomendado_para=["octogono", "marmol", "palacio"], etiquetas=["suelo"]),
+    dict(CERAMICA, id="damero_diagonal", nombre="Damero en diagonal", tile_cm=(R2 * 40.0, R2 * 40.0),
+         pieza_cm=(9.8, 9.8), patron=dict(tipo="paralelogramos", a1=(_D, _D), a2=(-_D, _D)),
+         zona2=dict(tipo="arlequin", a1=(_D, _D), a2=(-_D, _D)), junta_cm=0.2,
+         recomendado_para=["damero", "diagonal", "ajedrez"], etiquetas=["suelo"]),
+    dict(PIEDRA, id="losas_irregulares_cesped", nombre="Losas irregulares en césped", tile_cm=(200.0, 200.0),
+         pieza_cm=(40.0, 40.0), patron=dict(tipo="voronoi", celdas=(5, 5), pesos=0.6, redondeo=2.0, semilla=49),
+         junta_cm=6.0, junta_alt=0.0, irregular=0.4, relieve_cm=3.0, junta=CESPED,
+         recomendado_para=["losa", "jardin", "cesped", "camino"], etiquetas=["suelo", "jardín"]),
+    dict(id="adoquin_junta_cesped", matiz=0.25, poros=0.2, moteado=0.5, quemado=0.0, tono_var=0.5,
+         acabado_propuesto="granito", nombre="Adoquín con junta de césped", familia="Pavimento",
+         tile_cm=(100.0, 100.0), pieza_cm=(17.0, 9.5),
+         patron=dict(tipo="rectangulos", a1=(20.0, 0.0), a2=(10.0, 12.5), rects=[(0, 0, 20.0, 12.5)], redondeo=1.0),
+         junta_cm=3.0, junta_alt=0.0, bisel_cm=1.0, relieve_cm=2.5, irregular=0.4, rugoso=0.6, altura_var=0.3,
+         junta=CESPED, recomendado_para=["adoquin", "cesped", "aparcamiento"], etiquetas=["suelo", "jardín"]),
+    dict(PIEDRA, id="muro_ciclopeo", nombre="Muro ciclópeo (poligonal)", tile_cm=(240.0, 240.0),
+         pieza_cm=(60.0, 60.0), patron=dict(tipo="voronoi", celdas=(4, 4), pesos=0.3, temblor=0.95, semilla=50),
+         junta_cm=1.0, bisel_cm=2.0, relieve_cm=5.0, irregular=0.6, rugoso=0.8, altura_var=0.4, junta="#6f6a62",
+         recomendado_para=["ciclopeo", "poligonal", "muro", "inca"], etiquetas=["muro"]),
+    dict(MADERA, id="listones_verticales", nombre="Listones verticales con separación", familia="Madera",
+         tile_cm=(144.0, 240.0), pieza_cm=(10.0, 240.0),
+         patron=dict(tipo="rectangulos", a1=(12.0, 0.0), a2=(0.0, 240.0), rects=[(0, 0, 12.0, 240.0)]),
+         junta_cm=2.0, junta_alt=0.0, bisel_cm=0.3, relieve_cm=2.0, irregular=0.02, rugoso=0.3, altura_var=0.1,
+         junta="#141110", recomendado_para=["listones", "lamas", "valla", "fachada"], etiquetas=["fachada", "valla"]),
+    dict(CERAMICA, id="mosaico_botones_grandes", nombre="Mosaico de botones grandes", tile_cm=(R3 * 3.0 * 6, 36.0),
+         pieza_cm=(4.8, 4.8), patron=dict(tipo="circulos", radio=3.0, circulo=2.4), junta_cm=0.15, bisel_cm=0.1,
+         relieve_cm=0.3, tono_var=0.4, recomendado_para=["boton", "penny", "circulo", "mosaico"]),
+    dict(id="panel_viroc", matiz=0.05, poros=0.3, moteado=0.3, quemado=0.0, tono_var=0.15,
+         acabado_propuesto="hormigon", nombre="Tablero de cemento y madera atornillado", familia="Revestimiento",
+         tile_cm=(250.0, 250.0), pieza_cm=(124.4, 249.4),
+         patron=dict(tipo="rectangulos", a1=(125.0, 0.0), a2=(0.0, 250.0), rects=[(0, 0, 125.0, 250.0)]),
+         perfil=dict(tipo="agujeros", radio=0.6, donde=_TORNILLOS, fuerza=0.6), junta_cm=0.6, junta_alt=0.0,
+         bisel_cm=0.1, relieve_cm=1.0, irregular=0.0, rugoso=0.3, altura_var=0.03, junta="#2a2a2a",
+         recomendado_para=["viroc", "cemento", "tablero", "fachada"], etiquetas=["fachada", "pared"]),
+]
+
 LOTES = {"lote1": LOTE_1, "lote2": LOTE_2, "lote3": LOTE_3, "lote4": LOTE_4, "lote5": LOTE_5,
          "lote6": LOTE_6, "lote7": LOTE_7, "lote8": LOTE_8, "lote9": LOTE_9, "lote10": LOTE_10, "lote11": LOTE_11,
          "lote12": LOTE_12, "lote13": LOTE_13,
-         "lote14": LOTE_14, "lote15": LOTE_15}
+         "lote14": LOTE_14, "lote15": LOTE_15, "lote16": LOTE_16}
 
 
 def tile_cm(d):
