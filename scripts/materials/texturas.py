@@ -337,3 +337,14 @@ def buscar_por_nombre(nombre, carpetas):
 def nombre_de_ruta(ruta):
     """Nombre de archivo de una ruta escrita en Windows o en Mac, desde cualquiera de los dos."""
     return re.split(r"[\\/]", ruta or "")[-1]
+
+
+RELIEVES = ("normal", "altura", "desplazamiento")
+
+
+def relieve_de(opciones):
+    """Modo de relieve de unas opciones (acepta la casilla antigua «desplazamiento»)."""
+    modo = (opciones or {}).get("relieve")
+    if modo in RELIEVES:
+        return modo
+    return "desplazamiento" if (opciones or {}).get("desplazamiento") else "normal"

@@ -85,7 +85,7 @@ def normalizar(receta):
     r = copy.deepcopy(DEFECTO)
     if isinstance(receta, dict):
         for clave, valor in receta.items():
-            if clave in DEFECTO or clave in ("id", "origen", "etiquetas"):
+            if clave in DEFECTO or clave in ("id", "origen", "etiquetas", "motivo"):
                 r[clave] = valor
     for clave in NUMEROS:
         try:

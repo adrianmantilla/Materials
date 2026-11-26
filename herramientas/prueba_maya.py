@@ -184,6 +184,20 @@ def _pruebas(cmds, temporal):
     comprobar(s.recargar_texturas(m_madera) == 4, "recargar texturas")
     comprobar(len(s.texturas_de(m_madera)) == 4 and all(i["existe"] for i in s.texturas_de(m_madera).values()),
               "texturas_de las encuentra")
+    # Selector «Relieve»: la altura como bump aunque haya normal, y vuelta a normales.
+    hechas = s.conectar_texturas(m_madera, conexiones, {"relieve": "altura"})
+    comprobar(set(hechas) == {"color", "rugosidad", "metal", "altura"}, "relieve altura: conectadas {}".format(hechas))
+    bump = (entrada_de(cmds, m_madera, "normalCamera") or "").split(".")[0]
+    comprobar(bump.endswith("_altura_bump") and cmds.getAttr(bump + ".bumpInterp") == 0,
+              "relieve altura: bump con la altura ({})".format(bump))
+    s.conectar_texturas(m_madera, conexiones, {"relieve": "normal"})
+    bump = (entrada_de(cmds, m_madera, "normalCamera") or "").split(".")[0]
+    comprobar(bump.endswith("_normal_bump"), "relieve normal: vuelve el mapa de normales ({})".format(bump))
+    hechas = s.conectar_texturas(m_madera, conexiones, {"relieve": "desplazamiento"})
+    grupos = cmds.listConnections(m_madera, type="shadingEngine") or []
+    comprobar("altura" in hechas and "normal" in hechas and grupos and cmds.listConnections(
+        grupos[0] + ".displacementShader"),
+        "relieve desplazamiento: altura al desplazamiento y normal conectado")
     # Unreal: ORM + DirectX
     carpeta_u = os.path.join(proyecto, "sourceimages", "unreal")
     rutas_u = [png(os.path.join(carpeta_u, "Caja_{}.png".format(m))) for m in

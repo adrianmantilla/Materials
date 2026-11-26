@@ -24,6 +24,7 @@ if QtWidgets is not None:
     from materials import receta as rc
     from materials.ajustes import Ajustes
     from materials.ventana import Servicios, VentanaMaterials
+    from materials.i18n import t
     APP = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
 
 from test_logica import png  # noqa: E402
@@ -101,6 +102,7 @@ class ServiciosFalsos(Servicios if QtWidgets else object):
         return {c["entrada"]: {"espacio": c["espacio"], "nombre": c["nombre"]} for c in self.conexiones.get(material, [])}
 
     def conectar_texturas(self, material, conexiones, opciones=None):
+        self.opciones_conectar = dict(opciones or {})
         self.conexiones[material] = list(conexiones)
         return [c["entrada"] for c in conexiones]
 
@@ -266,6 +268,29 @@ class PruebaVentana(unittest.TestCase):
         self.assertEqual({c["entrada"] for c in self.servicios.conexiones["M_Madera"]},
                          {"color", "rugosidad", "metal", "normal"})
         self.assertEqual(self.v.material, "M_Madera")
+        self.assertEqual(self.servicios.opciones_conectar["relieve"], "normal")
+
+    def test_selector_relieve(self):
+        carpeta = os.path.join(self.proyecto, "sourceimages", "muro")
+        os.makedirs(carpeta)
+        for mapa in ("BaseColor", "Height", "Normal_OpenGL"):
+            png(os.path.join(carpeta, "muro_Ladrillo_{}.png".format(mapa)), 8, 8)
+        self.v.campo_carpeta.setText(carpeta)
+        self.v.analizar_carpeta()
+
+        def destinos():
+            raiz = self.v.arbol_texturas.topLevelItem(0)
+            return {raiz.child(i).text(0).split("_")[-1].split(".")[0]: raiz.child(i).text(1)
+                    for i in range(raiz.childCount())}
+        self.assertIn(t("tex_no_se_usa"), destinos()["Height"])
+        self.v.combo_relieve.setCurrentIndex(self.v.combo_relieve.findData("altura"))
+        self.assertIn(t("tex_altura_bump"), destinos()["Height"])
+        self.assertIn(t("tex_no_se_usa"), destinos()["OpenGL"])
+        self.v.conectar_texturas()
+        self.assertEqual(self.servicios.opciones_conectar["relieve"], "altura")
+        self.v.combo_relieve.setCurrentIndex(self.v.combo_relieve.findData("desplazamiento"))
+        self.assertIn(t("tex_altura_desplaza"), destinos()["Height"])
+        self.assertTrue(self.v._ajuste("desplazamiento"))
 
     def test_ida_y_vuelta_painter(self):
         self.v.asignar()

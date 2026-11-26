@@ -43,10 +43,11 @@ Cada receta indica para qué sirve (las marcadas **·R** solo para render y **·
 | **Ocho controles** | Color, Rugosidad, Metal, Transparencia, Subsuperficie, Barniz, Pelusa y Emisión. Cada uno mueve los atributos de OpenPBR que tocan. «Más…» abre lo fino (IOR, anisotropía, colores propios, pared fina, película fina) y «Modo experto» abre el Attribute Editor. |
 | **Asignar** | A objetos o caras seleccionados; doble clic en una receta la crea y la asigna. El cuentagotas edita el material de lo seleccionado; mientras editas, los cambios se ven en el visor y en el render interactivo. |
 | **Comprobación física** | Avisos que enseñan: un no metal demasiado oscuro o claro, metal a medias sin textura, IOR raros, mapas de datos en sRGB, normales DirectX, texturas que no son potencia de dos… |
-| **Texturas de cualquier sitio** | Elige una carpeta y reconoce los mapas por su nombre (Painter, Poly Haven, Quixel, Unreal, Unity…), con UDIM, espacio de color correcto, ORM y MaskMap por canales, suavidad invertida, normal OpenGL o DirectX y altura como relieve o desplazamiento. Si el nombre coincide con un material, se conecta solo. |
+| **Texturas de cualquier sitio** | Elige una carpeta y reconoce los mapas por su nombre (Painter, Poly Haven, Quixel, Unreal, Unity…), con UDIM, espacio de color correcto, ORM y MaskMap por canales, suavidad invertida, normal OpenGL o DirectX, y un selector «Relieve» para elegir si manda el mapa de normales, la altura (bump) o el desplazamiento. Si el nombre coincide con un material, se conecta solo. |
 | **Painter** | «Enviar a Painter» exporta el objeto (un juego de texturas por material) y la receta. En Painter, el panel Materials abre el envío con una capa con tus valores de Maya. «Exportar a Maya» exporta con la plantilla del destino y Maya conecta o recarga las texturas sin tocar nada, cada vez. Si cambias UVs, «Actualizar malla» y Painter recarga la malla conservando las capas. |
 | **Rutas que no se rompen** | Las texturas usan rutas relativas al proyecto. «Reparar rutas» encuentra imágenes movidas y «Copiar al proyecto» recoge las de fuera antes de entregar. |
 | **Escena** | Lista de materiales con objetos, texturas y avisos; seleccionar sus objetos, poner prefijo `M_`, convertir Standard Surface, aiStandardSurface o Lambert a OpenPBR y borrar los que no se usan. |
+| **Motivo (en pruebas)** | Extra opcional, apagado en todas las recetas: una **estructura** (ladrillo, baldosa, tablas… solo forma: altura y máscara de juntas, piezas y desgaste) y un **acabado** (cepillado, poro, veta…) encima del color de la receta, a tamaño real en cm. Sin restricciones: cualquier estructura con cualquier material. Proyección caja, UV, triplanar (solo Arnold), planar, cilíndrica o esférica. Todo se edita en vivo desde la pestaña o desde el Channel Box (nodo de control `M_…_tt_control`), sin Hypershade. |
 | **Recetas propias y de clase** | «Guardar receta» las deja en *Mis recetas*. El profesor puede indicar una carpeta compartida con recetas (.json) que aparecen como *Recetas de clase*. |
 
 En el Editor de atajos de Maya, categoría *Custom Scripts › Materials*: `MaterialsAbrir`, `MaterialsAsignar`,
@@ -75,7 +76,13 @@ escribe igual y Maya también conecta esas texturas.
 python3 herramientas/generar_biblioteca.py      # regenera las recetas desde sus tablas
 python3 -m unittest discover tests             # pruebas sin Maya (las de ventana necesitan PySide6)
 mayapy herramientas/prueba_maya.py             # prueba dentro de Maya, sin interfaz
+python3 herramientas/generar_motivos_prueba.py <carpeta>   # 3 estructuras y 3 acabados provisionales
+mayapy herramientas/prueba_motivo_maya.py [carpeta_renders]   # motivos en Maya + render Arnold
 ```
+
+Los motivos se leen de `<preferencias de Maya>/materials/motivos` y de la carpeta que elijas en Ajustes ▸ Motivos:
+`estructuras/<id>/motivo.json` y `acabados/<id>/motivo.json`, con sus mapas en `1k/`, `2k/` o `4k/`
+(formato descrito en `scripts/materials/motivos.py`). Las texturas no van en git.
 
 Los textos de la interfaz están en `scripts/materials/i18n/es.json`; para traducir, copia el archivo como
 `en.json` (u otro idioma) y elige el idioma con la variable de entorno `MATERIALS_IDIOMA`.

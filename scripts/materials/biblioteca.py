@@ -147,6 +147,8 @@ class Biblioteca(object):
         nombre_archivo = rc.nombre_material(r["nombre"])[2:] + ".json"
         ruta = os.path.join(self.carpeta_mias, nombre_archivo)
         datos = {k: r[k] for k in rc.DEFECTO}
+        if isinstance(r.get("motivo"), dict) and r["motivo"].get("activo"):
+            datos["motivo"] = r["motivo"]
         temporal = ruta + ".tmp"
         with open(temporal, "w", encoding="utf-8") as f:
             json.dump(datos, f, ensure_ascii=False, indent=1)

@@ -15,10 +15,13 @@ DEFECTOS = {
     "resolucion": 2048,
     "familia": "metales",
     "solo_destino": True,
-    "desplazamiento": False,
+    "desplazamiento": False,        # antiguo; ahora manda «relieve»
+    "relieve": "",                  # normal | altura | desplazamiento ("" = según «desplazamiento»)
     "ruta_painter": "",
     "abrir_painter": True,
     "ultima_carpeta_texturas": "",
+    "carpeta_motivos": "",          # además de <preferencias>/materials/motivos
+    "resolucion_motivos": "1k",
 }
 
 

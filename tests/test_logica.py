@@ -152,6 +152,12 @@ class PruebaComprobacion(unittest.TestCase):
 
 
 class PruebaTexturas(unittest.TestCase):
+    def test_relieve_de(self):
+        self.assertEqual(tx.relieve_de({}), "normal")
+        self.assertEqual(tx.relieve_de({"desplazamiento": True}), "desplazamiento")
+        self.assertEqual(tx.relieve_de({"relieve": "altura", "desplazamiento": True}), "altura")
+        self.assertEqual(tx.relieve_de({"relieve": "raro"}), "normal")
+
     CASOS = {
         # Painter, plantilla de Materials y plantillas de Adobe
         "silla_Madera_BaseColor.1001.png": ("color", "silla_Madera"),

@@ -62,6 +62,12 @@ class Servicios(object):
     def envios(self): return []
     def aplicar_manifiesto(self, carpeta, opciones=None): return []
     def abrir_painter(self, ruta_preferida=""): return False
+    def motivo_de(self, material): return None
+    def aplicar_motivo(self, material, plan, receta, destino): return None
+    def ajustar_motivo(self, material, motivo): return False
+    def reproyectar(self, material): return []
+    def quitar_motivo(self, material, receta, destino): return False
+    def seleccionar_control_motivo(self, material): return None
 
 
 def imagen_de(receta, tam, destino):
@@ -141,6 +147,16 @@ class Deslizador(QtWidgets.QWidget):
 
     def valor(self):
         return self.caja.value()
+
+    def rango(self, minimo, maximo):
+        """Cambia los límites sin emitir ``cambiado``."""
+        valor = self.valor()
+        self.minimo, self.maximo = minimo, maximo
+        self._quieto = True
+        self.caja.setRange(minimo, maximo)
+        self.caja.setSingleStep((maximo - minimo) / 100.0)
+        self._quieto = False
+        self.poner(min(maximo, max(minimo, valor)))
 
     def poner(self, valor):
         self._quieto = True
@@ -244,9 +260,15 @@ class VentanaMaterials(QtWidgets.QWidget):
         self.pestanas = QtWidgets.QTabWidget()
         self.pestanas.addTab(self._pestana_biblioteca(), t("tab_biblioteca"))
         self.pestanas.addTab(self._pestana_material(), t("tab_material"))
-        self.pestanas.addTab(self._pestana_texturas(), t("tab_texturas"))
-        self.pestanas.addTab(self._pestana_painter(), t("tab_painter"))
-        self.pestanas.addTab(self._pestana_escena(), t("tab_escena"))
+        from materials.ventana_motivo import PestanaMotivo
+        self.pestana_motivo = PestanaMotivo(self)
+        self.pestanas.addTab(self.pestana_motivo, t("tab_motivo"))
+        self.pagina_texturas = self._pestana_texturas()
+        self.pagina_painter = self._pestana_painter()
+        self.pagina_escena = self._pestana_escena()
+        self.pestanas.addTab(self.pagina_texturas, t("tab_texturas"))
+        self.pestanas.addTab(self.pagina_painter, t("tab_painter"))
+        self.pestanas.addTab(self.pagina_escena, t("tab_escena"))
         self.pestanas.addTab(self._pestana_ajustes(), t("tab_ajustes"))
         self.pestanas.currentChanged.connect(self._al_cambiar_pestana)
         division.addWidget(self.pestanas)
@@ -529,11 +551,17 @@ class VentanaMaterials(QtWidgets.QWidget):
         for clave in ("auto", "opengl", "directx"):
             self.combo_normal.addItem(t("normal_" + clave), clave)
         formulario.addRow(t("tex_normal"), self.combo_normal)
-        self.casilla_desplazamiento = QtWidgets.QCheckBox(t("tex_desplazamiento"))
-        self.casilla_desplazamiento.setToolTip(t("tex_desplazamiento_ayuda"))
-        self.casilla_desplazamiento.setChecked(self._ajuste("desplazamiento"))
-        self.casilla_desplazamiento.toggled.connect(lambda v: self._guardar_ajuste("desplazamiento", bool(v)))
-        formulario.addRow("", self.casilla_desplazamiento)
+        self.combo_relieve = QtWidgets.QComboBox()
+        for clave in tx.RELIEVES:
+            self.combo_relieve.addItem(t("relieve_" + clave), clave)
+            self.combo_relieve.setItemData(self.combo_relieve.count() - 1, t("relieve_" + clave + "_ayuda"),
+                                           Qt.ToolTipRole)
+        self.combo_relieve.setToolTip(t("tex_relieve_ayuda"))
+        guardado = tx.relieve_de({"relieve": self._ajuste("relieve"),
+                                  "desplazamiento": self._ajuste("desplazamiento")})
+        self.combo_relieve.setCurrentIndex(max(0, self.combo_relieve.findData(guardado)))
+        self.combo_relieve.currentIndexChanged.connect(self._cambiar_relieve)
+        formulario.addRow(t("tex_relieve"), self.combo_relieve)
         capa.addLayout(formulario)
         fila = QtWidgets.QHBoxLayout()
         self.boton_conectar = QtWidgets.QPushButton(t("tex_conectar"))
@@ -690,7 +718,54 @@ class VentanaMaterials(QtWidgets.QWidget):
         carpeta_mias = self.biblioteca.carpeta_mias or ""
         capa.addRow(t("aj_mias"), QtWidgets.QLabel(carpeta_mias))
         capa.addRow(t("aj_buzon"), QtWidgets.QLabel(ic.carpeta_buzon()))
+        capa.addRow(estilo.etiqueta(t("aj_motivos"), "seccion"))
+        fila = QtWidgets.QHBoxLayout()
+        self.campo_motivos = QtWidgets.QLineEdit(self._ajuste("carpeta_motivos"))
+        self.campo_motivos.setPlaceholderText(t("aj_motivos_vacia"))
+        self.campo_motivos.editingFinished.connect(self._al_cambiar_carpeta_motivos)
+        elegir = QtWidgets.QPushButton(t("examinar"))
+        elegir.clicked.connect(self._elegir_carpeta_motivos)
+        recargar = QtWidgets.QPushButton(t("aj_motivos_recargar"))
+        recargar.clicked.connect(self._recargar_motivos)
+        fila.addWidget(self.campo_motivos, 1)
+        fila.addWidget(elegir)
+        fila.addWidget(recargar)
+        capa.addRow(t("aj_motivos_carpeta"), fila)
+        self.combo_res_motivos = QtWidgets.QComboBox()
+        for r in ("1k", "2k", "4k"):
+            self.combo_res_motivos.addItem(r.upper(), r)
+        self.combo_res_motivos.setCurrentIndex(max(0, self.combo_res_motivos.findData(
+            self._ajuste("resolucion_motivos"))))
+        self.combo_res_motivos.currentIndexChanged.connect(
+            lambda _: self._guardar_ajuste("resolucion_motivos", self.combo_res_motivos.currentData()))
+        capa.addRow(t("aj_motivos_resolucion"), self.combo_res_motivos)
+        self.etiqueta_motivos = estilo.etiqueta("", "tenue", ajuste=True)
+        capa.addRow("", self.etiqueta_motivos)
+        self._poner_resumen_motivos()
         return w
+
+    def _poner_resumen_motivos(self):
+        cat = self.pestana_motivo.catalogo
+        self.etiqueta_motivos.setText(t("aj_motivos_resumen", e=len(cat.estructuras()), a=len(cat.acabados()),
+                                        carpetas=" · ".join(self.pestana_motivo.carpetas()) or "—"))
+
+    def _al_cambiar_carpeta_motivos(self):
+        texto = self.campo_motivos.text().strip()
+        if texto != self._ajuste("carpeta_motivos"):
+            self._guardar_ajuste("carpeta_motivos", texto)
+            self._recargar_motivos()
+
+    def _elegir_carpeta_motivos(self):
+        carpeta = QtWidgets.QFileDialog.getExistingDirectory(self, t("aj_motivos_carpeta"),
+                                                             self.campo_motivos.text() or os.path.expanduser("~"))
+        if carpeta:
+            self.campo_motivos.setText(carpeta)
+            self._al_cambiar_carpeta_motivos()
+
+    def _recargar_motivos(self):
+        n = self.pestana_motivo.recargar_catalogo()
+        self._poner_resumen_motivos()
+        self.mensaje(t("mot_catalogo_recargado", n=n))
 
     # --- Destino ---------------------------------------------------------------------------------
 
@@ -718,6 +793,7 @@ class VentanaMaterials(QtWidgets.QWidget):
             self._seguro(self.servicios.guardar_destino, self.destino, self._motor_actual())
             if self.material:
                 self._aplicar_t.start()
+        self.pestana_motivo.al_cambiar_destino()
         self._rellenar_recetas()
         self._actualizar_vista()
 
@@ -758,6 +834,7 @@ class VentanaMaterials(QtWidgets.QWidget):
             self.casilla_pared.setChecked(self.receta["pared_fina"])
         finally:
             self._cargando = False
+        self.pestana_motivo.cargar(self.receta.get("motivo"), aplicado=bool(vincular))
         self._actualizar_vinculo()
         self._actualizar_vista()
 
@@ -775,6 +852,8 @@ class VentanaMaterials(QtWidgets.QWidget):
             for k, b in self.colores_finos.items():
                 if b.color() is None:
                     b.poner(None, auto_desde=valor)
+            self.boton_color.poner(valor)
+            self.pestana_motivo.al_cambiar_receta()
         if self.material:
             self._aplicar_t.start()
         self._actualizar_vista()
@@ -862,7 +941,10 @@ class VentanaMaterials(QtWidgets.QWidget):
                 return
             self.material = material
             self.campo_nombre.setText(material)
-        n = self._seguro(self.servicios.asignar, material)
+            n = self._seguro(self.servicios.asignar, material)
+            self.pestana_motivo.al_crear_material(material)
+        else:
+            n = self._seguro(self.servicios.asignar, material)
         self._actualizar_vinculo()
         self.refrescar_escena()
         if n:
@@ -877,6 +959,7 @@ class VentanaMaterials(QtWidgets.QWidget):
             self.material = material
             self.campo_nombre.setText(material)
             n = self._seguro(self.servicios.asignar, material) or 0
+            self.pestana_motivo.al_crear_material(material)
             self._actualizar_vinculo()
             self.refrescar_escena()
             self.mensaje(t("asignado", material=material, n=n) if n else t("creado_sin_asignar", material=material))
@@ -1082,8 +1165,7 @@ class VentanaMaterials(QtWidgets.QWidget):
                     destino += " · " + t("invertido")
                 if entrada == "normal":
                     destino += " · " + (c.mapa.convencion or "opengl").upper()
-                if entrada == "altura" and not self.casilla_desplazamiento.isChecked():
-                    destino += " · " + t("tex_altura_bump")
+                destino += self._nota_relieve(entrada, juego.conexiones)
                 QtWidgets.QTreeWidgetItem(raiz, [c.mapa.nombre + (" (UDIM)" if c.mapa.udim else ""), destino,
                                                  c.espacio])
             for nombre, motivo in juego.ignorados:
@@ -1095,6 +1177,28 @@ class VentanaMaterials(QtWidgets.QWidget):
             self.mensaje(t("tex_nada"), error=True)
         else:
             self.mensaje(t("tex_encontrados", n=len(self.analisis)))
+
+    def relieve(self):
+        return self.combo_relieve.currentData() or "normal"
+
+    def _cambiar_relieve(self, *_):
+        self._guardar_ajuste("relieve", self.relieve())
+        self._guardar_ajuste("desplazamiento", self.relieve() == "desplazamiento")
+        if self.analisis:
+            self.analizar_carpeta()
+
+    def _nota_relieve(self, entrada, conexiones):
+        """Qué se hará con la altura y las normales según el selector «Relieve»."""
+        modo = self.relieve()
+        if entrada == "altura":
+            if modo == "desplazamiento":
+                return " · " + t("tex_altura_desplaza")
+            if modo == "altura" or "normal" not in conexiones:
+                return " · " + t("tex_altura_bump")
+            return " · " + t("tex_no_se_usa")
+        if entrada == "normal" and modo == "altura" and "altura" in conexiones:
+            return " · " + t("tex_no_se_usa")
+        return ""
 
     def _rellenar_combo_materiales(self):
         self.combo_material_tex.clear()
@@ -1113,7 +1217,7 @@ class VentanaMaterials(QtWidgets.QWidget):
             if not self.analisis:
                 return
         elegido = self.combo_material_tex.currentData()
-        opciones = {"desplazamiento": self.casilla_desplazamiento.isChecked(),
+        opciones = {"relieve": self.relieve(), "desplazamiento": self.relieve() == "desplazamiento",
                     "normal": ic.NORMAL_DE_MOTOR.get(self._motor_actual(), "opengl")}
         materiales = [m["nombre"] for m in self._seguro(self.servicios.materiales) or []
                       if m["tipo"] == "openPBRSurface"]
@@ -1166,13 +1270,14 @@ class VentanaMaterials(QtWidgets.QWidget):
     # --- Painter -------------------------------------------------------------------------------------
 
     def _al_cambiar_pestana(self, indice):
-        if self.pestanas.widget(indice) is self.pestanas.widget(3):
+        pagina = self.pestanas.widget(indice)
+        if pagina is self.pagina_painter:
             objetos = self._seguro(self.servicios.objetos_seleccionados) or []
             self.etiqueta_objetos.setText(", ".join(o.split("|")[-1] for o in objetos) or t("painter_ninguno"))
             self.refrescar_envios()
-        elif indice == 4:
+        elif pagina is self.pagina_escena:
             self.refrescar_escena()
-        elif indice == 2:
+        elif pagina is self.pagina_texturas:
             self._rellenar_combo_materiales()
 
     def log(self, texto):
@@ -1229,7 +1334,8 @@ class VentanaMaterials(QtWidgets.QWidget):
 
     def _aplicar_manifiesto(self, carpeta):
         resultado = self._seguro(self.servicios.aplicar_manifiesto, carpeta,
-                                 {"desplazamiento": self.casilla_desplazamiento.isChecked()})
+                                 {"relieve": self.relieve(),
+                                  "desplazamiento": self.relieve() == "desplazamiento"})
         self._huellas[carpeta] = ic.huella_manifiesto(carpeta)
         if not resultado:
             return
@@ -1275,6 +1381,8 @@ class VentanaMaterials(QtWidgets.QWidget):
                 estados.append(t("estado_sin_prefijo"))
             if m.get("destino"):
                 estados.append(t("destino_corto_" + m["destino"]))
+            if m.get("motivo"):
+                estados.append(t("estado_motivo"))
             valores = [m["nombre"], m["tipo"], str(m["objetos"]), str(m["texturas"]), " · ".join(estados) or "✓"]
             for columna, valor in enumerate(valores):
                 celda = QtWidgets.QTableWidgetItem(valor)
@@ -1372,6 +1480,7 @@ class VentanaMaterials(QtWidgets.QWidget):
         self.destino = self.servicios.destino_escena(self._ajuste("destino"))
         self.motor = self.servicios.motor_escena(self._ajuste("motor_juego"))
         self._poner_destino(self.destino, guardar=False)
+        self.pestana_motivo.cargar(self.receta.get("motivo"), aplicado=False)
         self._actualizar_vinculo()
         self.refrescar_escena()
         self.refrescar_envios()
@@ -1379,5 +1488,6 @@ class VentanaMaterials(QtWidgets.QWidget):
     def cerrar(self):
         if self._aplicar_t.isActive():
             self._aplicar_ahora()
+        self.pestana_motivo.cerrar()
         for temporizador in (self._aplicar_t, self._vista_t, self._mini_t, self._vigia_t):
             temporizador.stop()
