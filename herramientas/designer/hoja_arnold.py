@@ -74,13 +74,25 @@ COLORES_PIEZA = {"bloque_hormigon": "#8e8b85", "baldosa_30": "#b9a58c", "baldosa
                  "parquet_ladrillo_doble": "#9c7650", "troncos_cabana": "#8a6440", "bambu": "#c8b078",
                  "panel_listones_acustico": "#b08a5e", "mosaico_molinete": "#e6e2d8", "mosaico_dedos": "#6a9a8a",
                  "azulejo_diamante": "#e8e6e0", "punta_diamante": "#c8bca4", "bloque_celosia": "#c8c4bc",
-                 "damero_piedra": "#d8d0bc", "baldosa_rombo_hexagonal": "#b8704a"}
+                 "damero_piedra": "#d8d0bc", "baldosa_rombo_hexagonal": "#b8704a",
+                 "parquet_bastones_diagonal": "#a87e56", "azulejo_metro_diagonal": "#e8e6e0", "loseta_tarima": "#9c7650",
+                 "chapa_junta_alzada": "#9aa0a6", "ladrillo_flamenco_jardin": "#9a4e36",
+                 "ladrillo_ingles_jardin": "#a05a3c", "hexagono_piedra": "#bfb39c", "mosaico_hexagono_triangulo": "#e6e2d8",
+                 "mosaico_rayuela": "#d8d0c0", "losas_trabadas": "#c8bca4", "mosaico_piedra_tiras": "#6a6660",
+                 "panel_hexagonal_3d": "#7a8a9a", "listones_anchos_variados": "#a07a52",
+                 "mamposteria_hiladas": "#a89c86", "losas_espiga": "#c8bca4", "porcelanico_espiga": "#9c7650",
+                 "opus_spicatum": "#a85a3c", "ladrillo_manual_irregular": "#a05a3c", "tarima_anchos_alternos": "#a87e56",
+                 "rodajas_madera": "#9a7a54", "mosaico_cubos": "#e6e2d8", "azulejo_rombo_alargado": "#4a7a6a",
+                 "baldosa_romboide": "#c8a888", "pizarra_anchos_variados": "#4a4d52", "tejuela_cedro": "#8a6a4a",
+                 "panel_perforado_acustico": "#c8a878"}
 # Rugosidad y metal propios (chapas).
-RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6), "bloque_vidrio": (0.05, 0.0), "panel_composite": (0.3, 0.0)}
+RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6), "bloque_vidrio": (0.05, 0.0), "panel_composite": (0.3, 0.0),
+             "chapa_junta_alzada": (0.4, 1.0)}
 # Estructuras con «color 2» (zona2): el segundo color de la muestra.
 COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a", "octogono_taco": "#1e1e1e", "cubos_3d": "#3a3a3a", "damero_ceramico": "#1e1e1e", "estrella_cruz": "#2f5f8f", "arlequin": "#3a3a3a", "mosaico_estrella_cruz": "#2f5f8f",
           "mosaico_damero": "#1e1e1e", "hexagono_triangulo": "#2f5f8f", "baldosa_rayuela": "#5a3a2a",
-          "mosaico_molinete": "#2a2a2a", "damero_piedra": "#3a3c40"}
+          "mosaico_molinete": "#2a2a2a", "damero_piedra": "#3a3c40",
+          "mosaico_hexagono_triangulo": "#2a2a2a", "mosaico_rayuela": "#2f5f8f", "mosaico_cubos": "#3a3a3a"}
 
 
 def _aclarar(hex_color, minimo=0.42):
