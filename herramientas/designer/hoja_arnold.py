@@ -138,7 +138,9 @@ def main():
             fisico = cmds.shadingNode("aiPhysicalSky", asTexture=True)
             cmds.setAttr(fisico + ".elevation", 35)
             cmds.connectAttr(fisico + ".outColor", cielo + ".color", force=True)
-            cmds.setAttr(cielo + ".intensity", 1.0)
+            cmds.setAttr(cielo + ".intensity", 4.0)
+            if cmds.attributeQuery("enableSun", node=fisico, exists=True):
+                cmds.setAttr(fisico + ".enableSun", False)  # el brillo ya lo da el sol direccional
         cmds.setAttr("defaultRenderGlobals.currentRenderer", "arnold", type="string")
         mtoa.core.createOptions()
         cmds.setAttr("defaultArnoldDriver.ai_translator", "png", type="string")
