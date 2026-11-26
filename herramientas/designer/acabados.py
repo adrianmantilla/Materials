@@ -218,6 +218,13 @@ ACABADOS = [
 ]
 
 
+import acab_metal  # noqa: E402
+
+# Lotes de acabados: el primero son los de las estructuras de los lotes 1-3.
+LOTES = {"base": ACABADOS, "metal": acab_metal.ACABADOS}
+TODOS = [d for lote in LOTES.values() for d in lote]
+
+
 def vista(color, altura, cx, cy, muestra, lado=256):
     n = normal_opengl(altura, 0.4, cx, cy) * 2 - 1
     luz = np.array([-0.55, 0.45, 0.70])
@@ -242,6 +249,7 @@ def fabricar(d, catalogo, res):
     Image.fromarray((altura * 65535).round().astype(np.uint16)).save(os.path.join(sub, "altura.png"))
     vista(color, altura, cx, cy, d["muestra"]).save(os.path.join(carpeta, "miniatura.png"))
     datos = {k: d[k] for k in ("id", "nombre", "familia", "relieve_cm", "recomendado_para")}
+    datos.update({k: d[k] for k in ("muestra", "muestra_rug", "muestra_metal") if k in d})
     datos.update(tile_cm=list(d["tile_cm"]), licencia="CC0", fabrica="numpy", version=1)
     with open(os.path.join(carpeta, "motivo.json"), "w", encoding="utf-8") as f:
         json.dump(datos, f, ensure_ascii=False, indent=2)
@@ -256,9 +264,10 @@ def main():
     p.add_argument("catalogo")
     p.add_argument("--res", type=int, default=1024)
     p.add_argument("--solo", default="")
+    p.add_argument("--lote", default="", help="lote de LOTES (vacío = todos)")
     a = p.parse_args()
     solo = [x for x in a.solo.split(",") if x]
-    for d in ACABADOS:
+    for d in (LOTES[a.lote] if a.lote else TODOS):
         if solo and d["id"] not in solo:
             continue
         print("OK", json.dumps(fabricar(d, a.catalogo, a.res), ensure_ascii=False))

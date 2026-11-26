@@ -50,6 +50,7 @@ def main():
     p.add_argument("--encuadre", type=float, default=150.0, help="cm de pared que llenan la imagen")
     p.add_argument("--relieve-x", type=float, default=1.0, help="multiplica relieveCm (pruebas de bump)")
     p.add_argument("--sufijo", default="", help="se añade al nombre del render")
+    p.add_argument("--acabados", action="store_true", help="renderiza acabados (sin estructura)")
     a = p.parse_args()
     import maya.standalone
     maya.standalone.initialize(name="python")
@@ -68,7 +69,8 @@ def main():
     solo = [x for x in a.solo.split(",") if x]
     s = ServiciosMaya()
     hechos = []
-    for est in sorted(cat.estructuras(), key=lambda e: (e.familia, e.id)):
+    lista = cat.acabados() if a.acabados else cat.estructuras()
+    for est in sorted(lista, key=lambda e: (e.familia, e.id)):
         if solo and est.id not in solo:
             continue
         cmds.file(new=True, force=True)
@@ -81,11 +83,17 @@ def main():
         color, rug, metal = MUESTRA.get(est.familia, ("#9a9a9a", 0.6, 0.0))
         color = COLORES_PIEZA.get(est.id, color)
         rug, metal = RUG_METAL.get(est.id, (rug, metal))
+        if a.acabados:
+            color = est.datos.get("muestra", color)
+            rug = float(est.datos.get("muestra_rug", 0.5))
+            metal = float(est.datos.get("muestra_metal", 0.0))
         receta = rc.nueva(nombre=est.nombre, color=color, rugosidad=rug, metal=metal)
         material = s.crear_material(receta, "render")
         s.asignar(material)
         motivo = {"activo": True, "estructura": est.id, "proyeccion": "caja", "desgaste": 0.2,
                   "variacion": 0.5, "relieve": 0.8, "azar": False}
+        if a.acabados:
+            motivo.update(estructura="", acabado=est.id, relieve=1.0)
         if est.id in COLOR2:
             motivo["color2"] = COLOR2[est.id]
         plan = mv.plan(motivo, cat, receta)
