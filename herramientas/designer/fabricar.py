@@ -29,9 +29,15 @@ from PIL import Image, ImageDraw
 AQUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(AQUI, "lib"))
 import estructuras_def as ed  # noqa: E402
+import patrones  # noqa: E402
 
 DESIGNER = "/Applications/Adobe Substance 3D Designer/Adobe Substance 3D Designer.app/Contents/MacOS"
 BRUTOS = ("forma", "nubes", "motas", "grunge")
+BRUTOS_PATRON = ("nubes", "motas", "grunge")  # la forma de un patrón se dibuja aquí (lib/patrones.py)
+
+
+def brutos(d):
+    return BRUTOS_PATRON if "patron" in d else BRUTOS
 CARPETA_RES = {256: "1k", 512: "1k", 1024: "1k", 2048: "2k", 4096: "4k"}
 
 
@@ -190,8 +196,8 @@ def deformar(forma, cm_px_x, cm_px_y, amplitud_cm, semilla):
     return valor > 0.5
 
 
-def etiquetar(mascara):
-    """Numera las piezas (vecinos en cruz) teniendo en cuenta que la imagen repite.
+def etiquetar(mascara, diagonal=False):
+    """Numera las piezas (vecinos en cruz, o también en diagonal) teniendo en cuenta que la imagen repite.
 
     Una pieza cortada por el borde es una sola. Devuelve (etiquetas, n) con -1 fuera de pieza.
     Trabaja por tramos de cada fila, así que es rápido aunque haya muchas piezas.
@@ -210,6 +216,7 @@ def etiquetar(mascara):
         if ra != rb:
             padre[max(ra, rb)] = min(ra, rb)
 
+    extra = 1 if diagonal else 0
     filas = []
     for fila in mascara.astype(np.int8):
         cambio = np.diff(np.concatenate([[0], fila, [0]]))
@@ -224,7 +231,7 @@ def etiquetar(mascara):
         (ia, fa, da), (ib, fb, db) = a, b
         i = j = 0
         while i < len(ia) and j < len(ib):
-            if ia[i] < fb[j] and ib[j] < fa[i]:
+            if ia[i] < fb[j] + extra and ib[j] < fa[i] + extra:
                 unir(da[i], db[j])
             if fa[i] < fb[j]:
                 i += 1
@@ -248,7 +255,8 @@ def limpiar_piezas(mascara, pieza_px):
     lab, n = etiquetar(mascara)
     area = np.bincount(lab[lab >= 0], minlength=n)
     mascara = mascara & (area[np.maximum(lab, 0)] >= 0.05 * pieza_px)
-    hueco, m = etiquetar(~mascara)
+    # La junta se numera también en diagonal: una junta fina a 45° es una escalera de píxeles.
+    hueco, m = etiquetar(~mascara, diagonal=True)
     area = np.bincount(hueco[hueco >= 0], minlength=m)
     # La junta es una red conectada enorme; un trozo de junta pequeño es un agujero dentro de una pieza.
     return mascara | ((hueco >= 0) & (area[np.maximum(hueco, 0)] < 0.02 * pieza_px))
@@ -278,11 +286,18 @@ def por_pieza(lab, n, cm_px_x, cm_px_y, semilla):
     gris, alt = np.full(lab.shape, 0.5), np.full(lab.shape, 0.5)
     gris[dentro] = rng.uniform(0, 1, n)[l]
     alt[dentro] = rng.uniform(0, 1, n)[l]
-    return gris, alt, incl
+    # Dirección larga de cada pieza (para la veta de una tabla) y posición dentro de la pieza en cm.
+    sxx, syy, sxy = (np.bincount(l, w, n) for w in (dx * dx, dy * dy, dx * dy))
+    eje = 0.5 * np.arctan2(2 * sxy, sxx - syy)
+    px, py, giro = (np.zeros(lab.shape) for _ in range(3))
+    px[dentro], py[dentro], giro[dentro] = dx, dy, eje[l]
+    return gris, alt, incl, px, py, giro
 
 
 def componer(d, bruto, destino_raiz, res):
-    b = {n: leer(os.path.join(bruto, n + ".png")) for n in BRUTOS}
+    b = {n: leer(os.path.join(bruto, n + ".png")) for n in brutos(d)}
+    if "patron" in d:
+        b["forma"] = patrones.forma(d, b["nubes"].shape[0], distancia_interior).astype(np.float64)
     forma = b["forma"].shape
     tw, th = ed.tile_cm(d)
     cm_px_x, cm_px_y = tw / forma[1], th / forma[0]
@@ -291,7 +306,7 @@ def componer(d, bruto, destino_raiz, res):
     mascara = deformar(b["forma"], cm_px_x, cm_px_y, 0.35 * d["irregular"], 21)
     mascara = limpiar_piezas(mascara, pieza_px)
     lab, n = etiquetar(mascara)
-    gris_p, alt_p, incl = por_pieza(lab, n, cm_px_x, cm_px_y, semilla=len(d["id"]) * 7 + 1)
+    gris_p, alt_p, incl, pos_x, pos_y, giro = por_pieza(lab, n, cm_px_x, cm_px_y, semilla=len(d["id"]) * 7 + 1)
     av, ru, ir = d["altura_var"], d["rugoso"], d["irregular"]
     po, mo, qu = d.get("poros", 0.0), d.get("moteado", 0.0), d.get("quemado", 0.0)
     bisel = max(d["bisel_cm"], 0.6 * pix)
@@ -311,6 +326,20 @@ def componer(d, bruto, destino_raiz, res):
     cara = (0.72 + av * (0.12 * (alt_p - 0.5) + 0.07 * (incl - 0.5))
             + ru * (0.03 * (b["nubes"] - 0.5) + 0.025 * (b["motas"] - 0.5) + 0.035 * (grano - 0.5)
                     + 0.012 * (arena - 0.5)))
+    veta = None
+    if d.get("veta"):
+        # Veta de cada tabla en su propia dirección: anillos (tardío oscuro) y bandas que ondulan.
+        rng = np.random.default_rng(len(d["id"]) * 31 + 7)
+        desfase = np.zeros(forma)
+        desfase[mascara] = rng.uniform(0, 20.0, n)[lab[mascara]]
+        cruz = -pos_x * np.sin(giro) + pos_y * np.cos(giro) + desfase
+        onda = ((ruido_cm(forma, cm_px_x, cm_px_y, 12.0, 41, octavas=2) - 0.5) * 7.0
+                + (ruido_cm(forma, cm_px_x, cm_px_y, 1.0, 42) - 0.5) * 0.4)
+        t = ((cruz + onda) / 0.45) % 1.0
+        tardio = suave(t, 0.62, 0.72) * (1.0 - suave(t, 0.9, 1.0))
+        bandas = np.sin(2 * np.pi * (cruz + onda) / 3.2) + 0.6 * np.sin(2 * np.pi * (cruz + 0.7 * onda) / 7.7)
+        veta = np.where(mascara, np.exp(-0.28 * tardio + 0.07 * bandas), 1.0)
+        cara = cara - 0.025 * tardio * mascara
     hoyo = suave(poros, 0.80, 0.84) * po
     cara = cara - 0.07 * hoyo
     # Desconchones: casi siempre junto al canto, con pared viva y fondo áspero.
@@ -351,6 +380,8 @@ def componer(d, bruto, destino_raiz, res):
         mult[mascara] = np.exp(exponente[lab[mascara]])
         mult *= np.exp(-qu * mz * suave(incl, 0.7, 1.0)[..., None] * np.array([0.20, 0.35, 0.25]))
         mult *= np.exp(mz * 0.10 * (b["nubes"] - 0.5)[..., None] * np.array([1.0, 0.5, -0.3]))
+        if veta is not None:
+            mult *= veta[..., None] * np.array([1.0, 0.97, 0.93]) ** (1.0 - veta[..., None])
         tono_rgb = np.where(mascara[..., None], np.clip(0.5 * mult, 0.0, 1.0), 0.5)
     else:
         tono_rgb = None
@@ -371,14 +402,16 @@ def componer(d, bruto, destino_raiz, res):
     datos = {k: d[k] for k in ("id", "nombre", "familia", "junta", "recomendado_para", "etiquetas", "relieve_cm")}
     datos.update(tile_cm=[round(tw, 3), round(th, 3)], pieza_cm=d["pieza_cm"][0], color2=False, licencia="CC0",
                  fabrica="designer", version=2)
+    if "acabado_propuesto" in d:
+        datos["acabado_propuesto"] = d["acabado_propuesto"]
     with open(os.path.join(carpeta, "motivo.json"), "w", encoding="utf-8") as f:
         json.dump(datos, f, ensure_ascii=False, indent=2)
-    junta_real = 1.0 - (d["pieza_cm"][0] * d["pieza_cm"][1]) / ((d["pieza_cm"][0] + d["junta_cm"]) *
-                                                              (d["pieza_cm"][1] + d["junta_cm"]))
+    junta_real = None if "patron" in d else round(
+        1.0 - (d["pieza_cm"][0] * d["pieza_cm"][1]) / ((d["pieza_cm"][0] + d["junta_cm"]) * (d["pieza_cm"][1] + d["junta_cm"])), 4)
     area = np.bincount(lab[lab >= 0], minlength=n)
     informe = {"id": d["id"], "res": [int(x) for x in forma],
-               "junta_px": round(float(1.0 - mascara.mean()), 4), "junta_esperada": round(junta_real, 4),
-               "piezas_contadas": int((area > 0.3 * pieza_px).sum()), "piezas_esperadas": d["piezas"][0] * d["piezas"][1],
+               "junta_px": round(float(1.0 - mascara.mean()), 4), "junta_esperada": junta_real,
+               "piezas_contadas": int((area > 0.3 * pieza_px).sum()), "piezas_esperadas": d["piezas"][0] * d["piezas"][1] if "piezas" in d else None,
                "piezas_pegadas": int((area > 1.6 * pieza_px).sum()),
                "costura_altura": costura(altura), "costura_mascara": costura(mascara_rgb[..., 0]),
                "altura_min_max": [round(float(altura.min()), 3), round(float(altura.max()), 3)],
@@ -428,6 +461,7 @@ def main():
     p.add_argument("catalogo")
     p.add_argument("--res", type=int, default=1024)
     p.add_argument("--solo", default="")
+    p.add_argument("--lote", default="lote1", choices=sorted(ed.LOTES))
     p.add_argument("--sin-render", action="store_true", help="solo componer desde _bruto")
     a = p.parse_args()
     solo = [x for x in a.solo.split(",") if x]
@@ -436,14 +470,14 @@ def main():
         sbsar = cocinar(a.sbs)
         print(ejecutar([os.path.join(DESIGNER, "sbsrender"), "info", "--input", sbsar])[:3000])
     minis, informes = [], []
-    for d in ed.LOTE_1:
+    for d in ed.LOTES[a.lote]:
         if solo and d["id"] not in solo:
             continue
         bruto = os.path.join(a.catalogo, "_bruto", d["id"])
         try:
             if not a.sin_render:
                 renderizar(sbsar, d["id"], bruto, a.res)
-            faltan = [n for n in BRUTOS if not os.path.isfile(os.path.join(bruto, n + ".png"))]
+            faltan = [n for n in brutos(d) if not os.path.isfile(os.path.join(bruto, n + ".png"))]
             if faltan:
                 print("FALTAN", d["id"], faltan, os.listdir(bruto) if os.path.isdir(bruto) else "-")
                 continue

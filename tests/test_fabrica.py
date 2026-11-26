@@ -11,6 +11,8 @@ try:
     import numpy as np
     import fabricar  # noqa: E402
     import acabados  # noqa: E402
+    import estructuras_def as ed  # noqa: E402
+    import patrones  # noqa: E402
 except ImportError:  # sin numpy o Pillow
     fabricar = None
 
@@ -40,7 +42,7 @@ class Fabrica(unittest.TestCase):
         m[5:15, 30:40] = True
         m[5:15, 0:8] = True
         lab, n = fabricar.etiquetar(m)
-        _, _, incl = fabricar.por_pieza(lab, n, 1.0, 1.0, 1)
+        incl = fabricar.por_pieza(lab, n, 1.0, 1.0, 1)[2]
         self.assertAlmostEqual(float(incl[m].min()), 0.0, places=6)
         self.assertAlmostEqual(float(incl[m].max()), 1.0, places=6)
 
@@ -53,6 +55,14 @@ class Fabrica(unittest.TestCase):
             self.assertAlmostEqual(float(rug.mean()), 0.5, delta=0.06, msg=d["id"])
             self.assertLess(fabricar.costura(color.mean(axis=2)), 1.3, d["id"])
             self.assertLess(fabricar.costura(altura), 1.3, d["id"])
+
+    def test_patrones_del_lote_2_cubren_y_repiten(self):
+        for d in ed.LOTE_2:
+            m = patrones.forma(d, 128, fabricar.distancia_interior)
+            self.assertGreater(m.mean(), 0.5, d["id"])
+            self.assertLess(fabricar.costura(m.astype(float)), 1.5, d["id"])
+            lab, n = fabricar.etiquetar(m)
+            self.assertGreater(n, 3, d["id"])
 
 
 if __name__ == "__main__":

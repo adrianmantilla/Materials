@@ -29,6 +29,7 @@ El catálogo se lee de carpetas::
      "color2": false,            # usa el mapa zona2.png
      "junta": "#8f8a80",         # color de junta propuesto
      "recomendado_para": ["ladrill", "construccion"],   # trozos de nombre o familia de receta
+     "acabado_propuesto": "",    # opcional: acabado que propone la estructura ("" = ninguno)
      "etiquetas": ["fachada"], "licencia": "CC0"}
 
 Lo que sale de aquí hacia Maya es un «plan» (:func:`plan`): rutas de los mapas elegidos
@@ -213,6 +214,10 @@ class Motivo(object):
         self.etiquetas = [str(x) for x in (datos.get("etiquetas") or [])]
         self.licencia = str(datos.get("licencia") or "")
         self.prueba = bool(datos.get("prueba", False))
+        # Acabado que propone la propia estructura ("" = ninguno, p. ej. un parquet que ya lleva
+        # la veta en cada tabla). None: se propone según la receta.
+        propio = datos.get("acabado_propuesto")
+        self.acabado_propuesto = str(propio) if isinstance(propio, str) else None
 
     def __repr__(self):
         return "Motivo({}, {})".format(self.tipo, self.id)
@@ -421,7 +426,12 @@ def plan(motivo, catalogo, receta=None, resolucion="1k", destino="render"):
     estructura = catalogo.estructura(m["estructura"]) if m["estructura"] else None
     if m["estructura"] and estructura is None:
         faltan.append(m["estructura"])
-    ident_acabado = m["acabado"] or acabado_propuesto(receta, catalogo)
+    if m["acabado"]:
+        ident_acabado = m["acabado"]
+    elif estructura is not None and estructura.acabado_propuesto is not None:
+        ident_acabado = estructura.acabado_propuesto
+    else:
+        ident_acabado = acabado_propuesto(receta, catalogo)
     acabado = catalogo.acabado(ident_acabado) if ident_acabado else None
     if m["acabado"] and acabado is None:
         faltan.append(m["acabado"])

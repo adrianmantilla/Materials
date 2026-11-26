@@ -1,5 +1,6 @@
 """Pruebas sin Maya de los motivos: catálogo, plan, medidas y pestaña Motivo."""
 
+import json
 import os
 import shutil
 import sys
@@ -157,6 +158,31 @@ class PruebaCatalogo(unittest.TestCase):
         self.assertAlmostEqual(r["estructura"][0], 2.0)
         self.assertAlmostEqual(r["estructura"][1], 8.0)
         self.assertAlmostEqual(r["acabado"][0], 5.0)
+
+    def test_estructura_propone_su_acabado(self):
+        otra = tempfile.mkdtemp()
+        try:
+            destino = os.path.join(otra, "estructuras", "parquet")
+            shutil.copytree(os.path.join(catalogo_de_prueba(), "estructuras", "tablas_madera"), destino)
+            ruta = os.path.join(destino, "motivo.json")
+            with open(ruta, encoding="utf-8") as f:
+                datos = json.load(f)
+            datos.update(id="parquet", acabado_propuesto="")
+            with open(ruta, "w", encoding="utf-8") as f:
+                json.dump(datos, f)
+            cat = mv.Catalogo([otra, catalogo_de_prueba()])
+            receta = {"nombre": "Acero cepillado", "familia": "metales"}
+            # "" = ninguno: el parquet ya lleva la veta en cada tabla.
+            p = mv.plan({"activo": True, "estructura": "parquet"}, cat, receta)
+            self.assertEqual(set(p["capas"]), {"estructura"})
+            # Lo que elige el alumno manda.
+            p = mv.plan({"activo": True, "estructura": "parquet", "acabado": "cepillado"}, cat, receta)
+            self.assertEqual(p["motivo"]["acabado"], "cepillado")
+            # Sin la clave, se propone por la receta como siempre.
+            p = mv.plan({"activo": True, "estructura": "tablas_madera"}, cat, receta)
+            self.assertEqual(p["motivo"]["acabado"], "cepillado")
+        finally:
+            shutil.rmtree(otra)
 
     def test_pieza_de_85_cm(self):
         e = self.cat.estructura("baldosa_cuadrada")

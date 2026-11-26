@@ -27,22 +27,28 @@ import estructuras_def as ed
 importlib.reload(fsd)
 importlib.reload(ed)
 
-PAQUETE = os.path.join(CARPETA, "paquetes", "aparejos_lote1.sbs")  # noqa: F821
+LOTE = globals().get("LOTE", "lote1")  # fabricar_lote.py lo pasa
+PAQUETE = os.path.join(CARPETA, "paquetes", "aparejos_{}.sbs".format(LOTE))  # noqa: F821
 SOLO = None  # o una lista de ids para pruebas
 
 
 def montar(paquete, d, detalle=False):
     tw, th = ed.tile_cm(d)
-    nx, ny = d["piezas"]
-    mx, my = d["pieza_cm"][0] + d["junta_cm"], d["pieza_cm"][1] + d["junta_cm"]
     g = fsd.Grafo(paquete, d["id"])
-    ladrillos = g.bib("brick_generator", Bricks=(nx, ny), Keep_Ratio=False,
-                      Gap=(d["junta_cm"] / mx, d["junta_cm"] / my),
-                      Bevel=(0.0, 0.0, 0.0, 0.0), Offset=(d["desfase"], 0.0))
     nubes = g.bib("noise_clouds_2", "clouds_2", scale=max(1, int(round(tw / 60.0))))
     motas = g.bib("noise_bnw_spots_1", "bnw_spots_1", scale=max(1, int(round(tw / 12.0))))
     grunge = g.bib("noise_grunge_map_001", "grunge_map_001", balance=0.5, contrast=0.6)
-    for nodo, nombre in ((ladrillos, "forma"), (nubes, "nubes"), (motas, "motas"), (grunge, "grunge")):
+    salidas = [(nubes, "nubes"), (motas, "motas"), (grunge, "grunge")]
+    if "patron" in d:  # la forma la dibuja fabricar.py (lib/patrones.py)
+        for nodo, nombre in salidas:
+            g.salida(nodo, nombre)
+        return g
+    nx, ny = d["piezas"]
+    mx, my = d["pieza_cm"][0] + d["junta_cm"], d["pieza_cm"][1] + d["junta_cm"]
+    ladrillos = g.bib("brick_generator", Bricks=(nx, ny), Keep_Ratio=False,
+                      Gap=(d["junta_cm"] / mx, d["junta_cm"] / my),
+                      Bevel=(0.0, 0.0, 0.0, 0.0), Offset=(d["desfase"], 0.0))
+    for nodo, nombre in [(ladrillos, "forma")] + salidas:
         g.salida(nodo, nombre)
     if detalle:
         for nodo in (ladrillos, nubes, motas, grunge):
@@ -52,7 +58,7 @@ def montar(paquete, d, detalle=False):
 
 paquete = fsd.paquete_nuevo()
 hechos = []
-for i, d in enumerate(ed.LOTE_1):
+for i, d in enumerate(ed.LOTES[LOTE]):
     if SOLO and d["id"] not in SOLO:
         continue
     try:

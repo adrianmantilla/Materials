@@ -19,7 +19,8 @@ REPO = os.path.join(BASE, "materials_prueba")
 RAMA = "claude/project-thread-8kf6pd"
 VENV = os.path.join(BASE, "venv", "bin", "python")
 SCRIPT_GRAFOS = "01_aparejos.py"
-PAQUETE = os.path.join(CARPETA, "paquetes", "aparejos_lote1.sbs")  # noqa: F821
+LOTE = "lote1"  # lote de estructuras_def.LOTES
+PAQUETE = os.path.join(CARPETA, "paquetes", "aparejos_{}.sbs")  # noqa: F821
 CATALOGO = os.path.join(BASE, "catalogo")
 RES = 1024
 SOLO = ""
@@ -47,12 +48,12 @@ def pasos():
             shutil.copy(os.path.join(lib, f), os.path.join(CARPETA, "lib", f))  # noqa: F821
     yield
     ruta = os.path.join(REPO, "herramientas", "designer", "scripts", SCRIPT_GRAFOS)
-    espacio = {"__name__": "__grafos__", "__file__": ruta, "CARPETA": CARPETA}  # noqa: F821
+    espacio = {"__name__": "__grafos__", "__file__": ruta, "CARPETA": CARPETA, "LOTE": LOTE}  # noqa: F821
     with open(ruta, encoding="utf-8") as f:
         exec(compile(f.read(), ruta, "exec"), espacio)
     yield
-    args = [VENV, os.path.join(REPO, "herramientas", "designer", "fabricar.py"), PAQUETE, CATALOGO,
-            "--res", str(RES)]
+    args = [VENV, os.path.join(REPO, "herramientas", "designer", "fabricar.py"), PAQUETE.format(LOTE), CATALOGO,
+            "--res", str(RES), "--lote", LOTE]
     if SOLO:
         args += ["--solo", SOLO]
     print("$", " ".join(args))

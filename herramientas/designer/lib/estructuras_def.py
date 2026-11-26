@@ -23,11 +23,11 @@ Lo usa el script de Designer (grafos) y ``componer.py`` (mapas finales y motivo.
 LOTE_1 = [
     dict(id="ladrillo_soga", matiz=0.8, poros=0.7, moteado=0.8, quemado=0.6, tono_var=0.7, nombre="Ladrillo a soga", familia="Ladrillo y bloque",
          pieza_cm=(24.0, 5.5), junta_cm=1.0, piezas=(4, 16), desfase=0.5, bisel_cm=0.4, relieve_cm=1.2,
-         irregular=0.55, rugoso=0.6, altura_var=0.3, junta="#a29a8c",
+         irregular=0.15, rugoso=0.6, altura_var=0.3, junta="#a29a8c",
          recomendado_para=["ladrill", "construccion", "fachada"], etiquetas=["fachada", "muro"]),
     dict(id="ladrillo_tizon", matiz=0.8, poros=0.7, moteado=0.8, quemado=0.6, tono_var=0.7, nombre="Ladrillo a tizón", familia="Ladrillo y bloque",
          pieza_cm=(11.5, 5.5), junta_cm=1.0, piezas=(8, 16), desfase=0.5, bisel_cm=0.4, relieve_cm=1.2,
-         irregular=0.55, rugoso=0.6, altura_var=0.3, junta="#a29a8c",
+         irregular=0.15, rugoso=0.6, altura_var=0.3, junta="#a29a8c",
          recomendado_para=["ladrill", "construccion"], etiquetas=["fachada", "muro"]),
     dict(id="ladrillo_rustico", matiz=1.0, poros=0.9, moteado=1.0, quemado=0.9, tono_var=0.9, nombre="Ladrillo rústico", familia="Ladrillo y bloque",
          pieza_cm=(24.0, 5.0), junta_cm=1.5, piezas=(4, 16), desfase=0.5, bisel_cm=0.8, relieve_cm=1.8,
@@ -72,14 +72,93 @@ LOTE_1 = [
 ]
 
 
+R2 = 2 ** 0.5
+R3 = 3 ** 0.5
+
+# Lote 2: patrones que no son filas de rectángulos. ``patron`` lo dibuja lib/patrones.py en numpy
+# (Designer solo pone los ruidos). ``tile_cm`` es la medida exacta que repite; ``pieza_cm`` es la
+# medida de referencia de una pieza. ``veta``: la madera lleva la veta en cada tabla (sigue su
+# dirección), y ``acabado_propuesto`` = "" evita un acabado de veta horizontal encima.
+LOTE_2 = [
+    dict(id="espiga_ladrillo", matiz=0.7, poros=0.6, moteado=0.7, quemado=0.4, tono_var=0.6,
+         nombre="Ladrillo en espiga", familia="Ladrillo y bloque", tile_cm=(80.0, 80.0), pieza_cm=(19.4, 9.4),
+         patron=dict(tipo="espiga", largo=20.0, ancho=10.0), junta_cm=0.6, bisel_cm=0.4, relieve_cm=1.0,
+         irregular=0.15, rugoso=0.5, altura_var=0.25, junta="#8d8678",
+         recomendado_para=["ladrill", "pavimento", "patio"], etiquetas=["suelo", "patio"]),
+    dict(id="parquet_espiga", matiz=0.5, poros=0.0, moteado=0.2, quemado=0.0, tono_var=0.45, veta=True,
+         acabado_propuesto="", nombre="Parquet en espiga", familia="Madera", tile_cm=(R2 * 60.0, R2 * 60.0),
+         pieza_cm=(59.85, 9.85), patron=dict(tipo="espiga", largo=60.0, ancho=10.0, angulo=45.0),
+         junta_cm=0.15, bisel_cm=0.1, relieve_cm=0.3, irregular=0.0, rugoso=0.2, altura_var=0.08,
+         junta="#2e2721", recomendado_para=["parquet", "madera", "roble", "tarima"], etiquetas=["suelo"]),
+    dict(id="parquet_cesta", matiz=0.5, poros=0.0, moteado=0.2, quemado=0.0, tono_var=0.45, veta=True,
+         acabado_propuesto="", nombre="Parquet de cesta", familia="Madera", tile_cm=(120.0, 120.0),
+         pieza_cm=(29.85, 9.85),
+         patron=dict(tipo="rectangulos", a1=(60.0, 0.0), a2=(0.0, 60.0), rects=[
+             (0, 0, 30, 10), (0, 10, 30, 10), (0, 20, 30, 10), (30, 0, 10, 30), (40, 0, 10, 30), (50, 0, 10, 30),
+             (0, 30, 10, 30), (10, 30, 10, 30), (20, 30, 10, 30), (30, 30, 30, 10), (30, 40, 30, 10),
+             (30, 50, 30, 10)]),
+         junta_cm=0.15, bisel_cm=0.1, relieve_cm=0.3, irregular=0.0, rugoso=0.2, altura_var=0.08,
+         junta="#2e2721", recomendado_para=["parquet", "madera", "roble"], etiquetas=["suelo"]),
+    dict(id="hexagono_baldosa", matiz=0.05, poros=0.0, moteado=0.2, quemado=0.0, tono_var=0.15,
+         nombre="Baldosa hexagonal", familia="Baldosa y azulejo", tile_cm=(R3 * 10.0 * 4, 30.0 * 4),
+         pieza_cm=(17.0, 19.7), patron=dict(tipo="hexagono", radio=10.0), junta_cm=0.3, bisel_cm=0.2,
+         relieve_cm=0.3, irregular=0.0, rugoso=0.05, altura_var=0.04, junta="#d6d1c7",
+         recomendado_para=["baldosa", "hexagon", "ceram", "gres"], etiquetas=["suelo", "baño"]),
+    dict(id="hexagono_terracota", matiz=0.8, poros=0.6, moteado=0.9, quemado=0.3, tono_var=0.7,
+         nombre="Baldosín hexagonal de terracota", familia="Baldosa y azulejo",
+         tile_cm=(R3 * 8.5 * 4, 25.5 * 4), pieza_cm=(13.7, 16.0),
+         patron=dict(tipo="hexagono", radio=8.5, redondeo=0.3), junta_cm=1.0, bisel_cm=0.6, relieve_cm=1.0,
+         irregular=0.45, rugoso=0.6, altura_var=0.3, junta="#9b9284",
+         recomendado_para=["terracota", "barro", "rustic"], etiquetas=["suelo", "rústico"]),
+    dict(id="losas_irregulares", matiz=0.35, poros=0.3, moteado=0.5, quemado=0.0, tono_var=0.6,
+         acabado_propuesto="arenisca", nombre="Losas de piedra irregulares", familia="Piedra",
+         tile_cm=(150.0, 150.0), pieza_cm=(30.0, 30.0),
+         patron=dict(tipo="voronoi", celdas=(5, 5), pesos=0.6, redondeo=1.0, semilla=3),
+         junta_cm=1.5, bisel_cm=0.8, relieve_cm=1.8, irregular=0.5, rugoso=0.7, altura_var=0.4, junta="#8d877c",
+         recomendado_para=["piedra", "losa", "pizarra", "cuarcita"], etiquetas=["suelo", "jardín"]),
+    dict(id="mamposteria", matiz=0.45, poros=0.3, moteado=0.6, quemado=0.0, tono_var=0.7,
+         acabado_propuesto="arenisca", nombre="Mampostería", familia="Piedra", tile_cm=(150.0, 100.0),
+         pieza_cm=(30.0, 20.0),
+         patron=dict(tipo="voronoi", celdas=(5, 5), pesos=0.5, estirar=1.5, temblor=0.7, redondeo=3.5, semilla=5),
+         junta_cm=2.5, bisel_cm=2.5, relieve_cm=4.0, irregular=0.8, rugoso=0.8, altura_var=0.6, junta="#9e978a",
+         recomendado_para=["mamposter", "piedra", "muro", "rustic"], etiquetas=["muro", "rústico"]),
+    dict(id="adoquin_abanico", matiz=0.3, poros=0.4, moteado=0.5, quemado=0.0, tono_var=0.6,
+         nombre="Adoquín en abanico", familia="Pavimento", tile_cm=(120.0, 120.0), pieza_cm=(9.0, 9.0),
+         patron=dict(tipo="abanico", paso=60.0, adoquin=9.0, redondeo=0.8), junta_cm=1.0, bisel_cm=1.0,
+         relieve_cm=2.0, irregular=0.5, rugoso=0.6, altura_var=0.4, junta="#6f6a62",
+         recomendado_para=["adoquin", "granito", "calle"], etiquetas=["suelo", "calle"]),
+    dict(id="silleria_irregular", matiz=0.35, poros=0.5, moteado=0.6, quemado=0.0, tono_var=0.5,
+         nombre="Sillería irregular", familia="Piedra", tile_cm=(200.0, 180.0), pieza_cm=(50.0, 30.0),
+         patron=dict(tipo="sillar_irregular", alturas=(20.0, 30.0, 40.0), anchos=(30.0, 80.0), semilla=2),
+         junta_cm=1.0, bisel_cm=1.2, relieve_cm=2.0, irregular=0.4, rugoso=0.7, altura_var=0.35, junta="#b3aa98",
+         recomendado_para=["silleria", "piedra", "arenisca", "caliza"], etiquetas=["muro", "fachada"]),
+    dict(id="ladrillo_flamenco", matiz=0.8, poros=0.7, moteado=0.8, quemado=0.6, tono_var=0.7,
+         nombre="Ladrillo a la flamenca", familia="Ladrillo y bloque", tile_cm=(112.5, 104.0), pieza_cm=(24.0, 5.5),
+         patron=dict(tipo="rectangulos", a1=(37.5, 0.0), a2=(18.75, 6.5),
+                     rects=[(0, 0, 25.0, 6.5), (25.0, 0, 12.5, 6.5)]),
+         junta_cm=1.0, bisel_cm=0.4, relieve_cm=1.2, irregular=0.15, rugoso=0.6, altura_var=0.3, junta="#a29a8c",
+         recomendado_para=["ladrill", "fachada"], etiquetas=["fachada", "muro"]),
+    dict(id="ladrillo_ingles", matiz=0.8, poros=0.7, moteado=0.8, quemado=0.6, tono_var=0.7,
+         nombre="Ladrillo a la inglesa", familia="Ladrillo y bloque", tile_cm=(100.0, 104.0), pieza_cm=(24.0, 5.5),
+         patron=dict(tipo="rectangulos", a1=(25.0, 0.0), a2=(0.0, 13.0),
+                     rects=[(0, 0, 25.0, 6.5), (6.25, 6.5, 12.5, 6.5), (18.75, 6.5, 12.5, 6.5)]),
+         junta_cm=1.0, bisel_cm=0.4, relieve_cm=1.2, irregular=0.15, rugoso=0.6, altura_var=0.3, junta="#a29a8c",
+         recomendado_para=["ladrill", "fachada"], etiquetas=["fachada", "muro"]),
+]
+
+LOTES = {"lote1": LOTE_1, "lote2": LOTE_2}
+
+
 def tile_cm(d):
     """Medida real de la imagen entera (ancho, alto) en cm."""
+    if "tile_cm" in d:
+        return tuple(d["tile_cm"])
     return (d["piezas"][0] * (d["pieza_cm"][0] + d["junta_cm"]),
             d["piezas"][1] * (d["pieza_cm"][1] + d["junta_cm"]))
 
 
 def por_id(ident, lote=None):
-    for d in lote or LOTE_1:
+    for d in lote or LOTE_1 + LOTE_2:
         if d["id"] == ident:
             return d
     raise KeyError(ident)

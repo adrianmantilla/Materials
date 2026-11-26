@@ -26,7 +26,8 @@ MUESTRA = {
     "Madera": ("#8a5a35", 0.5, 0.0),
 }
 COLORES_PIEZA = {"bloque_hormigon": "#8e8b85", "baldosa_30": "#b9a58c", "baldosa_60": "#d8d3ca",
-                 "azulejo_metro": "#f2f0ea", "azulejo_15": "#5f8fa3"}
+                 "azulejo_metro": "#f2f0ea", "azulejo_15": "#5f8fa3", "hexagono_terracota": "#b5653d",
+                 "hexagono_baldosa": "#dcd6cc"}
 
 
 def main():
