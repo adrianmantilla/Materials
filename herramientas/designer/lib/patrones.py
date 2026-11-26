@@ -306,7 +306,7 @@ def forma(d, res, distancia):
     x, y = (xx + 0.5) * px, (yy + 0.5) * py
     ids = ids_de(d, x, y)
     cubierto = float((ids >= 0).mean())
-    if cubierto < CUBRE_MIN and d["patron"]["tipo"] not in ("guijarros", "circulos"):
+    if cubierto < CUBRE_MIN and d["patron"]["tipo"] not in ("guijarros", "circulos") and not d["patron"].get("huecos"):
         raise ValueError("{}: el patrón deja sin pieza el {:.2%} de la imagen".format(d["id"], 1 - cubierto))
     borde = (ids != ids_de(d, x + px, y)) | (ids != ids_de(d, x, y + py))
     junta = d["junta_cm"]
