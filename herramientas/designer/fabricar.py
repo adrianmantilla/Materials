@@ -315,10 +315,13 @@ def perfil_pieza(perfil, lab, n, mascara, pos_x, pos_y, cen_x):
     for p in perfil if isinstance(perfil, (list, tuple)) else [perfil]:
         k = p.get("fuerza", 0.2)
         if p["tipo"] == "cilindro":
-            forma = np.sqrt(np.clip(1.0 - (2 * u - 1) ** 2, 0.0, 1.0)) - 0.5
+            arco = np.sqrt(np.clip(1.0 - (2 * u - 1) ** 2, 0.0, 1.0))
+            forma = arco - 0.5
             if p.get("alterna"):
-                signo = np.where(np.floor(cen_x / p["alterna"]) % 2 == 1, -1.0, 1.0)
-                forma = forma * signo - 0.5 * (signo < 0)  # canal: hondo en el centro
+                # Cobija (columnas pares) montada sobre los bordes de las canales (impares): el borde de
+                # la cobija queda un poco por encima del de la canal y la canal es honda en el centro.
+                canal = np.floor(cen_x / p["alterna"]) % 2 == 1
+                forma = np.where(canal, -0.5 - 0.85 * arco, arco - 0.4)
             total += k * forma
         elif p["tipo"] == "escalon":
             total += k * (v - 0.5)  # el borde de abajo monta sobre la pieza siguiente
@@ -411,7 +414,7 @@ def componer(d, bruto, destino_raiz, res):
     desconchon = suave(golpeado, umbral, umbral + 0.02) * min(1.0, 2.0 * ir)
     cara = cara - desconchon * (0.16 + 0.10 * golpe + 0.05 * arena)
     # Mortero rehundido, con arena y alguna oquedad.
-    junta = (0.10 + 0.025 * b["nubes"] + 0.02 * (grano - 0.5) + 0.03 * (arena - 0.5)
+    junta = (d.get("junta_alt", 0.10) + 0.025 * b["nubes"] + 0.02 * (grano - 0.5) + 0.03 * (arena - 0.5)
              - 0.03 * suave(poros, 0.78, 0.86))
     altura = junta + (np.maximum(cara, junta) - junta) * perfil
     # Sin recortar por arriba (una teja curva quedaría plana): si se pasa de 1, se escala entero.
