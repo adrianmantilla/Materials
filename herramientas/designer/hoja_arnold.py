@@ -42,6 +42,8 @@ def main():
     p.add_argument("--solo", default="")
     p.add_argument("--res", type=int, default=360)
     p.add_argument("--encuadre", type=float, default=150.0, help="cm de pared que llenan la imagen")
+    p.add_argument("--relieve-x", type=float, default=1.0, help="multiplica relieveCm (pruebas de bump)")
+    p.add_argument("--sufijo", default="", help="se añade al nombre del render")
     a = p.parse_args()
     import maya.standalone
     maya.standalone.initialize(name="python")
@@ -81,6 +83,10 @@ def main():
             motivo["color2"] = COLOR2[est.id]
         plan = mv.plan(motivo, cat, receta)
         s.aplicar_motivo(material, plan, receta, "render")
+        if a.relieve_x != 1.0:
+            for ctrl in cmds.ls(type="network") or []:
+                if cmds.attributeQuery("relieveCm", node=ctrl, exists=True):
+                    cmds.setAttr(ctrl + ".relieveCm", cmds.getAttr(ctrl + ".relieveCm") * a.relieve_x)
         camara, forma = cmds.camera(name="cam")
         # Encuadre: a.encuadre cm de pared llenan la imagen (36 mm de película horizontal).
         cmds.setAttr(camara + ".translateZ", a.encuadre * 50.0 / 36.0)
@@ -107,7 +113,7 @@ def main():
             continue
         hechas = sorted(glob.glob(prefijo + "*.png"))
         if hechas:
-            shutil.copy(hechas[-1], os.path.join(a.salida, est.id + ".png"))
+            shutil.copy(hechas[-1], os.path.join(a.salida, est.id + a.sufijo + ".png"))
             hechos.append(est.id)
             print("render", est.id)
     print("HECHOS", len(hechos), " ".join(hechos))
