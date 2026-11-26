@@ -48,7 +48,7 @@ COLORES_PIEZA = {"bloque_hormigon": "#8e8b85", "baldosa_30": "#b9a58c", "baldosa
                  "ladrillo_holandes": "#9a4e36", "ladrillo_americano": "#a35a40", "ladrillo_monje": "#8e4a34",
                  "celosia_ladrillo": "#b0603e", "bloque_apilado": "#8e8b85", "opus_modular": "#d8c8aa",
                  "baldosa_tercios": "#bdb8ae", "tablas_irregulares": "#9a7450", "ripias": "#8a7258",
-                 "sillar_almohadillado": "#c8b48e", "listones_horizontales": "#a87e56", "loseta_caucho": "#3a3c40",
+                 "sillar_almohadillado": "#c8b48e", "listones_horizontales": "#a87e56", "loseta_caucho": "#5e6064",
                  "losas_jardin": "#b8b4aa"}
 # Rugosidad y metal propios (chapas).
 RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6), "bloque_vidrio": (0.05, 0.0), "panel_composite": (0.3, 0.0)}
