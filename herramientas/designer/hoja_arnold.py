@@ -49,11 +49,20 @@ COLORES_PIEZA = {"bloque_hormigon": "#8e8b85", "baldosa_30": "#b9a58c", "baldosa
                  "celosia_ladrillo": "#b0603e", "bloque_apilado": "#8e8b85", "opus_modular": "#d8c8aa",
                  "baldosa_tercios": "#bdb8ae", "tablas_irregulares": "#9a7450", "ripias": "#8a7258",
                  "sillar_almohadillado": "#c8b48e", "listones_horizontales": "#a87e56", "loseta_caucho": "#5e6064",
-                 "losas_jardin": "#b8b4aa"}
+                 "losas_jardin": "#b8b4aa",
+                 "mosaico_listelo": "#5f8f88", "mosaico_listelo_espiga": "#e8e4dc", "espiga_ancha": "#a07a52",
+                 "punta_hungria_ancha": "#b08a60", "pizarra_rombo": "#4a4e52", "damero_ceramico": "#ecebe6",
+                 "azulejo_20": "#d8d2c4", "azulejo_vertical_apilado": "#7a9a8a", "ladrillo_tercios": "#9a5038",
+                 "losas_soga": "#cfc6b4", "bloque_termoarcilla": "#b8704e", "baldosa_rustica": "#b8704a",
+                 "lajas_apiladas": "#6a6660", "opus_incertum": "#bfb39c", "hexagono_grande": "#c8c4bc",
+                 "estrella_cruz": "#e6e2d8", "triangulos": "#c8a070", "baldosa_ondulada": "#5a8ab0",
+                 "arlequin": "#d8d0c0", "parquet_cesta_diagonal": "#a87e56", "ladrillo_espiga_doble": "#9a4e36",
+                 "adoquin_espiga_recta": "#8e8a84", "adoquin_cesped": "#a8a49c", "listones_diagonales": "#a07a52",
+                 "teja_mixta": "#b0603e", "panel_sandwich": "#c8ccd0", "parquet_hexagonal": "#a87e56"}
 # Rugosidad y metal propios (chapas).
 RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6), "bloque_vidrio": (0.05, 0.0), "panel_composite": (0.3, 0.0)}
 # Estructuras con «color 2» (zona2): el segundo color de la muestra.
-COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a", "octogono_taco": "#1e1e1e", "cubos_3d": "#3a3a3a"}
+COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a", "octogono_taco": "#1e1e1e", "cubos_3d": "#3a3a3a", "damero_ceramico": "#1e1e1e", "estrella_cruz": "#2f5f8f", "arlequin": "#3a3a3a"}
 
 
 def _aclarar(hex_color, minimo=0.42):

@@ -216,6 +216,35 @@ def paralelogramos(x, y, a1, a2):
     return _codigo(0, np.floor(s).astype(np.int64), np.floor(t).astype(np.int64))
 
 
+def triangulos(x, y, a1, a2):
+    """Cada celda de la red (a1, a2) partida en dos triángulos por su diagonal (con a1 y a2 a 60°: equiláteros)."""
+    det = a1[0] * a2[1] - a2[0] * a1[1]
+    s = (a2[1] * x - a2[0] * y) / det
+    t = (-a1[1] * x + a1[0] * y) / det
+    c0, c1 = np.floor(s), np.floor(t)
+    k = ((s - c0) + (t - c1) >= 1.0).astype(np.int64)
+    return _codigo(k, c0.astype(np.int64), c1.astype(np.int64))
+
+
+def estrella_cruz(x, y, lado, punta=0.48):
+    """Estrella de ocho puntas en cada cuadrado de ``lado`` y cruces entre ellas (azulejo de estrella y cruz)."""
+    i, j = np.floor(x / lado), np.floor(y / lado)
+    u, v = x / lado - i - 0.5, y / lado - j - 0.5
+    au, av = np.abs(u), np.abs(v)
+    estrella = (au + av < punta) | (np.maximum(au, av) < punta / math.sqrt(2))
+    ci, cj = i + (u > 0), j + (v > 0)  # la cruz se centra en la esquina más cercana
+    return np.where(estrella, _codigo(0, i.astype(np.int64), j.astype(np.int64)),
+                    _codigo(1, ci.astype(np.int64), cj.astype(np.int64)))
+
+
+def ondas(x, y, ancho, alto, amplitud, periodo):
+    """Piezas de ``ancho × alto`` en filas cuyos bordes horizontales ondulan (seno de ``periodo``)."""
+    yy = y + amplitud * np.sin(2 * math.pi * x / periodo)
+    fila = np.floor(yy / alto)
+    col = np.floor((x + 0.5 * ancho * (fila % 2)) / ancho)
+    return _codigo(0, col.astype(np.int64), fila.astype(np.int64))
+
+
 def _centro_hex(x, y, radio):
     """Centro del hexágono (vértice arriba, lado ``radio``) que contiene cada punto."""
     a1, a2 = (math.sqrt(3) * radio, 0.0), (math.sqrt(3) * radio / 2, 1.5 * radio)
@@ -290,6 +319,12 @@ def ids_de(d, x, y):
         return paralelogramos(x, y, tuple(p["a1"]), tuple(p["a2"]))
     if tipo == "cubos":
         return cubos(x, y, p["radio"])
+    if tipo == "triangulos":
+        return triangulos(x, y, tuple(p["a1"]), tuple(p["a2"]))
+    if tipo == "estrella_cruz":
+        return estrella_cruz(x, y, p["lado"], p.get("punta", 0.48))
+    if tipo == "ondas":
+        return ondas(x, y, p["ancho"], p["alto"], p["amplitud"], p["periodo"])
     if tipo == "circulos":
         return circulos(x, y, p["radio"], p["circulo"])
     if tipo == "punta_hungria":

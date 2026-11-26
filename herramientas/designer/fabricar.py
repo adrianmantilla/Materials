@@ -358,7 +358,7 @@ def zona_color2(zona, forma, cm_px_x, cm_px_y):
     alto, ancho = forma
     y, x = np.mgrid[0:alto, 0:ancho].astype(np.float64)
     x, y = (x + 0.5) * cm_px_x, (y + 0.5) * cm_px_y
-    lado = zona["lado"]
+    lado = zona.get("lado", 0.0)
     if zona["tipo"] == "damero":
         return ((np.floor(x / lado) + np.floor(y / lado)) % 2).astype(np.float64)
     if zona["tipo"] == "roseta":
@@ -379,6 +379,16 @@ def zona_color2(zona, forma, cm_px_x, cm_px_y):
     if zona["tipo"] == "cubos":
         # Tres tonos (0; 0,5; 1) para las tres caras del cubo.
         return patrones.sector_cubo(x, y, lado).astype(np.float64) / 2.0
+    if zona["tipo"] == "estrella":
+        # Estrella y cruz: las cruces llevan el color 2.
+        return (patrones.estrella_cruz(x, y, lado, zona.get("punta", 0.48)) >= 4_000_000_000_000).astype(np.float64)
+    if zona["tipo"] == "arlequin":
+        # Rombos de arlequín: alternan como un damero en la red (a1, a2).
+        a1, a2 = zona["a1"], zona["a2"]
+        det = a1[0] * a2[1] - a2[0] * a1[1]
+        s_ = np.floor((a2[1] * x - a2[0] * y) / det)
+        t_ = np.floor((-a1[1] * x + a1[0] * y) / det)
+        return ((s_ + t_) % 2).astype(np.float64)
     raise ValueError("zona desconocida: " + zona["tipo"])
 
 
