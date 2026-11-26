@@ -226,12 +226,14 @@ import acab_comida  # noqa: E402
 import acab_madera  # noqa: E402
 import acab_piedra  # noqa: E402
 import acab_pared  # noqa: E402
+import acab_terreno  # noqa: E402
 
 # Lotes de acabados: el primero son los de las estructuras de los lotes 1-3.
 LOTES = {"base": ACABADOS, "metal": acab_metal.ACABADOS, "plastico": acab_plastico.ACABADOS,
          "tela": acab_tela.ACABADOS, "organico": acab_organico.ACABADOS,
          "comida": acab_comida.ACABADOS, "madera": acab_madera.ACABADOS,
-         "piedra": acab_piedra.ACABADOS, "pared": acab_pared.ACABADOS}
+         "piedra": acab_piedra.ACABADOS, "pared": acab_pared.ACABADOS,
+         "terreno": acab_terreno.ACABADOS}
 TODOS = [d for lote in LOTES.values() for d in lote]
 
 
