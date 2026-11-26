@@ -16,7 +16,7 @@ Cadena de color (con estructura y acabado)::
                     → baseColor
 
 Rugosidad = base + (acabado − 0,5), junta y desgaste encima; metal = base fuera de juntas
-y desgaste; relieve: un bump2d por altura (estructura y acabado), encadenados (triplanar: suma).
+y desgaste; altura = estructura + peso · acabado (cada una con sus cm reales) → un solo bump2d.
 
 Proyecciones: ``uv`` usa las UV del objeto con su densidad real; ``caja``, ``planar``,
 ``cilindrica`` y ``esferica`` escriben un conjunto de UV aparte (``tt_motivo``) con nodos
@@ -348,6 +348,10 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
     for clave in ("kU", "kV", "aU", "aV"):
         cmds.setAttr("{}.{}".format(ctrl, clave), f[clave] * escala)
     cmds.setAttr(ctrl + ".relieveCm", (est or aca)["relieve_cm"])
+    if est and aca:
+        # La altura del acabado lleva su propio relieve en cm (unos milímetros): con un peso fijo, el
+        # grano de un acabado sobre una teja de 10 cm salía de 3,5 cm y borraba la curva de la teja.
+        cmds.setAttr(ctrl + ".alturaAcabado", mv.peso_altura_acabado(est["relieve_cm"], aca["relieve_cm"]))
 
     mascara = altura_e = zona2 = tono = color_a = rug_a = altura_a = None
     places = []
@@ -430,17 +434,15 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
             _unir(cuanto, bc + ".blender")
             rugosidad, metal = bc + ".outputR", bc + ".outputG"
 
-    # Altura. Arnold pierde el relieve si el bump2d lee la suma de dos texturas (una utilidad en
-    # medio): fuera del triplanar, cada altura va a su propio bump2d y se encadenan.
+    # Altura
     altura = None
-    triplanar = m["proyeccion"] == "triplanar"
-    if triplanar and altura_e and altura_a:
+    if altura_e and altura_a:
         parte = _producto(material, "alturaAcabado", altura_a + ".outAlpha", ctrl + ".alturaAcabado")
         altura = _suma(material, "alturaTotal", [altura_e + ".outAlpha", parte])
     elif altura_e or altura_a:
         altura = (altura_e or altura_a) + ".outAlpha"
 
-    if triplanar:
+    if m["proyeccion"] == "triplanar":
         tri_c = _triplanar(material, "triplanarColor", ctrl, color)
         datos = _nodo("plusMinusAverage", material, "datos")
         _unir(rugosidad, datos + ".input3D[0].input3Dx")
@@ -459,24 +461,12 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
     _unir(color, material + ".baseColor")
     _unir(limite + ".outputR", material + ".specularRoughness")
     _unir(limite + ".outputG", material + ".baseMetalness")
-    capas = []
     if altura:
-        profundidad = _producto(material, "relieveCm", ctrl + ".relieve", ctrl + ".relieveCm")
-        capas.append((altura, profundidad))
-        if not triplanar and altura_e and altura_a:
-            capas.append((altura_a + ".outAlpha",
-                          _producto(material, "relieveAcabado", profundidad, ctrl + ".alturaAcabado")))
-    normal = None
-    for i, (valor, profundidad) in enumerate(capas):
-        bump = _nodo("bump2d", material, "relieve" if i == 0 else "relieveAcabado_bump")
+        bump = _nodo("bump2d", material, "relieve")
         cmds.setAttr(bump + ".bumpInterp", 0)
-        _unir(valor, bump + ".bumpValue")
-        _unir(profundidad, bump + ".bumpDepth")
-        if normal:
-            _unir(normal, bump + ".normalCamera")
-        normal = bump + ".outNormal"
-    if normal:
-        _unir(normal, material + ".normalCamera")
+        _unir(altura, bump + ".bumpValue")
+        _unir(_producto(material, "relieveCm", ctrl + ".relieve", ctrl + ".relieveCm"), bump + ".bumpDepth")
+        _unir(bump + ".outNormal", material + ".normalCamera")
     _guardar_places(ctrl, places)
     return ctrl
 

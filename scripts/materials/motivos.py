@@ -95,7 +95,15 @@ LIMITES = {
     "rugosidad_desgaste": (0.0, 1.0), "rugosidad_junta": (0.0, 1.0),
 }
 JUNTA_DEFECTO = "#8f8a80"
-ALTURA_ACABADO = 0.35           # peso de la altura del acabado frente a la de la estructura
+ALTURA_ACABADO = 0.35           # peso de la altura del acabado si la estructura no tiene relieve
+
+
+def peso_altura_acabado(relieve_estructura_cm, relieve_acabado_cm):
+    """Peso de la altura del acabado sumada a la de la estructura, para que cada una dé sus cm reales
+    con un solo bump2d (profundidad = relieve de la estructura)."""
+    if not relieve_estructura_cm or relieve_estructura_cm <= 0:
+        return ALTURA_ACABADO
+    return max(0.0, min(1.0, float(relieve_acabado_cm) / float(relieve_estructura_cm)))
 
 # Acabado propuesto según el nombre o la familia de la receta (el catálogo manda: si un
 # acabado declara ``recomendado_para``, eso va primero). Trozos sin tildes, en minúsculas.

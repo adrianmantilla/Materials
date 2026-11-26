@@ -159,6 +159,11 @@ class PruebaCatalogo(unittest.TestCase):
         self.assertAlmostEqual(r["estructura"][1], 8.0)
         self.assertAlmostEqual(r["acabado"][0], 5.0)
 
+    def test_peso_altura_acabado_da_sus_cm_reales(self):
+        self.assertAlmostEqual(mv.peso_altura_acabado(10.0, 0.4), 0.04)
+        self.assertEqual(mv.peso_altura_acabado(0.2, 0.4), 1.0)
+        self.assertEqual(mv.peso_altura_acabado(0.0, 0.4), mv.ALTURA_ACABADO)
+
     def test_estructura_propone_su_acabado(self):
         otra = tempfile.mkdtemp()
         try:
