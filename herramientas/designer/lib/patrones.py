@@ -289,6 +289,21 @@ def cubos(x, y, radio):
     return _codigo(sector, i0, j0)
 
 
+def trihexagonal(x, y, lado):
+    """Hexágonos de ``lado`` (vértice a los lados) y triángulos entre ellos (trihexagonal, kagome)."""
+    r = 2.0 * lado / math.sqrt(3)  # red triangular de paso 2·lado
+    i0, j0, px, py = _centro_hex(x, y, r)
+    dx, dy = x - px, y - py
+    ap = lado * math.sqrt(3) / 2
+    dentro = np.ones(x.shape, dtype=bool)
+    for ang in (30.0, 90.0, 150.0):
+        c, s_ = math.cos(math.radians(ang)), math.sin(math.radians(ang))
+        dentro &= np.abs(dx * c + dy * s_) <= ap
+    a1, a2 = (2.0 * lado, 0.0), (lado, math.sqrt(3) * lado)
+    tri = triangulos(x, y, a1, a2) + 2 * 4_000_000_000_000
+    return np.where(dentro, _codigo(0, i0, j0), tri)
+
+
 def ids_de(d, x, y):
     p = d["patron"]
     tipo = p["tipo"]
@@ -325,6 +340,8 @@ def ids_de(d, x, y):
         return estrella_cruz(x, y, p["lado"], p.get("punta", 0.48))
     if tipo == "ondas":
         return ondas(x, y, p["ancho"], p["alto"], p["amplitud"], p["periodo"])
+    if tipo == "trihexagonal":
+        return trihexagonal(x, y, p["lado"])
     if tipo == "circulos":
         return circulos(x, y, p["radio"], p["circulo"])
     if tipo == "punta_hungria":

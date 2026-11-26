@@ -58,11 +58,29 @@ COLORES_PIEZA = {"bloque_hormigon": "#8e8b85", "baldosa_30": "#b9a58c", "baldosa
                  "estrella_cruz": "#e6e2d8", "triangulos": "#c8a070", "baldosa_ondulada": "#5a8ab0",
                  "arlequin": "#d8d0c0", "parquet_cesta_diagonal": "#a87e56", "ladrillo_espiga_doble": "#9a4e36",
                  "adoquin_espiga_recta": "#8e8a84", "adoquin_cesped": "#a8a49c", "listones_diagonales": "#a07a52",
-                 "teja_mixta": "#b0603e", "panel_sandwich": "#c8ccd0", "parquet_hexagonal": "#a87e56"}
+                 "teja_mixta": "#b0603e", "panel_sandwich": "#c8ccd0", "parquet_hexagonal": "#a87e56",
+                 "molinete": "#c9b89c", "porcelanico_madera": "#9c7650", "cubierta_barco": "#b08a5e",
+                 "azulejo_ondas_3d": "#e8e6e0", "azulejo_abombado": "#3e7a6a", "pasaderas": "#a8a49c",
+                 "traviesas": "#6e5640", "ladrillo_vidriado": "#2e6a8e", "bloque_split_apilado": "#9a958c",
+                 "adoquin_irregular": "#8a8680", "ladrillo_vertical_trabado": "#9a5038", "baldosa_120": "#bdb8b0",
+                 "mosaico_rombo": "#5a8ab0", "mosaico_triangulos": "#c8b090", "mosaico_estrella_cruz": "#e6e2d8",
+                 "adoquin_ondulado": "#9a958e", "pizarra_hexagonal": "#4a4d52", "baldosa_con_listelo": "#d8d0c0",
+                 "azulejo_diagonal_15": "#d8d2c4", "ladrillo_cesta": "#9a4e36", "parquet_trabado": "#a87e56",
+                 "tatami": "#b8b080", "azulejo_metro_apilado": "#e8e6e0", "baldosa_60x30_apilada": "#9a958e",
+                 "hexagono_cesped": "#b0aca4", "losas_cesped": "#b0aca4", "baldosa_triangular": "#c8a070",
+                 "mosaico_damero": "#e6e2d8", "tejuela_madera": "#8a6a4a", "ladrillo_soldado": "#9a5038",
+                 "sillar_apilado": "#c8bca4", "baldosa_trabada": "#cfc6b4", "hexagono_triangulo": "#e6e2d8",
+                 "baldosa_rayuela": "#c8a888", "losas_rayuela": "#b8ae9c", "parquet_escalonado": "#a87e56",
+                 "parquet_ladrillo_doble": "#9c7650", "troncos_cabana": "#8a6440", "bambu": "#c8b078",
+                 "panel_listones_acustico": "#b08a5e", "mosaico_molinete": "#e6e2d8", "mosaico_dedos": "#6a9a8a",
+                 "azulejo_diamante": "#e8e6e0", "punta_diamante": "#c8bca4", "bloque_celosia": "#c8c4bc",
+                 "damero_piedra": "#d8d0bc", "baldosa_rombo_hexagonal": "#b8704a"}
 # Rugosidad y metal propios (chapas).
 RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6), "bloque_vidrio": (0.05, 0.0), "panel_composite": (0.3, 0.0)}
 # Estructuras con «color 2» (zona2): el segundo color de la muestra.
-COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a", "octogono_taco": "#1e1e1e", "cubos_3d": "#3a3a3a", "damero_ceramico": "#1e1e1e", "estrella_cruz": "#2f5f8f", "arlequin": "#3a3a3a"}
+COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a", "octogono_taco": "#1e1e1e", "cubos_3d": "#3a3a3a", "damero_ceramico": "#1e1e1e", "estrella_cruz": "#2f5f8f", "arlequin": "#3a3a3a", "mosaico_estrella_cruz": "#2f5f8f",
+          "mosaico_damero": "#1e1e1e", "hexagono_triangulo": "#2f5f8f", "baldosa_rayuela": "#5a3a2a",
+          "mosaico_molinete": "#2a2a2a", "damero_piedra": "#3a3c40"}
 
 
 def _aclarar(hex_color, minimo=0.42):

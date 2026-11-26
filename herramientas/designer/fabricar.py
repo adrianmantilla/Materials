@@ -300,7 +300,7 @@ def por_pieza(lab, n, cm_px_x, cm_px_y, semilla):
 def perfil_pieza(perfil, lab, n, mascara, pos_x, pos_y, cen_x):
     """Forma de la cara de cada pieza (fracción del relieve): teja curva, escalón de solape, cúpula.
 
-    ``perfil``: dict(tipo="cilindro"|"escalon"|"cupula", fuerza=..., alterna=ancho_cm). Con
+    ``perfil``: dict(tipo="cilindro"|"escalon"|"cupula"|"piramide"|..., fuerza=..., alterna=ancho_cm). Con
     ``alterna``, las columnas impares (por el centro de la pieza) van al revés: cobija y canal.
     """
     dentro = lab >= 0
@@ -315,7 +315,8 @@ def perfil_pieza(perfil, lab, n, mascara, pos_x, pos_y, cen_x):
     for p in perfil if isinstance(perfil, (list, tuple)) else [perfil]:
         k = p.get("fuerza", 0.2)
         if p["tipo"] == "cilindro":
-            arco = np.sqrt(np.clip(1.0 - (2 * u - 1) ** 2, 0.0, 1.0))
+            w = v if p.get("eje") == "y" else u  # eje="y": troncos tumbados (curva en vertical)
+            arco = np.sqrt(np.clip(1.0 - (2 * w - 1) ** 2, 0.0, 1.0))
             forma = arco - 0.5
             if p.get("alterna"):
                 # Cobija (columnas pares) montada sobre los bordes de las canales (impares): el borde de
@@ -347,6 +348,9 @@ def perfil_pieza(perfil, lab, n, mascara, pos_x, pos_y, cen_x):
             for fu, fv in p["donde"]:
                 dist = np.hypot((u - fu) * ancho_p, (v - fv) * alto_p)
                 total -= k * np.clip((r - dist) / (0.3 * r), 0.0, 1.0)
+        elif p["tipo"] == "piramide":
+            # Punta de diamante: pirámide de cuatro caras con la cúspide en el centro de la pieza.
+            total += k * (0.5 - np.maximum(np.abs(2 * u - 1), np.abs(2 * v - 1)))
         elif p["tipo"] == "cupula":
             r2 = (2 * u - 1) ** 2 + (2 * v - 1) ** 2
             total += k * (np.sqrt(np.clip(1.0 - 0.5 * r2, 0.0, 1.0)) - 0.6)
@@ -389,6 +393,13 @@ def zona_color2(zona, forma, cm_px_x, cm_px_y):
         s_ = np.floor((a2[1] * x - a2[0] * y) / det)
         t_ = np.floor((-a1[1] * x + a1[0] * y) / det)
         return ((s_ + t_) % 2).astype(np.float64)
+    if zona["tipo"] == "trihexagonal":
+        # Hexágonos y triángulos: los triángulos llevan el color 2.
+        return (patrones.trihexagonal(x, y, lado) >= 2 * 4_000_000_000_000).astype(np.float64)
+    if zona["tipo"] == "rectangulos":
+        # Las piezas número ``k`` de una red de rectángulos (el taco pequeño de la rayuela...).
+        ids = patrones.red_rectangulos(x, y, tuple(zona["a1"]), tuple(zona["a2"]), [tuple(r) for r in zona["rects"]])
+        return (ids // 4_000_000_000_000 == zona["k"]).astype(np.float64)
     raise ValueError("zona desconocida: " + zona["tipo"])
 
 
