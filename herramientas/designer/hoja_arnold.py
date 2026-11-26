@@ -28,7 +28,7 @@ MUESTRA = {
 }
 COLORES_PIEZA = {"bloque_hormigon": "#8e8b85", "baldosa_30": "#b9a58c", "baldosa_60": "#d8d3ca",
                  "azulejo_metro": "#f2f0ea", "azulejo_15": "#5f8fa3", "hexagono_terracota": "#b5653d",
-                 "hexagono_baldosa": "#dcd6cc", "pizarra_cubierta": "#4a4d52", "terrazo_baldosa": "#d8d2c6",
+                 "hexagono_baldosa": "#dcd6cc", "pizarra_cubierta": "#62666d", "terrazo_baldosa": "#d8d2c6",
                  "baldosa_hidraulica": "#e6dfd0", "damero_marmol": "#ece9e3", "adoquin_hormigon": "#9a968f",
                  "baldosa_barro": "#b5653d", "cantos_rodados": "#a49d92"}
 # Estructuras con «color 2» (zona2): el segundo color de la muestra.

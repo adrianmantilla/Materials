@@ -318,7 +318,7 @@ def perfil_pieza(perfil, lab, n, mascara, pos_x, pos_y, cen_x):
             forma = np.sqrt(np.clip(1.0 - (2 * u - 1) ** 2, 0.0, 1.0)) - 0.5
             if p.get("alterna"):
                 signo = np.where(np.floor(cen_x / p["alterna"]) % 2 == 1, -1.0, 1.0)
-                forma = forma * signo - 0.35 * (signo < 0)
+                forma = forma * signo - 0.5 * (signo < 0)  # canal: hondo en el centro
             total += k * forma
         elif p["tipo"] == "escalon":
             total += k * (v - 0.5)  # el borde de abajo monta sobre la pieza siguiente
@@ -414,7 +414,9 @@ def componer(d, bruto, destino_raiz, res):
     junta = (0.10 + 0.025 * b["nubes"] + 0.02 * (grano - 0.5) + 0.03 * (arena - 0.5)
              - 0.03 * suave(poros, 0.78, 0.86))
     altura = junta + (np.maximum(cara, junta) - junta) * perfil
-    altura = np.clip(altura, 0.0, 1.0)
+    # Sin recortar por arriba (una teja curva quedaría plana): si se pasa de 1, se escala entero.
+    altura = np.clip(altura, 0.0, None)
+    altura = altura / max(1.0, float(altura.max()))
 
     mancha = 1.0 - b["grunge"]  # grunge_map_001 es casi blanco con manchas oscuras
     desgaste = np.clip(1.2 * mancha * (1.0 - 0.5 * perfil) - 0.2 + 0.9 * desconchon
