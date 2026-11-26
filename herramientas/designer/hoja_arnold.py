@@ -134,6 +134,10 @@ def main():
         cmds.setAttr(sol + ".rotateY", -50)
         cielo = cmds.shadingNode("aiSkyDomeLight", asLight=True, name="cielo")
         cmds.setAttr(cielo + ".intensity", 0.6)
+        if a.acabados and not es_metal:
+            # Luz rasante: el sol llega más débil a la pared; se compensa para que la hoja no salga oscura.
+            cmds.setAttr(sol + ".intensity", 9.0)
+            cmds.setAttr(cielo + ".intensity", 1.0)
         if es_metal:
             fisico = cmds.shadingNode("aiPhysicalSky", asTexture=True)
             cmds.setAttr(fisico + ".elevation", 35)
