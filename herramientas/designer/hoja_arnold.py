@@ -25,14 +25,20 @@ MUESTRA = {
     "Baldosa y azulejo": ("#e8e4dc", 0.2, 0.0),
     "Madera": ("#8a5a35", 0.5, 0.0),
     "Cubierta": ("#a8583a", 0.7, 0.0),
+    "Revestimiento": ("#9a968f", 0.7, 0.0),
 }
 COLORES_PIEZA = {"bloque_hormigon": "#8e8b85", "baldosa_30": "#b9a58c", "baldosa_60": "#d8d3ca",
                  "azulejo_metro": "#f2f0ea", "azulejo_15": "#5f8fa3", "hexagono_terracota": "#b5653d",
                  "hexagono_baldosa": "#dcd6cc", "pizarra_cubierta": "#62666d", "terrazo_baldosa": "#d8d2c6",
                  "baldosa_hidraulica": "#e6dfd0", "damero_marmol": "#ece9e3", "adoquin_hormigon": "#9a968f",
-                 "baldosa_barro": "#b5653d", "cantos_rodados": "#a49d92"}
+                 "baldosa_barro": "#b5653d", "cantos_rodados": "#a49d92",
+                 "mosaico_gresite": "#3f8fa8", "mosaico_hexagonal": "#eeece7", "octogono_taco": "#e9e4da",
+                 "adoquin_granito": "#8d8880", "muro_piedra_seca": "#a89c88", "teja_plana": "#a4502f",
+                 "chapa_ondulada": "#b4b9be", "chapa_grecada": "#7f8a8f"}
+# Rugosidad y metal propios (chapas).
+RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6)}
 # Estructuras con «color 2» (zona2): el segundo color de la muestra.
-COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a"}
+COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a", "octogono_taco": "#1e1e1e"}
 
 
 def main():
@@ -74,6 +80,7 @@ def main():
         cmds.select(pared)
         color, rug, metal = MUESTRA.get(est.familia, ("#9a9a9a", 0.6, 0.0))
         color = COLORES_PIEZA.get(est.id, color)
+        rug, metal = RUG_METAL.get(est.id, (rug, metal))
         receta = rc.nueva(nombre=est.nombre, color=color, rugosidad=rug, metal=metal)
         material = s.crear_material(receta, "render")
         s.asignar(material)

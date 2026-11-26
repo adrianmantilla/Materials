@@ -325,6 +325,28 @@ def perfil_pieza(perfil, lab, n, mascara, pos_x, pos_y, cen_x):
             total += k * forma
         elif p["tipo"] == "escalon":
             total += k * (v - 0.5)  # el borde de abajo monta sobre la pieza siguiente
+        elif p["tipo"] == "onda":
+            # Chapa ondulada (seno) o grecada (trapecio) a lo largo de X, con la posición real en cm.
+            t = ((cen_x + pos_x) / p["periodo"]) % 1.0
+            if p.get("forma") == "trapecio":
+                dd = np.abs(t - 0.5)
+                f = np.clip((p.get("bajo", 0.3) - dd) / p.get("rampa", 0.1), 0.0, 1.0)
+            else:
+                f = 0.5 - 0.5 * np.cos(2 * np.pi * t)
+            total += k * (f - 0.5)
+        elif p["tipo"] == "agujeros":
+            # Agujeros de latiguillo del encofrado: posiciones relativas en la pieza, radio en cm.
+            ancho_p = np.zeros(lab.shape)
+            alto_p = np.zeros(lab.shape)
+            for eje, destino in ((pos_x, ancho_p), (pos_y, alto_p)):
+                lo, hi = np.full(n, np.inf), np.full(n, -np.inf)
+                np.minimum.at(lo, l, eje[dentro])
+                np.maximum.at(hi, l, eje[dentro])
+                destino[dentro] = (hi - lo)[l]
+            r = p["radio"]
+            for fu, fv in p["donde"]:
+                dist = np.hypot((u - fu) * ancho_p, (v - fv) * alto_p)
+                total -= k * np.clip((r - dist) / (0.3 * r), 0.0, 1.0)
         elif p["tipo"] == "cupula":
             r2 = (2 * u - 1) ** 2 + (2 * v - 1) ** 2
             total += k * (np.sqrt(np.clip(1.0 - 0.5 * r2, 0.0, 1.0)) - 0.6)
@@ -350,6 +372,10 @@ def zona_color2(zona, forma, cm_px_x, cm_px_y):
         borde = (np.maximum(np.abs(u), np.abs(v)) > 0.44)
         zona = estrella | esquina | borde
         return desenfocar_suave(zona.astype(np.float64), cm_px_x, cm_px_y, 0.6 * max(cm_px_x, cm_px_y))
+    if zona["tipo"] == "octogono":
+        u, v = x % lado, y % lado
+        du, dv = np.minimum(u, lado - u), np.minimum(v, lado - v)
+        return (du + dv < zona["corte"]).astype(np.float64)
     raise ValueError("zona desconocida: " + zona["tipo"])
 
 

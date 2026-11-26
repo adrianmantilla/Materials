@@ -183,6 +183,31 @@ def sillar_irregular(x, y, tile, semilla, alturas, anchos):
     return red_rectangulos(x, y, (tile[0], 0.0), (0.0, tile[1]), rects)
 
 
+def octogono(x, y, lado, corte):
+    """Octógonos con taco: baldosa de ``lado`` con las esquinas cortadas; en cada vértice de la red,
+    un taco cuadrado girado 45° (semidiagonal ``corte``)."""
+    i, j = np.floor(x / lado).astype(np.int64), np.floor(y / lado).astype(np.int64)
+    u, v = x - i * lado, y - j * lado
+    du, dv = np.minimum(u, lado - u), np.minimum(v, lado - v)
+    taco = du + dv < corte
+    vi = i + (u > lado / 2)
+    vj = j + (v > lado / 2)
+    return np.where(taco, _codigo(1, vi, vj), _codigo(0, i, j))
+
+
+def punta_hungria(x, y, largo, ancho, angulo=45.0):
+    """Parquet en punta de Hungría (chevron): columnas de tablillas inclinadas que se cortan en V."""
+    a = math.radians(angulo)
+    media = largo * math.cos(a)          # ancho horizontal de media columna
+    alto = ancho / math.cos(a)           # alto vertical de una tablilla cortada en vertical
+    col = np.floor(x / (2 * media)).astype(np.int64)
+    s = x - col * 2 * media
+    derecha = s >= media
+    sube = np.where(derecha, 2 * media - s, s) * math.tan(a)
+    fila = np.floor((y + sube) / alto).astype(np.int64)
+    return _codigo(derecha.astype(np.int64), col, fila)
+
+
 def ids_de(d, x, y):
     p = d["patron"]
     tipo = p["tipo"]
@@ -205,6 +230,10 @@ def ids_de(d, x, y):
         return abanico(x, y, p["paso"], p["adoquin"], p.get("unica", False))
     if tipo == "sillar_irregular":
         return sillar_irregular(x, y, d["tile_cm"], p.get("semilla", 1), p["alturas"], p["anchos"])
+    if tipo == "octogono":
+        return octogono(x, y, p["lado"], p["corte"])
+    if tipo == "punta_hungria":
+        return punta_hungria(x, y, p["largo"], p["ancho"], p.get("angulo", 45.0))
     raise ValueError("patrón desconocido: " + tipo)
 
 
