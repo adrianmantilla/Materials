@@ -118,7 +118,7 @@ def oxido(forma, cx, cy, cobertura=0.3, total=False):
     color = color * (1 - 0.3 * escama[..., None])
     rug = 0.5 + 0.38 * zona + 0.05 * grano
     altura = 0.5 + zona * (0.08 + 0.35 * grano) - 0.3 * escama
-    return color, rug, altura
+    return color, rug, altura, 1.0 - zona
 
 
 def patina_cobre(forma, cx, cy):
@@ -128,17 +128,17 @@ def patina_cobre(forma, cx, cy):
     zona = np.clip(zona + suave(chorro, 0.6, 0.75) * 0.8, 0, 1)
     tono = ruido_cm(forma, cx, cy, 1.5, 1903, octavas=3) - 0.5
     grano = ruido_cm(forma, cx, cy, 0.03, 1904) - 0.5
-    verde = _rel((0.30, 0.56, 0.46), COBRE) * (1 + 0.3 * tono[..., None])
+    verde = _rel((0.30, 0.55, 0.45), COBRE) * (1 + 0.3 * tono[..., None])
     oscurecido = gris(0.40 + 0.08 * tono)  # cobre oscurecido donde no hay cardenillo
     color = oscurecido * (1 - zona[..., None]) + verde * zona[..., None]
     rug = 0.5 + 0.25 + 0.15 * zona + 0.04 * grano - 0.2 * (1 - zona)
     altura = 0.5 + 0.15 * zona * (grano + 0.5) + 0.05 * tono
-    return color, rug, altura
+    return color, rug, altura, 1.0 - zona
 
 
 def envejecido(forma, cx, cy, tinte=(0.9, 0.95, 1.05), fuerza=0.5, verdin=0.0):
     """Plata, latón o bronce envejecidos: oscurecido en manchas suaves, brillo gastado en zonas."""
-    zona = np.clip((ruido_cm(forma, cx, cy, 4.0, 2001, octavas=4) - 0.35) * 2.0, 0, 1)
+    zona = np.clip((ruido_cm(forma, cx, cy, 2.0, 2001, octavas=4) - 0.4) * 1.6, 0, 1)
     grano = ruido_cm(forma, cx, cy, 0.02, 2002) - 0.5
     r = rayas(forma, cx, cy, 250, 3.0, 0.006, 2003)
     lum = 0.5 - fuerza * 0.3 * zona + 0.03 * grano - 0.02 * r

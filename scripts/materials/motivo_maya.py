@@ -353,7 +353,7 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
         # grano de un acabado sobre una teja de 10 cm salía de 3,5 cm y borraba la curva de la teja.
         cmds.setAttr(ctrl + ".alturaAcabado", mv.peso_altura_acabado(est["relieve_cm"], aca["relieve_cm"]))
 
-    mascara = altura_e = zona2 = tono = color_a = rug_a = altura_a = None
+    mascara = altura_e = zona2 = tono = color_a = rug_a = altura_a = metal_a = None
     places = []
     if est:
         pe = _place(material, "uvEstructura", ctrl, ("kU", "pieza"), ("kV", "pieza"))
@@ -373,6 +373,9 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
         rug_a = _imagen(material, "acabadoRugosidad", aca["mapas"]["rugosidad"], espacio_raw, pa, True)
         if aca["mapas"].get("altura"):
             altura_a = _imagen(material, "acabadoAltura", aca["mapas"]["altura"], espacio_raw, pa, True)
+        if aca["mapas"].get("metal"):
+            # Óxido, cardenillo o pintura sobre metal: donde el mapa es 0 deja de ser metal.
+            metal_a = _imagen(material, "acabadoMetal", aca["mapas"]["metal"], espacio_raw, pa, True)
 
     # Color
     color = ctrl + ".colorPieza"
@@ -423,6 +426,8 @@ def montar(material, plan, base, espacio, espacio_srgb, espacio_raw, escala_uv=1
     metal = ctrl + ".metal"
     if aca:
         rugosidad = _suma(material, "rugosidad", [rugosidad, rug_a + ".outAlpha", -0.5])
+    if metal_a:
+        metal = _producto(material, "metalAcabado", metal, metal_a + ".outAlpha")
     if est:
         for sufijo, encima, cuanto in (("rmJunta", ctrl + ".rugosidadJunta", mascara + ".outColorR"),
                                        ("rmDesgaste", ctrl + ".rugosidadDesgaste", desgaste)):

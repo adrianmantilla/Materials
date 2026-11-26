@@ -242,7 +242,9 @@ def vista(color, altura, cx, cy, muestra, lado=256):
 def fabricar(d, catalogo, res):
     forma = (res, res)
     cx, cy = d["tile_cm"][0] / res, d["tile_cm"][1] / res
-    color, rugosidad, altura = d["funcion"](forma, cx, cy)
+    resultado = d["funcion"](forma, cx, cy)
+    color, rugosidad, altura = resultado[:3]
+    metal = resultado[3] if len(resultado) > 3 else None  # opcional: 1 = metal, 0 = deja de serlo
     rugosidad = np.broadcast_to(np.asarray(rugosidad, dtype=np.float64), forma)
     altura = np.broadcast_to(np.asarray(altura, dtype=np.float64), forma)
     color, rugosidad, altura = (np.clip(a, 0.0, 1.0) for a in (color, rugosidad, altura))
@@ -252,6 +254,11 @@ def fabricar(d, catalogo, res):
     Image.fromarray((color * 255).round().astype(np.uint8), "RGB").save(os.path.join(sub, "color.png"))
     Image.fromarray((rugosidad * 255).round().astype(np.uint8), "L").save(os.path.join(sub, "rugosidad.png"))
     Image.fromarray((altura * 65535).round().astype(np.uint16)).save(os.path.join(sub, "altura.png"))
+    if metal is not None:
+        metal = np.clip(np.broadcast_to(np.asarray(metal, dtype=np.float64), forma), 0.0, 1.0)
+        Image.fromarray((metal * 255).round().astype(np.uint8), "L").save(os.path.join(sub, "metal.png"))
+    elif os.path.exists(os.path.join(sub, "metal.png")):
+        os.remove(os.path.join(sub, "metal.png"))
     vista(color, altura, cx, cy, d["muestra"]).save(os.path.join(carpeta, "miniatura.png"))
     datos = {k: d[k] for k in ("id", "nombre", "familia", "relieve_cm", "recomendado_para")}
     datos.update({k: d[k] for k in ("muestra", "muestra_rug", "muestra_metal") if k in d})

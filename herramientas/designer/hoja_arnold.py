@@ -77,8 +77,14 @@ def main():
         proyecto = os.path.join(temporal, "proyecto")
         os.makedirs(os.path.join(proyecto, "images"), exist_ok=True)
         cmds.workspace(proyecto, openWorkspace=True)
-        pared = cmds.polyPlane(name="pared", width=200, height=200, subdivisionsX=1, subdivisionsY=1)[0]
-        cmds.setAttr(pared + ".rotateX", 90)
+        es_metal = a.acabados and float(est.datos.get("muestra_metal", 0.0)) > 0.5
+        if es_metal:
+            # Un metal en una pared plana solo refleja el horizonte: en esfera se lee mejor.
+            pared = cmds.polySphere(name="pared", radius=a.encuadre * 0.45, subdivisionsX=96,
+                                    subdivisionsY=64)[0]
+        else:
+            pared = cmds.polyPlane(name="pared", width=200, height=200, subdivisionsX=1, subdivisionsY=1)[0]
+            cmds.setAttr(pared + ".rotateX", 90)
         cmds.select(pared)
         color, rug, metal = MUESTRA.get(est.familia, ("#9a9a9a", 0.6, 0.0))
         color = COLORES_PIEZA.get(est.id, color)
@@ -112,6 +118,11 @@ def main():
         cmds.setAttr(sol + ".rotateY", -50)
         cielo = cmds.shadingNode("aiSkyDomeLight", asLight=True, name="cielo")
         cmds.setAttr(cielo + ".intensity", 0.6)
+        if es_metal:
+            fisico = cmds.shadingNode("aiPhysicalSky", asTexture=True)
+            cmds.setAttr(fisico + ".elevation", 35)
+            cmds.connectAttr(fisico + ".outColor", cielo + ".color", force=True)
+            cmds.setAttr(cielo + ".intensity", 1.0)
         cmds.setAttr("defaultRenderGlobals.currentRenderer", "arnold", type="string")
         mtoa.core.createOptions()
         cmds.setAttr("defaultArnoldDriver.ai_translator", "png", type="string")

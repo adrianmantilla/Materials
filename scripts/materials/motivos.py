@@ -48,7 +48,7 @@ from materials import color as col
 ESTRUCTURAS = "estructuras"
 ACABADOS = "acabados"
 TIPOS = (ESTRUCTURAS, ACABADOS)
-MAPAS = {ESTRUCTURAS: ("altura", "mascara", "normal", "zona2", "tono"), ACABADOS: ("color", "rugosidad", "altura", "normal")}
+MAPAS = {ESTRUCTURAS: ("altura", "mascara", "normal", "zona2", "tono"), ACABADOS: ("color", "rugosidad", "altura", "normal", "metal")}
 OBLIGATORIOS = {ESTRUCTURAS: ("altura", "mascara"), ACABADOS: ("color", "rugosidad")}
 EXTENSIONES = (".png", ".jpg", ".jpeg", ".tif", ".tiff", ".exr", ".tx")
 RESOLUCIONES = ("1k", "2k", "4k")
