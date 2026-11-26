@@ -26,8 +26,8 @@ def neumatico(forma, cx, cy):
     grano = ruido_cm(forma, cx, cy, 0.015, 25001, octavas=2) - 0.5
     pelo = rayas(forma, cx, cy, 120, 0.4, 0.01, 25002)
     roce = suave(ruido_cm(forma, cx, cy, 2.0, 25003, octavas=3), 0.65, 0.8)
-    color = gris(0.5 + 0.04 * grano + 0.05 * roce)
-    return color, 0.5 + 0.05 * grano - 0.2 * roce, 0.5 + 0.3 * grano + 0.2 * pelo
+    color = gris(0.5 + 0.04 * grano + 0.02 * roce)
+    return color, 0.5 + 0.05 * grano - 0.1 * roce, 0.5 + 0.3 * grano + 0.2 * pelo
 
 
 def caucho_reciclado(forma, cx, cy):
@@ -116,17 +116,26 @@ def escamas_epoxi(forma, cx, cy):
 
 
 def reciclado(forma, cx, cy):
-    """Plástico reciclado (tableros): manchas y vetas de colores mezclados, como mármol de colores."""
-    a = estirado(forma, cx, cy, 2.5, 25901, 3.0, octavas=4)
-    b = ruido_cm(forma, cx, cy, 1.5, 25902, octavas=3)
-    pal = np.array([[0.65, 0.65, 0.65], [0.85, 0.40, 0.30], [0.35, 0.55, 0.85], [0.95, 0.85, 0.35],
-                    [0.30, 0.65, 0.45], [0.25, 0.25, 0.28]])
-    idx = np.clip((a * 4 + b * 2).astype(int) % len(pal), 0, len(pal) - 1)
-    color = 0.6 * pal[idx] + 0.4 * 0.5
-    mota = salpicado(forma, cx, cy, 0.05, 25903, 0.05, borde=0.02)
-    color = color * (1 - 0.4 * mota[..., None])
-    return color, np.full(forma, 0.5), 0.5 + 0.05 * (b - 0.5)
+    """Plástico reciclado (tableros): fondo claro con escamas de colores aplastadas, de bordes nítidos."""
+    pal = np.array([[0.85, 0.40, 0.30], [0.35, 0.55, 0.85], [0.95, 0.85, 0.35], [0.30, 0.65, 0.45],
+                    [0.22, 0.22, 0.25], [0.95, 0.95, 0.93]])
 
+    def escama(u, v):
+        r = u * u + v * v
+        return np.where(r < 1, 1.0, 0.0)
+
+    tw, th = forma[1] * cx, forma[0] * cy
+    n = tw * th / (1.2 * 0.7 * 3.2)
+    _, quien, _, _ = esparcir(forma, cx, cy, n, 1.2, 0.7, 25901, escama, variar=0.6)
+    rng = np.random.default_rng(25902)
+    tono = pal[rng.integers(0, len(pal), int(n) + 1)]
+    base = np.array([0.82, 0.82, 0.80])
+    color = np.where(quien[..., None] >= 0, tono[np.maximum(quien, 0)], base)
+    color = 0.7 * color + 0.3 * 0.5
+    b = ruido_cm(forma, cx, cy, 1.5, 25903, octavas=3)
+    color = color * (0.95 + 0.1 * b)[..., None]
+    color = np.clip(color * (0.5 / color.mean()), 0, 1)
+    return color, np.full(forma, 0.5), 0.5 + 0.03 * (b - 0.5)
 
 def esmerilado(forma, cx, cy):
     """Plástico translúcido esmerilado (táper, carpeta): grano mate fino y uniforme."""
