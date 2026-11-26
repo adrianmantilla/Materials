@@ -220,9 +220,11 @@ ACABADOS = [
 
 import acab_metal  # noqa: E402
 import acab_plastico  # noqa: E402
+import acab_tela  # noqa: E402
 
 # Lotes de acabados: el primero son los de las estructuras de los lotes 1-3.
-LOTES = {"base": ACABADOS, "metal": acab_metal.ACABADOS, "plastico": acab_plastico.ACABADOS}
+LOTES = {"base": ACABADOS, "metal": acab_metal.ACABADOS, "plastico": acab_plastico.ACABADOS,
+         "tela": acab_tela.ACABADOS}
 TODOS = [d for lote in LOTES.values() for d in lote]
 
 
@@ -241,6 +243,8 @@ def fabricar(d, catalogo, res):
     forma = (res, res)
     cx, cy = d["tile_cm"][0] / res, d["tile_cm"][1] / res
     color, rugosidad, altura = d["funcion"](forma, cx, cy)
+    rugosidad = np.broadcast_to(np.asarray(rugosidad, dtype=np.float64), forma)
+    altura = np.broadcast_to(np.asarray(altura, dtype=np.float64), forma)
     color, rugosidad, altura = (np.clip(a, 0.0, 1.0) for a in (color, rugosidad, altura))
     carpeta = os.path.join(catalogo, "acabados", d["id"])
     sub = os.path.join(carpeta, CARPETA_RES.get(res, "1k"))
