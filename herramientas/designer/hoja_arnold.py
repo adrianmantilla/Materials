@@ -41,6 +41,18 @@ RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6)}
 COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a", "octogono_taco": "#1e1e1e"}
 
 
+def _aclarar(hex_color, minimo=0.16):
+    """En la hoja, un acabado casi negro no deja ver nada: se aclara hasta un gris oscuro legible."""
+    h = hex_color.lstrip("#")
+    rgb = [int(h[i:i + 2], 16) / 255.0 for i in (0, 2, 4)]
+    m = max(rgb)
+    if m >= minimo:
+        return hex_color
+    k = minimo / max(m, 1e-3)
+    rgb = [min(1.0, c * k) if m > 0.02 else minimo for c in rgb]
+    return "#" + "".join("{:02x}".format(int(round(c * 255))) for c in rgb)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("catalogo")
@@ -90,7 +102,7 @@ def main():
         color = COLORES_PIEZA.get(est.id, color)
         rug, metal = RUG_METAL.get(est.id, (rug, metal))
         if a.acabados:
-            color = est.datos.get("muestra", color)
+            color = _aclarar(est.datos.get("muestra", color))
             rug = float(est.datos.get("muestra_rug", 0.5))
             metal = float(est.datos.get("muestra_metal", 0.0))
         receta = rc.nueva(nombre=est.nombre, color=color, rugosidad=rug, metal=metal)
@@ -110,11 +122,15 @@ def main():
                     cmds.setAttr(ctrl + ".relieveCm", cmds.getAttr(ctrl + ".relieveCm") * a.relieve_x)
         camara, forma = cmds.camera(name="cam")
         # Encuadre: a.encuadre cm de pared llenan la imagen (36 mm de película horizontal).
-        cmds.setAttr(camara + ".translateZ", a.encuadre * 50.0 / 36.0)
+        encuadre = a.encuadre
+        if a.acabados and not es_metal:
+            # Un acabado se juzga de cerca: algo más de una repetición llena la imagen.
+            encuadre = max(2.0, min(a.encuadre, 1.2 * est.tile_cm[0]))
+        cmds.setAttr(camara + ".translateZ", encuadre * 50.0 / 36.0)
         cmds.setAttr(forma + ".focalLength", 50)
         # Sol rasante desde arriba a la izquierda, para que se lean juntas y biseles.
         sol = cmds.listRelatives(cmds.directionalLight(name="sol", intensity=4.5), parent=True)[0]
-        cmds.setAttr(sol + ".rotateX", -55)
+        cmds.setAttr(sol + ".rotateX", -70 if a.acabados and not es_metal else -55)  # más rasante: relieve fino
         cmds.setAttr(sol + ".rotateY", -50)
         cielo = cmds.shadingNode("aiSkyDomeLight", asLight=True, name="cielo")
         cmds.setAttr(cielo + ".intensity", 0.6)
