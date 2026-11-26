@@ -38,11 +38,17 @@ COLORES_PIEZA = {"bloque_hormigon": "#8e8b85", "baldosa_30": "#b9a58c", "baldosa
                  "azulejo_metro_vertical": "#f2f0ea", "azulejo_espiga": "#2f5f6f", "azulejo_10": "#e6c64a",
                  "baldosa_gran_formato": "#cfcac2", "baldosa_diagonal": "#c9b89c", "opus_romano": "#d6c4a4",
                  "losas_rectangulares": "#5f6166", "adoquin_espiga": "#8f8a82", "adoquin_madera": "#7a5a3c",
-                 "tarima_exterior": "#8a6a48", "bloque_split": "#9a968f", "bloque_vidrio": "#b8ccd0"}
+                 "tarima_exterior": "#8a6a48", "bloque_split": "#9a968f", "bloque_vidrio": "#b8ccd0",
+                 "parquet_espiga_doble": "#a87a4e", "parquet_bastones": "#c29a68", "tablas_diagonal": "#7d5a3c",
+                 "hexagono_alargado": "#5d7f73", "mosaico_penny": "#e9e4da", "zellige": "#2f6f6a",
+                 "azulejo_biselado": "#efeee8", "trencadis": "#3f74a8", "mosaico_teselas": "#c9a24a",
+                 "adoquin_cesta": "#8f5f45", "adoquin_hexagonal": "#7c7a75", "losa_hormigon": "#a19d96",
+                 "panel_composite": "#4a4e53", "panel_ranurado": "#b08a60", "cubos_3d": "#d9d4c8",
+                 "rombos": "#b65a3c", "azulejo_escama": "#4f8f9a"}
 # Rugosidad y metal propios (chapas).
-RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6), "bloque_vidrio": (0.05, 0.0)}
+RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6), "bloque_vidrio": (0.05, 0.0), "panel_composite": (0.3, 0.8)}
 # Estructuras con «color 2» (zona2): el segundo color de la muestra.
-COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a", "octogono_taco": "#1e1e1e"}
+COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a", "octogono_taco": "#1e1e1e", "cubos_3d": "#3a3a3a"}
 
 
 def _aclarar(hex_color, minimo=0.42):

@@ -5,7 +5,7 @@ import math
 import numpy as np
 
 from superficie import (SARGA_2_1, SATEN_5, TAFETAN, celdas, estirado, gris, hoyuelos, manchas_fractales,
-                        rejilla, ruido_cm, salpicado, suave, tejido)
+                        rejilla, ruido_cm, suave, tejido)
 import patrones
 
 

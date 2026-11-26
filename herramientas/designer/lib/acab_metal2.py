@@ -122,9 +122,9 @@ def pavonado(forma, cx, cy):
 def cromo(forma, cx, cy):
     """Cromo pulido: espejo casi perfecto con muy pocos arañazos y manchas de cal."""
     r = rayas(forma, cx, cy, 60, 2.0, 0.003, 23001)
-    cal = salpicado(forma, cx, cy, 0.15, 23002, 0.02, borde=0.08)
-    color = gris(0.5 - 0.02 * r + 0.03 * cal)
-    return color, 0.5 + 0.2 * r + 0.4 * cal, 0.5 - 0.1 * r
+    cal = salpicado(forma, cx, cy, 0.6, 23002, 0.04, borde=0.2)
+    color = gris(0.5 - 0.02 * r + 0.02 * cal)
+    return color, 0.5 + 0.2 * r + 0.2 * cal, 0.5 - 0.1 * r
 
 
 def perlado(forma, cx, cy, paso=0.6):

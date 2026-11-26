@@ -376,6 +376,9 @@ def zona_color2(zona, forma, cm_px_x, cm_px_y):
         u, v = x % lado, y % lado
         du, dv = np.minimum(u, lado - u), np.minimum(v, lado - v)
         return (du + dv < zona["corte"]).astype(np.float64)
+    if zona["tipo"] == "cubos":
+        # Tres tonos (0; 0,5; 1) para las tres caras del cubo.
+        return patrones.sector_cubo(x, y, lado).astype(np.float64) / 2.0
     raise ValueError("zona desconocida: " + zona["tipo"])
 
 

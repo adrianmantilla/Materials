@@ -1,7 +1,5 @@
 """Acabados de pinturas, lacas, plásticos, gomas y fibra de carbono."""
 
-import math
-
 import numpy as np
 
 from superficie import (SARGA_2_2, TAFETAN, celdas, estirado, gris, hoyuelos, manchas_fractales, rayas,

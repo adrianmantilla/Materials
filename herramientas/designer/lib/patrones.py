@@ -208,6 +208,58 @@ def punta_hungria(x, y, largo, ancho, angulo=45.0):
     return _codigo(derecha.astype(np.int64), col, fila)
 
 
+def paralelogramos(x, y, a1, a2):
+    """Celdas de la red (a1, a2) tal cual: rombos, romboides."""
+    det = a1[0] * a2[1] - a2[0] * a1[1]
+    s = (a2[1] * x - a2[0] * y) / det
+    t = (-a1[1] * x + a1[0] * y) / det
+    return _codigo(0, np.floor(s).astype(np.int64), np.floor(t).astype(np.int64))
+
+
+def _centro_hex(x, y, radio):
+    """Centro del hexágono (vértice arriba, lado ``radio``) que contiene cada punto."""
+    a1, a2 = (math.sqrt(3) * radio, 0.0), (math.sqrt(3) * radio / 2, 1.5 * radio)
+    det = a1[0] * a2[1] - a2[0] * a1[1]
+    s = (a2[1] * x - a2[0] * y) / det
+    t = (-a1[1] * x + a1[0] * y) / det
+    c0, c1 = np.floor(s).astype(np.int64), np.floor(t).astype(np.int64)
+    mejor = np.full(x.shape, np.inf)
+    i0, j0 = np.zeros_like(c0), np.zeros_like(c1)
+    for i in range(-1, 3):
+        for j in range(-1, 3):
+            px = (c0 + i) * a1[0] + (c1 + j) * a2[0]
+            py = (c0 + i) * a1[1] + (c1 + j) * a2[1]
+            d = (x - px) ** 2 + (y - py) ** 2
+            cerca = d < mejor
+            mejor = np.where(cerca, d, mejor)
+            i0, j0 = np.where(cerca, c0 + i, i0), np.where(cerca, c1 + j, j0)
+    px = i0 * a1[0] + j0 * a2[0]
+    py = i0 * a1[1] + j0 * a2[1]
+    return i0, j0, px, py
+
+
+def sector_cubo(x, y, radio):
+    """0, 1 o 2: cuál de los tres rombos del hexágono (las tres caras del cubo)."""
+    _, _, px, py = _centro_hex(x, y, radio)
+    ang = np.degrees(np.arctan2(y - py, x - px))
+    return (np.floor(((ang - 30.0) % 360.0) / 120.0)).astype(np.int64) % 3
+
+
+def circulos(x, y, radio, circulo):
+    """Círculos de radio ``circulo`` centrados en una red hexagonal (mosaico penny); fuera, junta."""
+    i0, j0, px, py = _centro_hex(x, y, radio)
+    dentro = (x - px) ** 2 + (y - py) ** 2 < circulo ** 2
+    return np.where(dentro, _codigo(0, i0, j0), -1)
+
+
+def cubos(x, y, radio):
+    """Cubos en perspectiva (tumbling blocks): cada hexágono partido en tres rombos."""
+    i0, j0, px, py = _centro_hex(x, y, radio)
+    ang = np.degrees(np.arctan2(y - py, x - px))
+    sector = (np.floor(((ang - 30.0) % 360.0) / 120.0)).astype(np.int64) % 3
+    return _codigo(sector, i0, j0)
+
+
 def ids_de(d, x, y):
     p = d["patron"]
     tipo = p["tipo"]
@@ -232,6 +284,14 @@ def ids_de(d, x, y):
         return sillar_irregular(x, y, d["tile_cm"], p.get("semilla", 1), p["alturas"], p["anchos"])
     if tipo == "octogono":
         return octogono(x, y, p["lado"], p["corte"])
+    if tipo == "red_voronoi":
+        return red_voronoi(x, y, tuple(p["a1"]), tuple(p["a2"]), alcance=p.get("alcance", 3))
+    if tipo == "paralelogramos":
+        return paralelogramos(x, y, tuple(p["a1"]), tuple(p["a2"]))
+    if tipo == "cubos":
+        return cubos(x, y, p["radio"])
+    if tipo == "circulos":
+        return circulos(x, y, p["radio"], p["circulo"])
     if tipo == "punta_hungria":
         return punta_hungria(x, y, p["largo"], p["ancho"], p.get("angulo", 45.0))
     raise ValueError("patrón desconocido: " + tipo)
@@ -246,7 +306,7 @@ def forma(d, res, distancia):
     x, y = (xx + 0.5) * px, (yy + 0.5) * py
     ids = ids_de(d, x, y)
     cubierto = float((ids >= 0).mean())
-    if cubierto < CUBRE_MIN and d["patron"]["tipo"] != "guijarros":
+    if cubierto < CUBRE_MIN and d["patron"]["tipo"] not in ("guijarros", "circulos"):
         raise ValueError("{}: el patrón deja sin pieza el {:.2%} de la imagen".format(d["id"], 1 - cubierto))
     borde = (ids != ids_de(d, x + px, y)) | (ids != ids_de(d, x, y + py))
     junta = d["junta_cm"]

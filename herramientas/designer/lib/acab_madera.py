@@ -1,10 +1,8 @@
 """Acabados de madera: especies (veta a lo largo de X), nudos, radios, envejecida, quemada, tableros."""
 
-import math
-
 import numpy as np
 
-from superficie import (celdas, estirado, gris, grietas, hoyuelos, manchas_fractales, mezclar, rayas, rejilla,
+from superficie import (celdas, estirado, gris, grietas, hoyuelos, manchas_fractales, mezclar, rejilla,
                         ruido_cm, salpicado, suave)
 
 
