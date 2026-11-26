@@ -190,9 +190,9 @@ def forma(d, res, distancia):
         raise ValueError("{}: el patrón deja sin pieza el {:.2%} de la imagen".format(d["id"], 1 - cubierto))
     borde = (ids != ids_de(d, x + px, y)) | (ids != ids_de(d, x, y + py))
     junta = d["junta_cm"]
-    dist = distancia(~borde, px, py, max(junta, 2.0 * max(px, py)))
+    dist = distancia(~borde, px, py, max(junta, 3.0 * max(px, py)))
     # Una junta de menos de dos píxeles se rompería en diagonal y pegaría piezas.
-    mascara = dist >= max(junta / 2.0, 0.75 * max(px, py))
+    mascara = dist >= max(junta / 2.0, 1.2 * max(px, py))
     redondeo = d["patron"].get("redondeo", 0.0)
     if redondeo > 0:
         # Esquinas redondeadas (cantos rodados, mampuestos): desenfocar y volver a umbralizar.
