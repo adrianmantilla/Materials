@@ -34,9 +34,13 @@ COLORES_PIEZA = {"bloque_hormigon": "#8e8b85", "baldosa_30": "#b9a58c", "baldosa
                  "baldosa_barro": "#b5653d", "cantos_rodados": "#a49d92",
                  "mosaico_gresite": "#3f8fa8", "mosaico_hexagonal": "#eeece7", "octogono_taco": "#e9e4da",
                  "adoquin_granito": "#8d8880", "muro_piedra_seca": "#a89c88", "teja_plana": "#a4502f",
-                 "chapa_ondulada": "#b4b9be", "chapa_grecada": "#7f8a8f"}
+                 "chapa_ondulada": "#b4b9be", "chapa_grecada": "#7f8a8f",
+                 "azulejo_metro_vertical": "#f2f0ea", "azulejo_espiga": "#2f5f6f", "azulejo_10": "#e6c64a",
+                 "baldosa_gran_formato": "#cfcac2", "baldosa_diagonal": "#c9b89c", "opus_romano": "#d6c4a4",
+                 "losas_rectangulares": "#5f6166", "adoquin_espiga": "#8f8a82", "adoquin_madera": "#7a5a3c",
+                 "tarima_exterior": "#8a6a48", "bloque_split": "#9a968f", "bloque_vidrio": "#b8ccd0"}
 # Rugosidad y metal propios (chapas).
-RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6)}
+RUG_METAL = {"chapa_ondulada": (0.35, 1.0), "chapa_grecada": (0.45, 0.6), "bloque_vidrio": (0.05, 0.0)}
 # Estructuras con «color 2» (zona2): el segundo color de la muestra.
 COLOR2 = {"baldosa_hidraulica": "#2d4a6b", "damero_marmol": "#2a2a2a", "octogono_taco": "#1e1e1e"}
 
